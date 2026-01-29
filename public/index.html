@@ -13,7 +13,6 @@
         
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
         
-        /* INPUTS & BUTTONS */
         .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
         .input-std:focus { border-color: #00ffcc; outline: none; background: #333; }
         
@@ -41,9 +40,12 @@
         .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
         .lb-item:first-child { color: #ffcc00; font-weight: bold; } 
         
-        /* GAME AREA */
-        .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
-        @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
+        /* GAME AREA & SCALING */
+        /* Changed scale to 0.75 for iPad friendliness */
+        .game-area { display: flex; gap: 40px; transform: scale(0.75); transition: 0.5s; width: 100%; justify-content: center; }
+        
+        @media (max-height: 900px) { .game-area { transform: scale(0.65); } }
+        @media (max-width: 1024px) { .game-area { transform: scale(0.6); gap: 20px; } }
         
         .player-root { display: flex; flex-direction: column; align-items: center; }
         .player-container { display: flex; align-items: flex-end; gap: 10px; position: relative; }
@@ -94,11 +96,9 @@
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
     <div id="menu-container">
-        
         <div id="scr-login" class="screen active">
             <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
             <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
-            
             <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
             <input type="password" id="password" class="input-std" placeholder="PASSWORD" oninput="saveCreds()">
             <button class="btn btn-green" onclick="attemptLogin()">LOGIN / REGISTER</button>
@@ -106,7 +106,6 @@
 
         <div id="scr-main" class="screen">
             <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
-            
             <div id="main-split">
                 <div class="menu-left">
                     <div class="user-info">
@@ -114,23 +113,16 @@
                         Your Wins: <span id="display-wins" class="stat-highlight">0</span><br>
                         Best APM: <span id="display-apm" class="stat-highlight-apm">0</span>
                     </div>
-                    
                     <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
                     <button class="btn btn-apm" onclick="startAPMTest()">APM TEST</button>
                     <button class="btn btn-ffa" onclick="joinFFA()">ONLINE FFA</button>
                     <button class="btn" style="background:#333; color:#aaa; font-size:14px;" onclick="logOut()">LOGOUT</button>
                 </div>
-
                 <div class="menu-right">
                     <h3>ONLINE WIN LEADERBOARD</h3>
-                    <div id="lb-wins" class="lb-list">
-                        <div style="text-align:center; color:#666;">Loading...</div>
-                    </div>
-
+                    <div id="lb-wins" class="lb-list"><div style="text-align:center; color:#666;">Loading...</div></div>
                     <h3>HIGHEST APM SCORES</h3>
-                    <div id="lb-apm" class="lb-list">
-                        <div style="text-align:center; color:#666;">Loading...</div>
-                    </div>
+                    <div id="lb-apm" class="lb-list"><div style="text-align:center; color:#666;">Loading...</div></div>
                 </div>
             </div>
         </div>
@@ -161,7 +153,6 @@
                 <div class="stat-box"><div class="stat-label">PPS</div><div id="s-pps" class="stat-val">0.00</div></div>
                 <div class="stat-box"><div class="stat-label">APM</div><div id="s-apm" class="stat-val">0</div></div>
             </div>
-            
             <div class="player-container">
                 <div class="garbage-bar"><div id="p1-g" class="garbage-fill"></div></div>
                 <div class="side-col">
@@ -190,7 +181,6 @@
         let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
         let gameMode='zen', startTime=0, apmTimer=null;
         
-        // --- AUTH & NAVIGATION ---
         window.onload = function() {
             if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
             if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
@@ -223,6 +213,10 @@
         function goHome() {
             gameActive = false;
             clearTimeout(apmTimer);
+            
+            // Tell server to take us out of FFA pool
+            if (socket) socket.emit('leave_lobby');
+
             document.getElementById('game-ui').classList.add('hidden');
             document.getElementById('home-btn').classList.add('hidden');
             document.getElementById('kill-feed').innerHTML = '';
@@ -235,6 +229,7 @@
 
         // --- GAME MODES ---
         function startZen() {
+            if(socket) socket.emit('leave_lobby'); // Ensure safe from FFA
             gameMode='zen';
             setupGameUI();
             p1.initRNG(Math.random()*999); p1.reset(); 
@@ -242,6 +237,7 @@
         }
 
         function startAPMTest() {
+            if(socket) socket.emit('leave_lobby'); // Ensure safe from FFA
             gameMode='apm_test';
             setupGameUI();
             p1.initRNG(Math.random()*999); p1.reset();
@@ -292,21 +288,19 @@
                     document.getElementById('display-user').innerText = data.username.toUpperCase();
                     document.getElementById('display-wins').innerText = data.wins;
                     document.getElementById('display-apm').innerText = data.bestAPM;
-                    document.getElementById('chat-container').classList.remove('hidden'); // Show Chat on Login
+                    document.getElementById('chat-container').classList.remove('hidden'); 
                 } else {
                     alert(data.msg);
                 }
             });
 
             socket.on('leaderboard_update', data => {
-                // Wins
                 const winDiv = document.getElementById('lb-wins');
                 winDiv.innerHTML = '';
                 data.wins.forEach((p, i) => {
                     winDiv.innerHTML += `<div class="lb-item"><span>${i+1}. ${p.name}</span> <span>${p.val} W</span></div>`;
                 });
                 
-                // APM
                 const apmDiv = document.getElementById('lb-apm');
                 apmDiv.innerHTML = '';
                 data.apm.forEach((p, i) => {
@@ -325,7 +319,6 @@
             socket.on('lobby_update', data => {
                 document.getElementById('wait-msg').innerText = "WAITING FOR PLAYERS...";
                 document.getElementById('lobby-count').innerText = data.count + " In Lobby (Need 2 to start)";
-                document.getElementById('chat-container').classList.remove('hidden');
             });
 
             socket.on('receive_chat', data => {
@@ -336,7 +329,6 @@
 
             socket.on('ffa_spectate', data => {
                 document.getElementById('wait-msg').innerText = "MATCH IN PROGRESS. SPECTATING...";
-                document.getElementById('chat-container').classList.remove('hidden');
                 setTimeout(() => {
                     isSpectator = true;
                     gameMode = 'ffa';
@@ -345,9 +337,12 @@
             });
 
             socket.on('start_countdown', data => {
+                if (gameMode !== 'ffa' && gameMode !== 'zen') gameMode = 'ffa'; // Failsafe
+                // Ensure we aren't in Zen/APM mode locally
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
+
                 setupGameUI();
                 document.getElementById('overlay-win').classList.add('hidden');
-                document.getElementById('chat-container').classList.remove('hidden');
                 const ov = document.getElementById('overlay-cnt');
                 const tx = document.getElementById('cnt-txt');
                 ov.classList.remove('hidden');
@@ -362,17 +357,30 @@
             });
 
             socket.on('match_start', data => {
+                if (gameMode !== 'ffa') return; // Strict guard
                 inputLocked = false;
                 gameMode = data.mode;
                 isSpectator = false;
                 setupOnlineGame(data.seed, data.players);
             });
 
-            socket.on('receive_garbage', n => { if(!isSpectator) p1.receiveGarbage(n); });
-            socket.on('enemy_board_update', d => drawEnemy(d.id, d.grid));
-            socket.on('elimination', d => feed(`${d.username} eliminated!`));
+            socket.on('receive_garbage', n => { 
+                if (gameMode !== 'ffa') return;
+                if(!isSpectator) p1.receiveGarbage(n); 
+            });
+            
+            socket.on('enemy_board_update', d => {
+                if (gameMode !== 'ffa') return;
+                drawEnemy(d.id, d.grid);
+            });
+            
+            socket.on('elimination', d => {
+                if (gameMode !== 'ffa') return;
+                feed(`${d.username} eliminated!`);
+            });
             
             socket.on('round_over', data => {
+                if (gameMode !== 'ffa') return;
                 gameActive = false;
                 document.getElementById('win-txt').innerText = `${data.winner} WINS!`;
                 document.getElementById('overlay-win').classList.remove('hidden');
@@ -453,11 +461,9 @@
                 this.bag=[]; this.queue=[]; 
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0;
                 this.startTime = Date.now();
-                // RESET HOLD
                 this.holdId = null;
                 this.canHold = true;
-                this.drawSide(this.hCtx, [this.holdId]); // Clear Hold Canvas
-                
+                this.drawSide(this.hCtx, [this.holdId]);
                 for(let i=0;i<4;i++)this.queue.push(this.pull()); 
                 this.spawn(); 
             }
@@ -546,7 +552,6 @@
             
             updateStats(){
                 const sec = (Date.now() - this.startTime) / 1000;
-                
                 this.elSent.innerText = this.linesSentTotal;
                 this.elRecv.innerText = this.linesRecvTotal;
                 this.elPPS.innerText = (sec>0 ? (this.piecesPlaced/sec).toFixed(2) : "0.00");
@@ -634,3 +639,5 @@
     </script>
 </body>
 </html>
+</html>
+
