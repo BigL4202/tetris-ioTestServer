@@ -7,33 +7,67 @@ const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- GLOBAL STATE ---
-let ffaPlayers = []; // { id, username, alive, socket }
-let ffaState = 'waiting'; // 'waiting', 'countdown', 'playing', 'finished'
+let ffaPlayers = []; 
+let ffaState = 'waiting'; 
 let ffaSeed = 12345;
+
+// --- ACCOUNT SYSTEM ---
+// Format: { "username": "password" }
+// Note: This resets if you restart the server.
+const accounts = {}; 
 
 io.on('connection', (socket) => {
     
     // --- CHAT SYSTEM ---
     socket.on('send_chat', (msg) => {
-        // Broadcast to everyone in FFA room (Spectators + Players)
-        // Sanitize input slightly
         const cleanMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50);
         const name = socket.username || "Anon";
         io.to('ffa_room').emit('receive_chat', { user: name, text: cleanMsg });
     });
 
+    // --- LOGIN / REGISTER SYSTEM ---
+    socket.on('login_attempt', (data) => {
+        const user = data.username.trim().substring(0, 12);
+        const pass = data.password.trim();
+
+        if (!user || !pass) {
+            socket.emit('login_response', { success: false, msg: "Enter user & pass." });
+            return;
+        }
+
+        if (accounts[user]) {
+            // Account Exists - Verify Password
+            if (accounts[user] === pass) {
+                socket.username = user; // Attach to socket session
+                socket.emit('login_response', { success: true, username: user });
+            } else {
+                socket.emit('login_response', { success: false, msg: "Incorrect Password!" });
+            }
+        } else {
+            // New Account - Register
+            accounts[user] = pass;
+            socket.username = user;
+            socket.emit('login_response', { success: true, username: user });
+        }
+    });
+
     // --- FFA SYSTEM ---
-    socket.on('join_ffa', (username) => {
-        socket.username = (username || "Player").substring(0,12);
+    socket.on('join_ffa', () => {
+        // Security: Ensure they logged in first
+        if (!socket.username) return;
+
         socket.join('ffa_room');
         
-        // Determine state
+        // Check if already in lobby (prevent duplicates)
+        const existing = ffaPlayers.find(p => p.id === socket.id);
+        if (existing) return;
+
         if (ffaState === 'waiting' || ffaState === 'finished') {
             ffaPlayers.push({ id: socket.id, username: socket.username, alive: true, socket: socket });
             io.to('ffa_room').emit('lobby_update', { count: ffaPlayers.length });
             checkFFAStart();
         } else {
-            // Join as spectator
+            // Spectate
             const livingPlayers = ffaPlayers.filter(p => p.alive).map(p => ({ id: p.id, username: p.username }));
             socket.emit('ffa_spectate', { seed: ffaSeed, players: livingPlayers });
             ffaPlayers.push({ id: socket.id, username: socket.username, alive: false, socket: socket });
@@ -42,7 +76,6 @@ io.on('connection', (socket) => {
 
     // --- GAMEPLAY LOGIC ---
     socket.on('send_garbage', (data) => {
-        // FFA Split Logic
         if (ffaState === 'playing') {
             const targets = ffaPlayers.filter(p => p.alive && p.id !== socket.id);
             if (targets.length > 0) {
@@ -126,3 +159,4 @@ function checkFFAWin() {
 }
 
 http.listen(3000, () => { console.log('Server on 3000'); });
+
