@@ -12,8 +12,7 @@ let ffaState = 'waiting';
 let ffaSeed = 12345;
 
 // --- ACCOUNT SYSTEM ---
-// Format: { "username": "password" }
-// Note: This resets if you restart the server.
+// Structure: { "username": { password: "...", wins: 0 } }
 const accounts = {}; 
 
 io.on('connection', (socket) => {
@@ -25,7 +24,7 @@ io.on('connection', (socket) => {
         io.to('ffa_room').emit('receive_chat', { user: name, text: cleanMsg });
     });
 
-    // --- LOGIN / REGISTER SYSTEM ---
+    // --- LOGIN / REGISTER ---
     socket.on('login_attempt', (data) => {
         const user = data.username.trim().substring(0, 12);
         const pass = data.password.trim();
@@ -36,29 +35,32 @@ io.on('connection', (socket) => {
         }
 
         if (accounts[user]) {
-            // Account Exists - Verify Password
-            if (accounts[user] === pass) {
-                socket.username = user; // Attach to socket session
-                socket.emit('login_response', { success: true, username: user });
+            // Existing Account
+            if (accounts[user].password === pass) {
+                socket.username = user;
+                // Send Success + Current Wins
+                socket.emit('login_response', { success: true, username: user, wins: accounts[user].wins });
+                // Send Leaderboard
+                socket.emit('leaderboard_update', getLeaderboard());
             } else {
                 socket.emit('login_response', { success: false, msg: "Incorrect Password!" });
             }
         } else {
-            // New Account - Register
-            accounts[user] = pass;
+            // New Account
+            accounts[user] = { password: pass, wins: 0 };
             socket.username = user;
-            socket.emit('login_response', { success: true, username: user });
+            socket.emit('login_response', { success: true, username: user, wins: 0 });
+            // Broadcast new leaderboard (if a new user somehow has wins, or just to sync)
+            io.emit('leaderboard_update', getLeaderboard());
         }
     });
 
     // --- FFA SYSTEM ---
     socket.on('join_ffa', () => {
-        // Security: Ensure they logged in first
-        if (!socket.username) return;
+        if (!socket.username) return; // Must be logged in
 
         socket.join('ffa_room');
         
-        // Check if already in lobby (prevent duplicates)
         const existing = ffaPlayers.find(p => p.id === socket.id);
         if (existing) return;
 
@@ -74,7 +76,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- GAMEPLAY LOGIC ---
     socket.on('send_garbage', (data) => {
         if (ffaState === 'playing') {
             const targets = ffaPlayers.filter(p => p.alive && p.id !== socket.id);
@@ -116,6 +117,14 @@ io.on('connection', (socket) => {
 });
 
 // --- HELPERS ---
+function getLeaderboard() {
+    // Sort accounts by wins (descending) and take top 10
+    return Object.entries(accounts)
+        .map(([name, data]) => ({ name: name, wins: data.wins }))
+        .sort((a, b) => b.wins - a.wins)
+        .slice(0, 10);
+}
+
 function checkFFAStart() {
     if (ffaState === 'waiting' && ffaPlayers.length >= 2) {
         startFFARound();
@@ -143,9 +152,25 @@ function checkFFAWin() {
     const survivors = ffaPlayers.filter(p => p.alive);
     if (survivors.length <= 1) {
         ffaState = 'finished';
-        let winner = survivors.length === 1 ? survivors[0].username : "No One";
+        let winnerName = "No One";
         
-        io.to('ffa_room').emit('round_over', { winner: winner });
+        if (survivors.length === 1) {
+            winnerName = survivors[0].username;
+            // UPDATE WINS
+            if (accounts[winnerName]) {
+                accounts[winnerName].wins++;
+                
+                // Update the specific winner's client
+                const winnerSocket = survivors[0].socket;
+                if(winnerSocket) {
+                    winnerSocket.emit('update_my_wins', accounts[winnerName].wins);
+                }
+            }
+            // Broadcast new leaderboard
+            io.emit('leaderboard_update', getLeaderboard());
+        }
+        
+        io.to('ffa_room').emit('round_over', { winner: winnerName });
         
         setTimeout(() => {
             if (ffaPlayers.length >= 2) {
@@ -159,4 +184,3 @@ function checkFFAWin() {
 }
 
 http.listen(3000, () => { console.log('Server on 3000'); });
-
