@@ -24,7 +24,7 @@
         .btn-apm { background: #ff5555; color: #fff; }
         .btn-ffa { background: #ff9900; color: #000; }
 
-        /* MAIN MENU SPLIT LAYOUT */
+        /* SPLIT LAYOUT */
         #main-split { display: flex; flex-direction: row; gap: 50px; align-items: flex-start; margin-top: 20px; }
         .menu-left { display: flex; flex-direction: column; align-items: center; }
         .menu-right { width: 320px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 15px; max-height: 500px; overflow-y: auto; }
@@ -41,7 +41,7 @@
         .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
         .lb-item:first-child { color: #ffcc00; font-weight: bold; } 
         
-        /* GAME LAYOUT */
+        /* GAME AREA */
         .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
         @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
         
@@ -243,7 +243,6 @@
 
         function startAPMTest() {
             gameMode='apm_test';
-            clearTimeout(apmTimer); // Reset any existing timers
             setupGameUI();
             p1.initRNG(Math.random()*999); p1.reset();
             gameActive = true; loop();
@@ -454,6 +453,11 @@
                 this.bag=[]; this.queue=[]; 
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0;
                 this.startTime = Date.now();
+                // RESET HOLD
+                this.holdId = null;
+                this.canHold = true;
+                this.drawSide(this.hCtx, [this.holdId]); // Clear Hold Canvas
+                
                 for(let i=0;i<4;i++)this.queue.push(this.pull()); 
                 this.spawn(); 
             }
