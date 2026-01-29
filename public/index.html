@@ -13,6 +13,7 @@
         
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
         
+        /* INPUTS & BUTTONS */
         .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
         .input-std:focus { border-color: #00ffcc; outline: none; background: #333; }
         
@@ -23,7 +24,7 @@
         .btn-apm { background: #ff5555; color: #fff; }
         .btn-ffa { background: #ff9900; color: #000; }
 
-        /* SPLIT LAYOUT */
+        /* MAIN MENU SPLIT LAYOUT */
         #main-split { display: flex; flex-direction: row; gap: 50px; align-items: flex-start; margin-top: 20px; }
         .menu-left { display: flex; flex-direction: column; align-items: center; }
         .menu-right { width: 320px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 15px; max-height: 500px; overflow-y: auto; }
@@ -40,7 +41,7 @@
         .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
         .lb-item:first-child { color: #ffcc00; font-weight: bold; } 
         
-        /* GAME AREA */
+        /* GAME LAYOUT */
         .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
         @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
         
@@ -189,6 +190,7 @@
         let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
         let gameMode='zen', startTime=0, apmTimer=null;
         
+        // --- AUTH & NAVIGATION ---
         window.onload = function() {
             if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
             if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
@@ -241,6 +243,7 @@
 
         function startAPMTest() {
             gameMode='apm_test';
+            clearTimeout(apmTimer); // Reset any existing timers
             setupGameUI();
             p1.initRNG(Math.random()*999); p1.reset();
             gameActive = true; loop();
@@ -584,6 +587,15 @@
         const ctrl = {left:'ArrowLeft',right:'ArrowRight',rotate:'ArrowUp',soft:'ArrowDown',hard:'Space',hold:'ShiftLeft'};
         
         window.addEventListener('keydown', e=>{
+            // Global Hotkeys (R for Restart)
+            if(gameMode === 'zen' || gameMode === 'apm_test') {
+                if(document.activeElement.tagName !== 'INPUT' && e.code === 'KeyR') {
+                    if(gameMode === 'zen') startZen();
+                    if(gameMode === 'apm_test') startAPMTest();
+                    return;
+                }
+            }
+
             if(!inputLocked && gameActive && !isSpectator){
                 if(["Space","ArrowUp","ArrowDown"].includes(e.code)) e.preventDefault();
                 if(!keys.has(e.code)){
