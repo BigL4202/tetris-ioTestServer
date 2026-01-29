@@ -12,7 +12,10 @@
         .active { display: flex; }
         
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
-        .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 10px 0; width: 300px; text-align: center; }
+        
+        .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; }
+        .input-std:focus { border-color: #00ffcc; outline: none; }
+        
         .btn { padding: 15px 40px; font-size: 18px; cursor: pointer; border: none; font-weight: bold; border-radius: 6px; margin: 10px; width: 280px; text-transform: uppercase; transition: 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
         .btn-zen { background: #a29bfe; color: #000; }
@@ -78,10 +81,13 @@
     <div id="menu-container">
         <div id="scr-main" class="screen active">
             <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
-            <input type="text" id="username" class="input-std" placeholder="ENTER USERNAME" maxlength="12">
+            
+            <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12">
+            <input type="password" id="password" class="input-std" placeholder="PASSWORD">
+            
             <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
             <button class="btn btn-apm" onclick="startAPMTest()">APM TEST (1 MIN)</button>
-            <button class="btn btn-ffa" onclick="joinFFA()">ONLINE FFA</button>
+            <button class="btn btn-ffa" onclick="attemptLogin()">ONLINE FFA</button>
         </div>
         <div id="scr-wait" class="screen">
             <h2 id="wait-msg">JOINING...</h2>
@@ -140,7 +146,6 @@
         let gameMode='zen'; 
         let apmTimer=null; 
 
-        // --- NAVIGATION ---
         function navTo(id) {
             document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -149,27 +154,22 @@
             clearTimeout(apmTimer);
             location.reload(); 
         }
-        function getUser() { return document.getElementById('username').value.trim() || "Player"; }
+        function getUser() { return document.getElementById('username').value.trim(); }
+        function getPass() { return document.getElementById('password').value.trim(); }
 
-        // --- GAME MODES ---
+        // --- MODES ---
         function startZen() {
             gameMode='zen';
             setupGameUI();
-            p1.initRNG(Math.random()*999); 
-            p1.reset(); 
-            gameActive = true; 
-            loop();
+            p1.initRNG(Math.random()*999); p1.reset(); 
+            gameActive = true; loop();
         }
 
         function startAPMTest() {
             gameMode='apm_test';
             setupGameUI();
-            p1.initRNG(Math.random()*999); 
-            p1.reset();
-            gameActive = true;
-            loop();
-            
-            // 60s Timer Logic
+            p1.initRNG(Math.random()*999); p1.reset();
+            gameActive = true; loop();
             apmTimer = setTimeout(() => {
                 gameActive = false;
                 const finalAPM = p1.elAPM.innerText;
@@ -181,12 +181,17 @@
             }, 60000);
         }
 
-        function joinFFA() {
+        // --- AUTH & JOIN ---
+        function attemptLogin() {
             if(typeof io==='undefined') return alert("Host online for FFA.");
+            
+            const user = getUser();
+            const pass = getPass();
+            
+            if(!user || !pass) return alert("Please enter Username and Password.");
+
             connect();
-            navTo('scr-wait');
-            document.getElementById('wait-msg').innerText = "JOINING FFA LOBBY...";
-            socket.emit('join_ffa', getUser());
+            socket.emit('login_attempt', { username: user, password: pass });
         }
 
         function setupGameUI() {
@@ -195,7 +200,7 @@
             document.getElementById('home-btn').classList.remove('hidden');
         }
 
-        // --- CHAT LOGIC ---
+        // --- CHAT ---
         function sendChat(e) {
             if(e.key === 'Enter') {
                 const input = document.getElementById('chat-input');
@@ -207,10 +212,23 @@
             }
         }
 
-        // --- SOCKET LOGIC ---
+        // --- SOCKETS ---
         function connect() {
             if(socket) return;
             socket = io();
+
+            // LOGIN RESP
+            socket.on('login_response', data => {
+                if(data.success) {
+                    navTo('scr-wait');
+                    document.getElementById('wait-msg').innerText = `WELCOME ${data.username.toUpperCase()}. JOINING...`;
+                    socket.emit('join_ffa');
+                } else {
+                    alert(data.msg);
+                    socket.disconnect();
+                    socket = null; // Reset so they can try again
+                }
+            });
 
             socket.on('lobby_update', data => {
                 document.getElementById('wait-msg').innerText = "WAITING FOR PLAYERS...";
@@ -274,7 +292,7 @@
             socket.on('lobby_reset', () => { alert("Not enough players."); goHome(); });
         }
 
-        // --- GAME ENGINE ---
+        // --- ENGINE ---
         function setupOnlineGame(seed, players) {
             gameActive = true;
             p1.initRNG(seed);
@@ -317,7 +335,7 @@
             f.appendChild(d); setTimeout(()=>d.remove(),4000);
         }
 
-        // --- PLAYER CLASS ---
+        // --- PLAYER ---
         class SeededRNG { constructor(s){this.s=s;} next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} }
         
         class Player {
@@ -326,13 +344,11 @@
                 this.nCtx=document.getElementById('p1-n').getContext('2d');
                 this.hCtx=document.getElementById('p1-h').getContext('2d');
                 this.gBar=document.getElementById('p1-g');
-                // Stats Elements
                 this.elSent=document.getElementById('s-sent');
                 this.elRecv=document.getElementById('s-recv');
                 this.elTime=document.getElementById('s-time');
                 this.elPPS=document.getElementById('s-pps');
                 this.elAPM=document.getElementById('s-apm');
-                // Popup Elements
                 this.popAct=document.getElementById('pop-action');
                 this.popCmbo=document.getElementById('pop-combo');
                 this.popB2B=document.getElementById('pop-b2b');
@@ -343,14 +359,14 @@
                 this.dropCounter=0; this.lockTimer=0; this.dasTimer=0; this.arrTimer=0;
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0;
                 this.rng=new SeededRNG(1);
-                this.startTime = Date.now(); // Internal timer
+                this.startTime = Date.now();
             }
             initRNG(s){this.rng=new SeededRNG(s);}
             reset(){ 
                 this.grid.forEach(r=>r.fill(0)); 
                 this.bag=[]; this.queue=[]; 
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0;
-                this.startTime = Date.now(); // RESET TIMER ON GAME START
+                this.startTime = Date.now();
                 for(let i=0;i<4;i++)this.queue.push(this.pull()); 
                 this.spawn(); 
             }
@@ -419,7 +435,6 @@
 
             hardDrop(){ while(!this.collide())this.active.pos.y++; this.active.pos.y--; this.lock(); }
             hold(){ if(!this.canHold)return; const c=this.active.id; if(this.holdId===null){this.holdId=c;this.spawn();}else{const t=this.holdId;this.holdId=c;this.spawn(t);} this.canHold=false; this.drawSide(this.hCtx,[this.holdId]); }
-            
             checkTSpin() { return false; } 
 
             lock(){
@@ -468,7 +483,6 @@
             receiveGarbage(n){ this.pendingG+=n; this.linesRecvTotal+=n; this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats(); }
             
             updateStats(){
-                // TIMER LOGIC USING INTERNAL START TIME
                 const sec = (Date.now() - this.startTime) / 1000;
                 
                 this.elSent.innerText = this.linesSentTotal;
@@ -477,7 +491,7 @@
                 this.elAPM.innerText = (sec>0 ? Math.floor((this.linesSentTotal/sec)*60) : 0);
                 
                 let displaySec = sec;
-                if(gameMode === 'apm_test') displaySec = 60 - sec; // Count down
+                if(gameMode === 'apm_test') displaySec = 60 - sec;
                 if(displaySec < 0) displaySec = 0;
 
                 const m=Math.floor(displaySec/60).toString().padStart(2,'0');
@@ -549,7 +563,7 @@
                         if(p1.dasTimer>130){ p1.arrTimer+=dt; if(p1.arrTimer>0){ p1.move(d); p1.arrTimer=0; } }
                     }
                     p1.update(dt);
-                    p1.updateStats(); // Tick stats
+                    p1.updateStats();
                 }
                 p1.draw();
             }
