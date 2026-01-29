@@ -13,7 +13,6 @@
         
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
         
-        /* INPUTS & BUTTONS */
         .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
         .input-std:focus { border-color: #00ffcc; outline: none; background: #333; }
         
@@ -24,12 +23,11 @@
         .btn-apm { background: #ff5555; color: #fff; }
         .btn-ffa { background: #ff9900; color: #000; }
 
-        /* MAIN MENU SPLIT LAYOUT */
+        /* SPLIT LAYOUT */
         #main-split { display: flex; flex-direction: row; gap: 50px; align-items: flex-start; margin-top: 20px; }
         .menu-left { display: flex; flex-direction: column; align-items: center; }
         .menu-right { width: 320px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 15px; max-height: 500px; overflow-y: auto; }
         
-        /* UPDATED USER INFO */
         .user-info { margin-bottom: 20px; font-size: 20px; color: #aaa; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; width: 100%; line-height: 1.6; }
         .user-info span { color: #fff; font-weight: bold; }
         .stat-highlight { color: #ffcc00; font-weight: bold; }
@@ -42,7 +40,7 @@
         .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
         .lb-item:first-child { color: #ffcc00; font-weight: bold; } 
         
-        /* GAME LAYOUT */
+        /* GAME AREA */
         .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
         @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
         
@@ -68,9 +66,10 @@
         #win-txt { font-size: 60px; font-weight: 900; color: #00ffcc; text-shadow: 0 0 30px #00ffcc; }
         .sub-txt { font-size: 24px; color: #fff; margin-top: 10px; }
         
-        #chat-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 250px; display: flex; flex-direction: column; z-index: 200; pointer-events: auto; }
-        #chat-history { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 5px; margin-bottom: 5px; font-size: 12px; font-family: monospace; }
-        #chat-input { background: #222; border: 1px solid #444; color: #fff; padding: 5px; width: 100%; box-sizing: border-box; }
+        /* CHAT */
+        #chat-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 250px; display: flex; flex-direction: column; z-index: 300; pointer-events: auto; }
+        #chat-history { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.8); border: 1px solid #333; padding: 5px; margin-bottom: 5px; font-size: 12px; font-family: monospace; border-radius: 4px; }
+        #chat-input { background: #222; border: 1px solid #444; color: #fff; padding: 5px; width: 100%; box-sizing: border-box; border-radius: 4px; }
         .chat-line { margin-bottom: 2px; word-wrap: break-word; }
         .chat-user { font-weight: bold; color: #00ffcc; }
 
@@ -190,7 +189,6 @@
         let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
         let gameMode='zen', startTime=0, apmTimer=null;
         
-        // --- AUTH & NAVIGATION ---
         window.onload = function() {
             if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
             if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
@@ -208,6 +206,7 @@
 
         function logOut() {
             localStorage.clear();
+            document.getElementById('chat-container').classList.add('hidden'); 
             location.reload();
         }
 
@@ -215,7 +214,6 @@
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
             if(!user || !pass) return alert("Please enter Username and Password.");
-            
             if(!socket) connect();
             socket.emit('login_attempt', { username: user, password: pass });
         }
@@ -225,7 +223,6 @@
             clearTimeout(apmTimer);
             document.getElementById('game-ui').classList.add('hidden');
             document.getElementById('home-btn').classList.add('hidden');
-            document.getElementById('chat-container').classList.add('hidden');
             document.getElementById('kill-feed').innerHTML = '';
             document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
             document.getElementById('menu-container').style.display = 'flex';
@@ -254,9 +251,7 @@
                 winOver.classList.remove('hidden');
                 document.getElementById('win-txt').innerText = "FINISHED!";
                 winOver.querySelector('.sub-txt').innerText = `FINAL APM: ${finalAPM}`;
-                
                 if(socket) socket.emit('submit_apm', finalAPM);
-                
                 setTimeout(goHome, 3000);
             }, 60000);
         }
@@ -295,6 +290,7 @@
                     document.getElementById('display-user').innerText = data.username.toUpperCase();
                     document.getElementById('display-wins').innerText = data.wins;
                     document.getElementById('display-apm').innerText = data.bestAPM;
+                    document.getElementById('chat-container').classList.remove('hidden'); // Show Chat on Login
                 } else {
                     alert(data.msg);
                 }
