@@ -12,16 +12,16 @@ let ffaState = 'waiting';
 let ffaSeed = 12345;
 
 // --- DATA STORAGE ---
-// Account Structure: { "username": { password: "...", wins: 0, bestAPM: 0 } }
+// { "username": { password: "...", wins: 0, bestAPM: 0 } }
 const accounts = {}; 
-let apmHighScores = []; 
 
 io.on('connection', (socket) => {
     
+    // --- GLOBAL CHAT ---
     socket.on('send_chat', (msg) => {
         const cleanMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50);
         const name = socket.username || "Anon";
-        io.to('ffa_room').emit('receive_chat', { user: name, text: cleanMsg });
+        io.emit('receive_chat', { user: name, text: cleanMsg });
     });
 
     // --- LOGIN / REGISTER ---
@@ -35,21 +35,22 @@ io.on('connection', (socket) => {
         }
 
         if (accounts[user]) {
-            // Existing
+            // Existing Account
             if (accounts[user].password === pass) {
                 socket.username = user;
                 socket.emit('login_response', { 
                     success: true, 
                     username: user, 
                     wins: accounts[user].wins,
-                    bestAPM: accounts[user].bestAPM || 0 // Send Personal Best
+                    bestAPM: accounts[user].bestAPM || 0 
                 });
+                // Send current leaderboards
                 socket.emit('leaderboard_update', getLeaderboards());
             } else {
                 socket.emit('login_response', { success: false, msg: "Incorrect Password!" });
             }
         } else {
-            // New
+            // New Account
             accounts[user] = { password: pass, wins: 0, bestAPM: 0 };
             socket.username = user;
             socket.emit('login_response', { success: true, username: user, wins: 0, bestAPM: 0 });
@@ -59,27 +60,22 @@ io.on('connection', (socket) => {
 
     // --- APM SUBMISSION ---
     socket.on('submit_apm', (val) => {
-        if (!socket.username) return;
+        if (!socket.username) return; // Only logged in users
         
         const score = parseInt(val) || 0;
 
-        // 1. Update Personal Best
+        // Update Personal Best in Account
         if (accounts[socket.username]) {
-            if (score > (accounts[socket.username].bestAPM || 0)) {
+            const currentBest = accounts[socket.username].bestAPM || 0;
+            
+            if (score > currentBest) {
                 accounts[socket.username].bestAPM = score;
-                // Tell client to update the display immediately
+                // Update client display
                 socket.emit('update_my_apm', score);
+                // Broadcast new leaderboard since a high score changed
+                io.emit('leaderboard_update', getLeaderboards());
             }
         }
-
-        // 2. Update Global Leaderboard
-        apmHighScores.push({ name: socket.username, score: score });
-        apmHighScores.sort((a, b) => b.score - a.score);
-        // Keep unique highest per user for the leaderboard to look cleaner? 
-        // For now, simple top 5 list is fine.
-        if (apmHighScores.length > 5) apmHighScores.length = 5;
-
-        io.emit('leaderboard_update', getLeaderboards());
     });
 
     // --- FFA SYSTEM ---
@@ -143,12 +139,25 @@ io.on('connection', (socket) => {
 
 // --- HELPERS ---
 function getLeaderboards() {
-    const wins = Object.entries(accounts)
+    // Generate lists dynamically from the accounts object
+    // This ensures 1 entry per user (their current stats)
+    
+    const allUsers = Object.entries(accounts);
+
+    // 1. Win Leaderboard
+    const wins = allUsers
         .map(([name, data]) => ({ name: name, val: data.wins }))
         .sort((a, b) => b.val - a.val)
         .slice(0, 5);
+
+    // 2. APM Leaderboard
+    const apm = allUsers
+        .map(([name, data]) => ({ name: name, score: data.bestAPM || 0 }))
+        .filter(u => u.score > 0) // Only show people who have played APM test
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
         
-    return { wins: wins, apm: apmHighScores };
+    return { wins: wins, apm: apm };
 }
 
 function checkFFAStart() {
