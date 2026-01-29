@@ -8,26 +8,41 @@
         
         /* MENUS */
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.98); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 600px; }
+        .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 900px; }
         .active { display: flex; }
         
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
         
-        .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; }
-        .input-std:focus { border-color: #00ffcc; outline: none; }
+        /* INPUTS & BUTTONS */
+        .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
+        .input-std:focus { border-color: #00ffcc; outline: none; background: #333; }
         
         .btn { padding: 15px 40px; font-size: 18px; cursor: pointer; border: none; font-weight: bold; border-radius: 6px; margin: 10px; width: 280px; text-transform: uppercase; transition: 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .btn-green { background: #00ffcc; color: #000; }
         .btn-zen { background: #a29bfe; color: #000; }
         .btn-apm { background: #ff5555; color: #fff; }
         .btn-ffa { background: #ff9900; color: #000; }
-        
-        /* GAME LAYOUT & IPAD SCALING */
-        .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
-        
-        @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
-        @media (max-width: 1024px) { .game-area { transform: scale(0.65); gap: 20px; } }
 
+        /* MAIN MENU SPLIT LAYOUT */
+        #main-split { display: flex; flex-direction: row; gap: 50px; align-items: flex-start; margin-top: 20px; }
+        .menu-left { display: flex; flex-direction: column; align-items: center; }
+        .menu-right { width: 300px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 15px; }
+        
+        .user-info { margin-bottom: 20px; font-size: 20px; color: #aaa; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; width: 100%; }
+        .user-info span { color: #fff; font-weight: bold; }
+        .win-count { color: #ffcc00; font-weight: bold; }
+
+        /* LEADERBOARD */
+        h3 { margin: 0 0 10px 0; color: #00ffcc; text-align: center; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        #lb-list { width: 100%; font-family: monospace; font-size: 14px; }
+        .lb-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
+        .lb-item:first-child { color: #ffcc00; font-weight: bold; } /* 1st place gold */
+        
+        /* GAME LAYOUT */
+        .game-area { display: flex; gap: 40px; transform: scale(0.8); transition: 0.5s; width: 100%; justify-content: center; }
+        @media (max-height: 900px) { .game-area { transform: scale(0.7); } }
+        
         .player-root { display: flex; flex-direction: column; align-items: center; }
         .player-container { display: flex; align-items: flex-end; gap: 10px; position: relative; }
         .main-board-wrap { position: relative; border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
@@ -37,32 +52,29 @@
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
         canvas { display: block; }
 
-        /* HUD */
+        /* HUD & OVERLAYS */
         #home-btn { position: absolute; top: 15px; left: 15px; z-index: 200; padding: 10px 20px; background: #ff0055; color: #fff; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; box-shadow: 0 0 10px rgba(255,0,85,0.5); }
         .stats-row { display: flex; gap: 15px; margin-bottom: 10px; }
         .stat-box { background: #111; border: 1px solid #333; padding: 5px 15px; border-radius: 4px; text-align: center; min-width: 70px; }
         .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; }
         .stat-val { font-size: 16px; font-weight: bold; color: #fff; font-family: monospace; }
 
-        /* POPUPS */
-        .float-text { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; opacity: 0; pointer-events: none; transition: 0.1s; text-align: center; width: 300px; text-shadow: 0 4px 8px rgba(0,0,0,0.9); font-style: italic; z-index: 50; }
-        .action-text { top: 250px; font-size: 36px; color: #fff; letter-spacing: 2px; }
-        .combo-text { top: 200px; font-size: 28px; color: #ffcc00; }
-        .b2b-text { top: 160px; font-size: 18px; color: #00ffcc; letter-spacing: 2px; }
-
-        /* OVERLAYS */
         .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 150; display: flex; justify-content: center; align-items: center; flex-direction: column; pointer-events: none; }
         .hidden { display: none !important; }
         #cnt-txt { font-size: 120px; font-weight: 900; color: #fff; animation: pop 0.5s infinite alternate; }
         #win-txt { font-size: 60px; font-weight: 900; color: #00ffcc; text-shadow: 0 0 30px #00ffcc; }
         .sub-txt { font-size: 24px; color: #fff; margin-top: 10px; }
         
-        /* CHAT */
         #chat-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 250px; display: flex; flex-direction: column; z-index: 200; pointer-events: auto; }
         #chat-history { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 5px; margin-bottom: 5px; font-size: 12px; font-family: monospace; }
         #chat-input { background: #222; border: 1px solid #444; color: #fff; padding: 5px; width: 100%; box-sizing: border-box; }
         .chat-line { margin-bottom: 2px; word-wrap: break-word; }
         .chat-user { font-weight: bold; color: #00ffcc; }
+
+        .float-text { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; opacity: 0; pointer-events: none; transition: 0.1s; text-align: center; width: 300px; text-shadow: 0 4px 8px rgba(0,0,0,0.9); font-style: italic; z-index: 50; }
+        .action-text { top: 250px; font-size: 36px; color: #fff; letter-spacing: 2px; }
+        .combo-text { top: 200px; font-size: 28px; color: #ffcc00; }
+        .b2b-text { top: 160px; font-size: 18px; color: #00ffcc; letter-spacing: 2px; }
 
         #ffa-grid { display: flex; gap: 10px; justify-content: center; opacity: 0; transition: opacity 0.5s; flex-wrap: wrap; max-width: 600px; }
         .mini-card { background: #111; padding: 2px; border: 1px solid #333; text-align: center; }
@@ -79,16 +91,41 @@
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
     <div id="menu-container">
-        <div id="scr-main" class="screen active">
+        
+        <div id="scr-login" class="screen active">
+            <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
+            <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
+            
+            <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
+            <input type="password" id="password" class="input-std" placeholder="PASSWORD" oninput="saveCreds()">
+            <button class="btn btn-green" onclick="attemptLogin()">LOGIN / REGISTER</button>
+        </div>
+
+        <div id="scr-main" class="screen">
             <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
             
-            <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12">
-            <input type="password" id="password" class="input-std" placeholder="PASSWORD">
-            
-            <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
-            <button class="btn btn-apm" onclick="startAPMTest()">APM TEST (1 MIN)</button>
-            <button class="btn btn-ffa" onclick="attemptLogin()">ONLINE FFA</button>
+            <div id="main-split">
+                <div class="menu-left">
+                    <div class="user-info">
+                        Welcome, <span id="display-user">Guest</span><br>
+                        Your Wins: <span id="display-wins" class="win-count">0</span>
+                    </div>
+                    
+                    <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
+                    <button class="btn btn-apm" onclick="startAPMTest()">APM TEST (1 MIN)</button>
+                    <button class="btn btn-ffa" onclick="joinFFA()">ONLINE FFA</button>
+                    <button class="btn" style="background:#333; color:#aaa; font-size:14px;" onclick="logOut()">LOGOUT</button>
+                </div>
+
+                <div class="menu-right">
+                    <h3>🏆 TOP 10 LEADERS</h3>
+                    <div id="lb-list">
+                        <div style="text-align:center; color:#666;">Loading...</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div id="scr-wait" class="screen">
             <h2 id="wait-msg">JOINING...</h2>
             <div id="lobby-count" style="color:#888; margin-top:10px;"></div>
@@ -122,7 +159,6 @@
                     <div class="side-box" style="height:80px">HOLD<canvas id="p1-h" width="60" height="50"></canvas></div>
                     <div class="side-box">SENT<div id="s-sent" class="stat-val">0</div></div>
                     <div class="side-box">RECV<div id="s-recv" class="stat-val">0</div></div>
-                    
                     <div id="pop-action" class="float-text action-text">QUAD</div>
                     <div id="pop-combo" class="float-text combo-text">2 COMBO</div>
                     <div id="pop-b2b" class="float-text b2b-text">B2B</div>
@@ -143,21 +179,52 @@
         const COLORS=['#31C7EF','#F7D308','#FF69B4','#EF2029','#42B642','#9D00FF','#EF7921'];
 
         let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
-        let gameMode='zen'; 
-        let apmTimer=null; 
+        let gameMode='zen', startTime=0, apmTimer=null;
+        
+        // --- AUTH & NAVIGATION ---
+        window.onload = function() {
+            if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
+            if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
+        };
+
+        function saveCreds() {
+            localStorage.setItem('savedUser', document.getElementById('username').value);
+            localStorage.setItem('savedPass', document.getElementById('password').value);
+        }
 
         function navTo(id) {
             document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
-        function goHome() { 
-            clearTimeout(apmTimer);
-            location.reload(); 
-        }
-        function getUser() { return document.getElementById('username').value.trim(); }
-        function getPass() { return document.getElementById('password').value.trim(); }
 
-        // --- MODES ---
+        function logOut() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function attemptLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            if(!user || !pass) return alert("Please enter Username and Password.");
+            
+            // Connect socket explicitly on login click
+            if(!socket) connect();
+            socket.emit('login_attempt', { username: user, password: pass });
+        }
+
+        function goHome() {
+            gameActive = false;
+            clearTimeout(apmTimer);
+            document.getElementById('game-ui').classList.add('hidden');
+            document.getElementById('home-btn').classList.add('hidden');
+            document.getElementById('chat-container').classList.add('hidden');
+            document.getElementById('kill-feed').innerHTML = '';
+            document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+            document.getElementById('menu-container').style.display = 'flex';
+            navTo('scr-main');
+        }
+
+        // --- GAME MODES ---
         function startZen() {
             gameMode='zen';
             setupGameUI();
@@ -181,17 +248,10 @@
             }, 60000);
         }
 
-        // --- AUTH & JOIN ---
-        function attemptLogin() {
-            if(typeof io==='undefined') return alert("Host online for FFA.");
-            
-            const user = getUser();
-            const pass = getPass();
-            
-            if(!user || !pass) return alert("Please enter Username and Password.");
-
-            connect();
-            socket.emit('login_attempt', { username: user, password: pass });
+        function joinFFA() {
+            navTo('scr-wait');
+            document.getElementById('wait-msg').innerText = "JOINING FFA LOBBY...";
+            socket.emit('join_ffa');
         }
 
         function setupGameUI() {
@@ -200,34 +260,35 @@
             document.getElementById('home-btn').classList.remove('hidden');
         }
 
-        // --- CHAT ---
-        function sendChat(e) {
-            if(e.key === 'Enter') {
-                const input = document.getElementById('chat-input');
-                const txt = input.value.trim();
-                if(txt && socket) {
-                    socket.emit('send_chat', txt);
-                    input.value = '';
-                }
-            }
-        }
-
         // --- SOCKETS ---
         function connect() {
             if(socket) return;
             socket = io();
 
-            // LOGIN RESP
             socket.on('login_response', data => {
                 if(data.success) {
-                    navTo('scr-wait');
-                    document.getElementById('wait-msg').innerText = `WELCOME ${data.username.toUpperCase()}. JOINING...`;
-                    socket.emit('join_ffa');
+                    navTo('scr-main');
+                    // Update User Info
+                    document.getElementById('display-user').innerText = data.username.toUpperCase();
+                    document.getElementById('display-wins').innerText = data.wins;
                 } else {
                     alert(data.msg);
-                    socket.disconnect();
-                    socket = null; // Reset so they can try again
                 }
+            });
+
+            socket.on('leaderboard_update', list => {
+                const div = document.getElementById('lb-list');
+                div.innerHTML = '';
+                list.forEach((p, i) => {
+                    const row = document.createElement('div');
+                    row.className = 'lb-item';
+                    row.innerHTML = `<span>${i+1}. ${p.name}</span> <span>${p.wins} Wins</span>`;
+                    div.appendChild(row);
+                });
+            });
+
+            socket.on('update_my_wins', wins => {
+                document.getElementById('display-wins').innerText = wins;
             });
 
             socket.on('lobby_update', data => {
@@ -256,15 +317,12 @@
                 setupGameUI();
                 document.getElementById('overlay-win').classList.add('hidden');
                 document.getElementById('chat-container').classList.remove('hidden');
-                
                 const ov = document.getElementById('overlay-cnt');
                 const tx = document.getElementById('cnt-txt');
                 ov.classList.remove('hidden');
-                
                 let n = data.duration;
                 tx.innerText = n;
                 inputLocked = true;
-                
                 const iv = setInterval(()=>{
                     n--;
                     if(n>0) tx.innerText = n;
@@ -292,15 +350,13 @@
             socket.on('lobby_reset', () => { alert("Not enough players."); goHome(); });
         }
 
-        // --- ENGINE ---
+        // --- GAME ENGINE ---
         function setupOnlineGame(seed, players) {
             gameActive = true;
             p1.initRNG(seed);
             p1.reset();
-            
             const grid = document.getElementById('ffa-grid');
             grid.innerHTML = '';
-            
             players.forEach(p => {
                 if(p.id !== socket.id) {
                     const d = document.createElement('div');
@@ -309,7 +365,6 @@
                     grid.appendChild(d);
                 }
             });
-            
             if(isSpectator) {
                 document.getElementById('p1-root').style.opacity = '0.3';
                 feed("SPECTATING MODE");
@@ -335,7 +390,18 @@
             f.appendChild(d); setTimeout(()=>d.remove(),4000);
         }
 
-        // --- PLAYER ---
+        function sendChat(e) {
+            if(e.key === 'Enter') {
+                const input = document.getElementById('chat-input');
+                const txt = input.value.trim();
+                if(txt && socket) {
+                    socket.emit('send_chat', txt);
+                    input.value = '';
+                }
+            }
+        }
+
+        // --- PLAYER CLASS ---
         class SeededRNG { constructor(s){this.s=s;} next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} }
         
         class Player {
@@ -402,49 +468,28 @@
                 }
                 return false;
             }
-            
             rotate(){ 
                 const r=this.active.matrix[0].map((_,i)=>this.active.matrix.map(row=>row[i]).reverse()); 
                 const k=[0,-1,1,-2]; 
                 for(let i of k) if(!this.collide(r,{x:this.active.pos.x+i,y:this.active.pos.y})){
-                    this.active.pos.x+=i;
-                    this.active.matrix=r;
-                    this.lastMoveRotate=true;
+                    this.active.pos.x+=i; this.active.matrix=r; this.lastMoveRotate=true;
                     if(this.isGrounded()) this.lockTimer=0; 
-                    this.sendBoard();
-                    return;
+                    this.sendBoard(); return;
                 } 
             }
-            
             move(d){ 
                 this.active.pos.x+=d; 
                 if(this.collide()) this.active.pos.x-=d; 
-                else { 
-                    this.lastMoveRotate=false; 
-                    if(this.isGrounded()) this.lockTimer=0;
-                    this.sendBoard(); 
-                } 
+                else { this.lastMoveRotate=false; if(this.isGrounded()) this.lockTimer=0; this.sendBoard(); } 
             }
-            
-            isGrounded() {
-                this.active.pos.y++;
-                const hit = this.collide();
-                this.active.pos.y--;
-                return hit;
-            }
-
+            isGrounded() { this.active.pos.y++; const hit=this.collide(); this.active.pos.y--; return hit; }
             hardDrop(){ while(!this.collide())this.active.pos.y++; this.active.pos.y--; this.lock(); }
             hold(){ if(!this.canHold)return; const c=this.active.id; if(this.holdId===null){this.holdId=c;this.spawn();}else{const t=this.holdId;this.holdId=c;this.spawn(t);} this.canHold=false; this.drawSide(this.hCtx,[this.holdId]); }
             checkTSpin() { return false; } 
 
             lock(){
                 const isTSpin = this.checkTSpin();
-                this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{
-                    if(v) {
-                        const gy = y + this.active.pos.y;
-                        if (gy >= 0) this.grid[gy][x+this.active.pos.x] = this.active.color;
-                    }
-                }));
+                this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{ if(v) { const gy=y+this.active.pos.y; if(gy>=0) this.grid[gy][x+this.active.pos.x]=this.active.color; } }));
                 this.piecesPlaced++;
                 this.sweep(isTSpin); this.canHold=true; this.spawn();
             }
@@ -456,22 +501,14 @@
                 if(lines>0){
                     this.combo++;
                     let atk=0, txt="";
-                    
-                    txt=(lines==1)?"SINGLE":(lines==2)?"DOUBLE":(lines==3)?"TRIPLE":"QUAD"; 
-                    atk=(lines==4)?4:(lines-1); 
-                    
+                    txt=(lines==1)?"SINGLE":(lines==2)?"DOUBLE":(lines==3)?"TRIPLE":"QUAD"; atk=(lines==4)?4:(lines-1); 
                     if(isPC){ txt="ALL CLEAR"; atk+=10; }
                     this.showText(this.popAct, txt);
-
                     if(lines==4){ this.b2b++; if(this.b2b>1){atk+=1; this.showText(this.popB2B, "B2B x"+(this.b2b-1));} } else this.b2b=0;
                     if(this.combo>0){ atk+=Math.floor((this.combo-1)/2); this.showText(this.popCmbo, this.combo+" COMBO"); }
-
                     if(this.pendingG>0){ let c=Math.min(this.pendingG,atk); this.pendingG-=c; atk-=c; }
-                    
                     this.linesSentTotal+=atk; 
-                    if(atk>0 && (gameMode === 'ffa')){ 
-                        if(socket && !isSpectator) socket.emit('send_garbage', {mode:gameMode, amount:atk}); 
-                    }
+                    if(atk>0 && (gameMode === 'ffa')){ if(socket && !isSpectator) socket.emit('send_garbage', {mode:gameMode, amount:atk}); }
                 } else {
                     this.combo=-1;
                     while(this.pendingG>0){ this.pendingG--; const r=Array(COLS).fill('#555'); r[Math.floor(Math.random()*COLS)]=0; this.grid.shift(); this.grid.push(r); }
@@ -484,16 +521,14 @@
             
             updateStats(){
                 const sec = (Date.now() - this.startTime) / 1000;
-                
                 this.elSent.innerText = this.linesSentTotal;
                 this.elRecv.innerText = this.linesRecvTotal;
                 this.elPPS.innerText = (sec>0 ? (this.piecesPlaced/sec).toFixed(2) : "0.00");
                 this.elAPM.innerText = (sec>0 ? Math.floor((this.linesSentTotal/sec)*60) : 0);
                 
                 let displaySec = sec;
-                if(gameMode === 'apm_test') displaySec = 60 - sec;
+                if(gameMode === 'apm_test') displaySec = 60 - sec; 
                 if(displaySec < 0) displaySec = 0;
-
                 const m=Math.floor(displaySec/60).toString().padStart(2,'0');
                 const s=Math.floor(displaySec%60).toString().padStart(2,'0');
                 this.elTime.innerText = `${m}:${s}`;
@@ -507,18 +542,10 @@
                 this.dropCounter+=dt;
                 if(this.dropCounter > 700) {
                     this.active.pos.y++;
-                    if(this.collide()) {
-                        this.active.pos.y--; 
-                    } else {
-                        this.lockTimer = 0; 
-                        this.lastMoveRotate = false;
-                    }
+                    if(this.collide()) { this.active.pos.y--; } else { this.lockTimer = 0; this.lastMoveRotate = false; }
                     this.dropCounter = 0;
                 }
-                if(this.isGrounded()) {
-                    this.lockTimer += dt;
-                    if(this.lockTimer > 500) this.lock();
-                }
+                if(this.isGrounded()) { this.lockTimer += dt; if(this.lockTimer > 500) this.lock(); }
                 this.sendBoard();
             }
 
