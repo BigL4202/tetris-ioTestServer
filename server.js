@@ -11,13 +11,13 @@ let ffaPlayers = [];
 let ffaState = 'waiting'; 
 let ffaSeed = 12345;
 
-// --- ACCOUNT SYSTEM ---
-// Structure: { "username": { password: "...", wins: 0 } }
+// --- DATA STORAGE ---
+// Account Structure: { "username": { password: "...", wins: 0, bestAPM: 0 } }
 const accounts = {}; 
+let apmHighScores = []; 
 
 io.on('connection', (socket) => {
     
-    // --- CHAT SYSTEM ---
     socket.on('send_chat', (msg) => {
         const cleanMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50);
         const name = socket.username || "Anon";
@@ -35,32 +35,58 @@ io.on('connection', (socket) => {
         }
 
         if (accounts[user]) {
-            // Existing Account
+            // Existing
             if (accounts[user].password === pass) {
                 socket.username = user;
-                // Send Success + Current Wins
-                socket.emit('login_response', { success: true, username: user, wins: accounts[user].wins });
-                // Send Leaderboard
-                socket.emit('leaderboard_update', getLeaderboard());
+                socket.emit('login_response', { 
+                    success: true, 
+                    username: user, 
+                    wins: accounts[user].wins,
+                    bestAPM: accounts[user].bestAPM || 0 // Send Personal Best
+                });
+                socket.emit('leaderboard_update', getLeaderboards());
             } else {
                 socket.emit('login_response', { success: false, msg: "Incorrect Password!" });
             }
         } else {
-            // New Account
-            accounts[user] = { password: pass, wins: 0 };
+            // New
+            accounts[user] = { password: pass, wins: 0, bestAPM: 0 };
             socket.username = user;
-            socket.emit('login_response', { success: true, username: user, wins: 0 });
-            // Broadcast new leaderboard (if a new user somehow has wins, or just to sync)
-            io.emit('leaderboard_update', getLeaderboard());
+            socket.emit('login_response', { success: true, username: user, wins: 0, bestAPM: 0 });
+            io.emit('leaderboard_update', getLeaderboards());
         }
+    });
+
+    // --- APM SUBMISSION ---
+    socket.on('submit_apm', (val) => {
+        if (!socket.username) return;
+        
+        const score = parseInt(val) || 0;
+
+        // 1. Update Personal Best
+        if (accounts[socket.username]) {
+            if (score > (accounts[socket.username].bestAPM || 0)) {
+                accounts[socket.username].bestAPM = score;
+                // Tell client to update the display immediately
+                socket.emit('update_my_apm', score);
+            }
+        }
+
+        // 2. Update Global Leaderboard
+        apmHighScores.push({ name: socket.username, score: score });
+        apmHighScores.sort((a, b) => b.score - a.score);
+        // Keep unique highest per user for the leaderboard to look cleaner? 
+        // For now, simple top 5 list is fine.
+        if (apmHighScores.length > 5) apmHighScores.length = 5;
+
+        io.emit('leaderboard_update', getLeaderboards());
     });
 
     // --- FFA SYSTEM ---
     socket.on('join_ffa', () => {
-        if (!socket.username) return; // Must be logged in
+        if (!socket.username) return;
 
         socket.join('ffa_room');
-        
         const existing = ffaPlayers.find(p => p.id === socket.id);
         if (existing) return;
 
@@ -69,7 +95,6 @@ io.on('connection', (socket) => {
             io.to('ffa_room').emit('lobby_update', { count: ffaPlayers.length });
             checkFFAStart();
         } else {
-            // Spectate
             const livingPlayers = ffaPlayers.filter(p => p.alive).map(p => ({ id: p.id, username: p.username }));
             socket.emit('ffa_spectate', { seed: ffaSeed, players: livingPlayers });
             ffaPlayers.push({ id: socket.id, username: socket.username, alive: false, socket: socket });
@@ -117,12 +142,13 @@ io.on('connection', (socket) => {
 });
 
 // --- HELPERS ---
-function getLeaderboard() {
-    // Sort accounts by wins (descending) and take top 10
-    return Object.entries(accounts)
-        .map(([name, data]) => ({ name: name, wins: data.wins }))
-        .sort((a, b) => b.wins - a.wins)
-        .slice(0, 10);
+function getLeaderboards() {
+    const wins = Object.entries(accounts)
+        .map(([name, data]) => ({ name: name, val: data.wins }))
+        .sort((a, b) => b.val - a.val)
+        .slice(0, 5);
+        
+    return { wins: wins, apm: apmHighScores };
 }
 
 function checkFFAStart() {
@@ -156,18 +182,12 @@ function checkFFAWin() {
         
         if (survivors.length === 1) {
             winnerName = survivors[0].username;
-            // UPDATE WINS
             if (accounts[winnerName]) {
                 accounts[winnerName].wins++;
-                
-                // Update the specific winner's client
                 const winnerSocket = survivors[0].socket;
-                if(winnerSocket) {
-                    winnerSocket.emit('update_my_wins', accounts[winnerName].wins);
-                }
+                if(winnerSocket) winnerSocket.emit('update_my_wins', accounts[winnerName].wins);
             }
-            // Broadcast new leaderboard
-            io.emit('leaderboard_update', getLeaderboard());
+            io.emit('leaderboard_update', getLeaderboards());
         }
         
         io.to('ffa_room').emit('round_over', { winner: winnerName });
