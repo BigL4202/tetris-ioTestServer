@@ -299,6 +299,3 @@ function processMatchResults(winnerName) {
 
 http.listen(3000, () => { console.log('Server on 3000'); });
 }
-
-http.listen(3000, () => { console.log('Server on 3000'); });
-
