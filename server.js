@@ -11,21 +11,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 let ffaPlayers = []; 
 let ffaState = 'waiting'; 
 let ffaSeed = 12345;
-let currentMatchStats = []; // Stores stats for the active game
+let currentMatchStats = []; 
 
 // --- DATA STORAGE ---
 const DATA_FILE = path.join(__dirname, 'accounts.json');
 let accounts = {}; 
-
-// Accounts Structure: 
-// { 
-//   "username": { 
-//     password: "...", 
-//     wins: 0, 
-//     bestAPM: 0,
-//     history: [ { date, rank, apm, pps, sent, received }, ... ] 
-//   } 
-// }
 
 function loadAccounts() {
     try {
@@ -75,7 +65,6 @@ io.on('connection', (socket) => {
 
     // --- STATS PAGE REQUEST ---
     socket.on('request_all_stats', () => {
-        // Send a sanitized version of accounts (no passwords)
         const safeData = {};
         for (const [key, val] of Object.entries(accounts)) {
             safeData[key] = { 
@@ -145,17 +134,13 @@ io.on('connection', (socket) => {
         const p = ffaPlayers.find(x => x.id === socket.id);
         if (p && ffaState === 'playing' && p.alive) {
             p.alive = false;
-            
-            // Record Stats (Rank will be assigned later)
             recordMatchStat(p.username, stats, false);
-
             io.to('ffa_room').emit('elimination', { id: p.id, username: p.username });
             checkFFAWin();
         }
     });
 
     socket.on('match_won', (stats) => {
-        // Winner sends this explicitly to ensure final stats are captured
         if (ffaState === 'playing' || ffaState === 'finished') {
             recordMatchStat(socket.username, stats, true);
             processMatchResults(socket.username);
@@ -164,7 +149,6 @@ io.on('connection', (socket) => {
 });
 
 function recordMatchStat(username, stats, isWinner) {
-    // Check if already recorded for this match (prevent duplicates)
     const existing = currentMatchStats.find(s => s.username === username);
     if (existing) return;
 
@@ -209,7 +193,7 @@ function checkFFAStart() {
 function startFFARound() {
     ffaState = 'countdown';
     ffaSeed = Math.floor(Math.random() * 1000000);
-    currentMatchStats = []; // Reset stats for new game
+    currentMatchStats = []; 
     
     ffaPlayers.forEach(p => p.alive = true);
     
@@ -231,21 +215,14 @@ function checkFFAWin() {
         ffaState = 'finished';
         
         if (survivors.length === 1) {
-            // Tell the winner to send their final stats
-            // We wait for the 'match_won' event to process results
             io.to(survivors[0].id).emit('request_win_stats');
         } else {
-            // Everyone died (draw or disconnects), process what we have
             processMatchResults(null);
         }
     }
 }
 
 function processMatchResults(winnerName) {
-    // 1. Determine Ranks
-    // Sort logic: Winner is #1. Everyone else sorted by elimination timestamp (last to die = higher rank)
-    
-    // Separate winner from losers
     const winnerObj = currentMatchStats.find(s => s.isWinner);
     const losers = currentMatchStats.filter(s => !s.isWinner).sort((a, b) => b.timestamp - a.timestamp);
     
@@ -256,12 +233,9 @@ function processMatchResults(winnerName) {
         finalResults.push({ ...l, place: (winnerObj ? 2 : 1) + index });
     });
 
-    // 2. Save History to Accounts
     finalResults.forEach(res => {
         if (accounts[res.username]) {
             if (res.place === 1) accounts[res.username].wins++;
-            
-            // Push to history
             if (!accounts[res.username].history) accounts[res.username].history = [];
             accounts[res.username].history.push({
                 date: new Date().toISOString(),
@@ -276,9 +250,7 @@ function processMatchResults(winnerName) {
     
     saveAccounts();
 
-    // 3. Broadcast
     if (winnerName && accounts[winnerName]) {
-        // Find winner socket to update their specific win count UI
         const winnerSocket = ffaPlayers.find(p => p.username === winnerName);
         if (winnerSocket) io.to(winnerSocket.id).emit('update_my_wins', accounts[winnerName].wins);
     }
@@ -286,7 +258,6 @@ function processMatchResults(winnerName) {
     io.emit('leaderboard_update', getLeaderboards());
     io.to('ffa_room').emit('match_summary', finalResults);
 
-    // 4. Reset Lobby after 15 seconds
     setTimeout(() => {
         if (ffaPlayers.length >= 2) {
             startFFARound();
@@ -298,4 +269,3 @@ function processMatchResults(winnerName) {
 }
 
 http.listen(3000, () => { console.log('Server on 3000'); });
-}
