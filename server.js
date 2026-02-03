@@ -29,7 +29,7 @@ function createLobby() {
 
 let lobbies = {
     'ffa': createLobby(),
-    'madness': createLobby() // New Lobby
+    'madness': createLobby()
 };
 
 // --- SOCKET CONNECTION ---
@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
 
     // --- LOBBY MANAGEMENT ---
     
-    // Universal Leave Function
+    // Universal Leave
     async function leaveAll() {
         const types = ['ffa', 'madness'];
         for (let type of types) {
@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
             if (idx !== -1) {
                 const p = lobby.players[idx];
                 lobby.players.splice(idx, 1);
-                await socket.leave(room); // Async wait
+                await socket.leave(room); 
                 
                 io.to(room).emit('lobby_update', { count: lobby.players.length });
                 
@@ -152,7 +152,7 @@ io.on('connection', (socket) => {
             username: socket.username, 
             alive: true, 
             damageLog: [],
-            passive: passiveChoice || 'double_hold'
+            passive: passiveChoice || 'double_hold' 
         };
         lobby.players.push(pData);
 
@@ -260,6 +260,7 @@ function tryStartGame(type) {
             io.to(room).emit('match_start', {
                 mode: type,
                 seed: lobby.seed,
+                // PASSIVE IS SENT HERE
                 players: lobby.players.map(p => ({ id: p.id, username: p.username, passive: p.passive }))
             });
         }, 3000);
@@ -313,7 +314,9 @@ function finishGame(type, winnerName) {
 
     if (winnerName && accounts[winnerName]) {
         const sock = lobby.players.find(p => p.username === winnerName);
-        if (sock) io.to(sock.id).emit('update_my_wins', accounts[winnerName].wins);
+        if (sock && io.sockets.sockets.get(sock.id)) {
+            io.to(sock.id).emit('update_my_wins', accounts[winnerName].wins);
+        }
     }
 
     io.emit('leaderboard_update', getLeaderboards());
@@ -324,7 +327,7 @@ function finishGame(type, winnerName) {
         io.to(room).emit('lobby_reset');
         if (lobby.players.length >= 2) tryStartGame(type);
         else io.to(room).emit('lobby_update', { count: lobby.players.length });
-    }, 5000);
+    }, 5000); // 5 Seconds
 }
 
 function getLeaderboards() {
