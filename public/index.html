@@ -8,29 +8,26 @@
         :root {
             --accent: #00ffcc;               
             --glow: rgba(0, 255, 204, 0.2);  
-            --glow-strong: rgba(0, 255, 204, 0.4);
             --bg-color: #050505;
         }
 
         /* --- GLOBAL --- */
         body { 
             background-color: var(--bg-color);
-            color: #fff; font-family: 'Segoe UI', sans-serif; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; margin: 0; overflow: hidden; 
-        }
-        body.bg-on {
             background-image: 
                 radial-gradient(circle at center, transparent 0%, #000 90%), 
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px; 
             background-attachment: fixed;
+            color: #fff; font-family: 'Segoe UI', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; margin: 0; overflow: hidden; 
         }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         /* --- MENU STYLES --- */
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
@@ -50,7 +47,6 @@
             box-shadow: 0 0 20px var(--glow); border-radius: 8px; padding: 30px;
             display: flex; flex-direction: column; align-items: center; backdrop-filter: blur(10px);
         }
-        .no-glow .tech-panel, .no-glow .btn, .no-glow .box-container, .no-glow .main-board-wrap { box-shadow: none !important; text-shadow: none !important; }
 
         .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
         .input-std:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--glow); outline: none; background: #000; }
@@ -84,7 +80,6 @@
         .p-stats { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; }
         .p-pro { color: #32ff7e; }
         .p-con { color: #ff5555; }
-        
         .passive-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; width: 100%; margin-bottom: 20px; }
         .passive-card { background: #0a0a0a; border: 1px solid #333; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-weight: bold; color: #666; font-size: 12px; text-align: center; padding: 5px; }
         .passive-card:hover { border-color: #666; color: #fff; }
@@ -94,17 +89,15 @@
         /* SETTINGS & OTHER SCREENS */
         .settings-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; border-bottom: 1px solid #222; }
         .settings-label { color: #ccc; font-weight: bold; }
-        .settings-toggle { cursor: pointer; width: 50px; height: 26px; background: #333; border-radius: 13px; position: relative; transition: 0.3s; }
-        .settings-toggle.on { background: var(--accent); }
-        .settings-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
-        .settings-toggle.on::after { transform: translateX(24px); }
         .bind-btn { background: #111; border: 1px solid #444; color: #fff; padding: 5px 15px; border-radius: 4px; cursor: pointer; min-width: 100px; text-align: center; font-family: monospace; }
         .bind-btn:hover { border-color: var(--accent); }
         .bind-btn.listening { background: var(--accent); color: #000; font-weight: bold; animation: pulse 1s infinite; }
 
         /* GAME UI */
         .game-area { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; transform: scale(0.9); transition: 0.5s; }
-        @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
+        /* IPAD / MOBILE SCALING */
+        @media only screen and (max-width: 1024px) { .game-area { transform: scale(0.65); } }
+
         .stats-header { display: flex; gap: 15px; margin-bottom: 10px; }
         .stat-box-top { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); width: 100px; padding: 8px 0; text-align: center; transition: border-color 0.3s, box-shadow 0.3s; }
         .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; transition: color 0.3s; }
@@ -152,10 +145,15 @@
         .feed-msg { background: rgba(255,0,0,0.2); color: #ff5555; padding: 5px; border-left: 3px solid #ff5555; font-family: monospace; }
         @keyframes pop { from { transform: scale(1); } to { transform: scale(1.1); } }
         canvas { display: block; }
+
+        /* SNIPER MAGAZINE UI */
+        #sniper-mag { margin-top: 20px; width: 60px; height: 200px; border: 2px solid #444; background: #111; position: relative; display:none; flex-direction: column-reverse; padding: 2px; }
+        .mag-bullet { width: 100%; height: 9%; background: #ffcc00; margin-bottom: 1%; border-radius: 2px; box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+        .mag-label { color: #ffcc00; font-size: 10px; text-align: center; margin-top: 5px; font-weight: bold; display:none; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body class="bg-on">
+<body>
 
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
@@ -196,7 +194,6 @@
 
         <div id="scr-passive" class="screen">
             <h2 style="color: var(--accent); margin-bottom:20px;">MUTATOR MADNESS: CHOOSE ABILITY</h2>
-            
             <div class="passive-info-box">
                 <div id="p-sel-title" class="p-title">SELECT A PASSIVE</div>
                 <div id="p-sel-desc" class="p-desc">Click on an ability below to see details.</div>
@@ -205,10 +202,9 @@
                     <div id="p-sel-con" class="p-con"></div>
                 </div>
             </div>
-
             <div class="passive-grid">
                 <div class="passive-card" onclick="selectPassive('double_hold')">EXTRA HOLD</div>
-                <div class="passive-card locked">LOCKED</div>
+                <div class="passive-card" onclick="selectPassive('sniper')">COMBO SNIPER</div>
                 <div class="passive-card locked">LOCKED</div>
                 <div class="passive-card locked">LOCKED</div>
                 <div class="passive-card locked">LOCKED</div>
@@ -216,18 +212,13 @@
                 <div class="passive-card locked">LOCKED</div>
                 <div class="passive-card locked">LOCKED</div>
             </div>
-
             <button id="btn-passive-confirm" class="btn btn-mixtape disabled" style="opacity:0.5; cursor:not-allowed;" onclick="confirmPassive()">CONFIRM LOADOUT</button>
             <button class="btn btn-gray" style="margin-top:10px;" onclick="navTo('scr-main')">BACK</button>
         </div>
 
         <div id="scr-settings" class="screen" style="max-width:600px;">
-            <h2 style="color: var(--accent); margin-bottom:20px;">SYSTEM SETTINGS</h2>
+            <h2 style="color: var(--accent); margin-bottom:20px;">CONTROLS</h2>
             <div class="tech-panel" style="width:100%">
-                <div class="settings-row"><span class="settings-label">BACKGROUND ANIMATION</span><div id="tog-bg" class="settings-toggle on" onclick="toggleSetting('bg')"></div></div>
-                <div class="settings-row"><span class="settings-label">NEON GLOW EFFECTS</span><div id="tog-glow" class="settings-toggle on" onclick="toggleSetting('glow')"></div></div>
-                <div class="settings-row"><span class="settings-label">SHOW GRID LINES</span><div id="tog-grid" class="settings-toggle on" onclick="toggleSetting('grid')"></div></div>
-                <h3 style="color: #fff; margin-top:20px; border-bottom:1px solid #333; padding-bottom:5px; width:100%;">CONTROLS</h3>
                 <div class="settings-row"><span class="settings-label">MOVE LEFT</span><div id="bind-left" class="bind-btn" onclick="rebind('left')">ArrowLeft</div></div>
                 <div class="settings-row"><span class="settings-label">MOVE RIGHT</span><div id="bind-right" class="bind-btn" onclick="rebind('right')">ArrowRight</div></div>
                 <div class="settings-row"><span class="settings-label">SOFT DROP</span><div id="bind-soft" class="bind-btn" onclick="rebind('soft')">ArrowDown</div></div>
@@ -264,6 +255,10 @@
             <div class="game-columns">
                 <div class="col-left">
                     <div class="box-container"><div class="box-header">HOLD</div><canvas id="p1-h" class="side-canvas" width="120" height="160"></canvas><div id="hold-ind"></div></div>
+                    
+                    <div id="sniper-mag"></div>
+                    <div id="mag-label" class="mag-label">AMMO</div>
+
                     <div style="flex:1"></div>
                     <div class="box-container box-stat-side"><div class="box-header">SENT</div><div id="s-sent" class="stat-val" style="margin-bottom:5px;">0</div></div>
                     <div class="box-container box-stat-side"><div class="box-header">RECV</div><div id="s-recv" class="stat-val" style="margin-bottom:5px;">0</div></div>
@@ -289,17 +284,24 @@
         const PASSIVES = {
             'double_hold': {
                 name: "EXTRA HOLD",
-                desc: "Gain a second Hold inventory slot. Store two pieces at once for ultimate flexibility.",
+                desc: "Gain a second Hold inventory slot.",
                 act: "Shift (Slot 1) / Ctrl (Slot 2)",
                 pro: "• 2 Inventory Slots",
-                con: "• Combo scaling is delayed (0-0-0-1-1-1-2...)"
+                con: "• Combo scaling is delayed"
+            },
+            'sniper': {
+                name: "COMBO SNIPER",
+                desc: "Build ammo with small clears, fire massive damage with Quads.",
+                act: "Passive (Builds Ammo) / Quad (Fire)",
+                pro: "• Quads send 1.5x Ammo Damage",
+                con: "• Singles/Doubles/Triples send 0 Lines"
             }
         };
         let selectedPassive = null;
 
         /* --- SETTINGS MANAGER --- */
         let settings = {
-            bg: true, glow: true, grid: true, passive: 'double_hold',
+            passive: 'double_hold',
             binds: { left:'ArrowLeft', right:'ArrowRight', rotate:'ArrowUp', soft:'ArrowDown', hard:'Space', hold:'ShiftLeft', hold2:'ControlLeft' }
         };
 
@@ -309,24 +311,10 @@
                 const parsed = JSON.parse(s);
                 settings = { ...settings, ...parsed, binds: { ...settings.binds, ...parsed.binds } };
             }
-            applyVisuals();
             updateBindUI();
         }
         function saveSettings() { localStorage.setItem('asmondySettings', JSON.stringify(settings)); }
-        function toggleSetting(key) {
-            settings[key] = !settings[key];
-            const el = document.getElementById('tog-'+key);
-            if(settings[key]) el.classList.add('on'); else el.classList.remove('on');
-            applyVisuals(); saveSettings();
-        }
-        function applyVisuals() {
-            if(settings.bg) document.body.classList.add('bg-on'); else document.body.classList.remove('bg-on');
-            if(settings.glow) document.body.classList.remove('no-glow'); else document.body.classList.add('no-glow');
-            ['bg','glow','grid'].forEach(k => {
-                const el = document.getElementById('tog-'+k);
-                if(settings[k]) el.classList.add('on'); else el.classList.remove('on');
-            });
-        }
+        
         let rebindKey = null;
         function rebind(action) {
             rebindKey = action;
@@ -352,7 +340,6 @@
         /* --- PASSIVE SELECTION UI --- */
         function openPassiveSelect() {
             navTo('scr-passive');
-            // Auto-select stored passive if valid
             if (PASSIVES[settings.passive]) selectPassive(settings.passive);
             else selectPassive('double_hold');
         }
@@ -363,8 +350,9 @@
             saveSettings();
 
             document.querySelectorAll('.passive-card').forEach(el => el.classList.remove('selected'));
-            // In a real app we'd map ID to element index, hardcoding index 0 for double_hold for now
-            document.querySelector('.passive-grid').children[0].classList.add('selected');
+            // 0=Double, 1=Sniper
+            const idx = (id === 'double_hold' ? 0 : 1);
+            document.querySelector('.passive-grid').children[idx].classList.add('selected');
 
             const p = PASSIVES[id];
             document.getElementById('p-sel-title').innerText = p.name;
@@ -395,7 +383,6 @@
         let activeMutator = null; 
         let statsCache = {}; 
 
-        /* --- CORE FUNCTIONS --- */
         function setTheme(hex) {
             const root = document.documentElement;
             root.style.setProperty('--accent', hex);
@@ -403,7 +390,6 @@
             const g = parseInt(hex.slice(3, 5), 16);
             const b = parseInt(hex.slice(5, 7), 16);
             root.style.setProperty('--glow', `rgba(${r}, ${g}, ${b}, 0.2)`);
-            root.style.setProperty('--glow-strong', `rgba(${r}, ${g}, ${b}, 0.4)`);
         }
 
         window.onload = function() {
@@ -461,20 +447,15 @@
         }
 
         function joinFFA() { navTo('scr-wait'); document.getElementById('wait-msg').innerText="JOINING FFA LOBBY..."; setTheme('#ff9900'); socket.emit('join_ffa'); }
-        
-        function startMixtape() { 
-            // Join with selected passive
-            socket.emit('join_madness', selectedPassive); 
-            navTo('scr-wait'); 
-            document.getElementById('wait-msg').innerText="JOINING MADNESS LOBBY..."; 
-            setTheme('#32ff7e'); 
-        }
+        function startMixtape() { socket.emit('join_madness', selectedPassive); navTo('scr-wait'); document.getElementById('wait-msg').innerText="JOINING MADNESS LOBBY..."; setTheme('#32ff7e'); }
 
         function setupGameUI() {
             document.getElementById('menu-container').style.display='none';
             document.getElementById('game-ui').classList.remove('hidden');
             document.getElementById('home-btn').classList.remove('hidden');
             document.getElementById('hold-ind').style.display='none';
+            document.getElementById('sniper-mag').style.display='none';
+            document.getElementById('mag-label').style.display='none';
         }
 
         function connect() {
@@ -495,7 +476,13 @@
                 if(gameMode==='madness') {
                     setTheme('#32ff7e'); 
                     activeMutator = d.players.find(p => p.id === socket.id)?.passive || 'double_hold';
-                    const l=document.getElementById('hold-ind'); l.style.display='block'; l.innerText="ABILITY: "+PASSIVES[activeMutator].name;
+                    
+                    if (activeMutator === 'double_hold') {
+                        const l=document.getElementById('hold-ind'); l.style.display='block'; l.innerText="ABILITY: EXTRA HOLD";
+                    } else if (activeMutator === 'sniper') {
+                        document.getElementById('sniper-mag').style.display='flex';
+                        document.getElementById('mag-label').style.display='block';
+                    }
                 }
                 setupOnlineGame(d.seed, d.players);
             });
@@ -542,10 +529,12 @@
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0;
                 this.rng=new SeededRNG(1);
                 this.startTime = Date.now();
+                // Sniper
+                this.ammo = 0;
             }
             getStats(){ const s=(Date.now()-this.startTime)/1000; return { apm:(s>0?Math.floor((this.linesSentTotal/s)*60):0), pps:(s>0?(this.piecesPlaced/s).toFixed(2):"0.00"), sent:this.linesSentTotal, recv:this.linesRecvTotal, maxCombo:this.maxCombo }; }
             initRNG(s){this.rng=new SeededRNG(s);}
-            reset(){ this.grid.forEach(r=>r.fill(0)); this.bag=[]; this.queue=[]; this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0; this.startTime=Date.now(); this.holdId=null; this.canHold=true; this.holdId2=null; this.canHold2=true; this.maxCombo=0; this.drawSide(this.hCtx, [this.holdId]); for(let i=0;i<4;i++)this.queue.push(this.pull()); this.spawn(); }
+            reset(){ this.grid.forEach(r=>r.fill(0)); this.bag=[]; this.queue=[]; this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0; this.startTime=Date.now(); this.holdId=null; this.canHold=true; this.holdId2=null; this.canHold2=true; this.maxCombo=0; this.ammo=0; this.drawSide(this.hCtx, [this.holdId]); this.updateMag(); for(let i=0;i<4;i++)this.queue.push(this.pull()); this.spawn(); }
             pull(){ if(!this.bag.length){this.bag=[0,1,2,3,4,5,6]; for(let i=6;i>0;i--){const j=Math.floor(this.rng.next()*(i+1));[this.bag[i],this.bag[j]]=[this.bag[j],this.bag[i]];}} return this.bag.pop(); }
             spawn(id=this.queue.shift()){ this.queue.push(this.pull()); this.active={pos:{x:0, y:-1}, matrix:PIECES[id], id:id, color:COLORS[id]}; this.lastMoveRotate=false; this.lockTimer=0; if(this.collide()){} this.drawSide(this.nCtx,this.queue); this.sendBoard(); }
             collide(m=this.active.matrix, p=this.active.pos) { for(let y=0; y<m.length; y++) { for(let x=0; x<m[y].length; x++) { if(m[y][x]) { const gx=x+p.x; const gy=y+p.y; if (gx<0||gx>=COLS||gy>=ROWS||(gy>=0&&this.grid[gy][gx])) return true; }}} return false; }
@@ -586,19 +575,30 @@
                     if(this.combo > this.maxCombo) this.maxCombo = this.combo;
                     
                     let atk=0;
-                    if(lines==4) atk=4; else atk=lines-1;
-                    if(lines==4){ this.b2b++; if(this.b2b>1) atk+=1; } else this.b2b=0;
-
-                    // --- COMBO LOGIC NERF FOR EXTRA HOLD ---
-                    if (activeMutator === 'double_hold') {
-                        // Nerfed Scaling: 0, 0, 0, 1, 1, 1, 2, 2, 2...
-                        if (this.combo > 0) {
-                            atk += Math.floor((this.combo - 1) / 3); 
+                    if (activeMutator === 'sniper') {
+                        // SNIPER LOGIC
+                        if (lines < 4) {
+                            // Add bullets
+                            this.ammo = Math.min(10, this.ammo + lines);
+                            this.updateMag();
+                            atk = 0; // Send nothing
+                            this.showText(this.popAct, `+${lines} AMMO`);
+                        } else {
+                            // Quad - FIRE
+                            atk = Math.floor(this.ammo * 1.5);
+                            this.showText(this.popAct, `SNIPE! ${atk} DMG`);
+                            this.ammo = 0;
+                            this.updateMag();
                         }
                     } else {
-                        // Standard Scaling: 0, 0, 1, 1, 2, 2...
-                        if (this.combo > 0) {
-                            atk += Math.floor((this.combo - 1) / 2);
+                        // NORMAL / DOUBLE HOLD LOGIC
+                        if(lines==4) atk=4; else atk=lines-1;
+                        if(lines==4){ this.b2b++; if(this.b2b>1) atk+=1; } else this.b2b=0;
+
+                        if (activeMutator === 'double_hold') {
+                            if (this.combo > 0) atk += Math.floor((this.combo - 1) / 3); 
+                        } else {
+                            if (this.combo > 0) atk += Math.floor((this.combo - 1) / 2);
                         }
                     }
 
@@ -613,9 +613,32 @@
                 this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats();
             }
 
+            updateMag() {
+                const m = document.getElementById('sniper-mag');
+                m.innerHTML = '';
+                for(let i=0; i<this.ammo; i++) {
+                    const b = document.createElement('div');
+                    b.className = 'mag-bullet';
+                    m.appendChild(b);
+                }
+            }
+
             receiveGarbage(n){ this.pendingG=Math.min(this.pendingG+n, 10); this.linesRecvTotal+=n; this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats(); }
             updateStats(){ const s=(Date.now()-this.startTime)/1000; this.elSent.innerText=this.linesSentTotal; this.elRecv.innerText=this.linesRecvTotal; this.elPPS.innerText=(s>0?(this.piecesPlaced/s).toFixed(2):"0.00"); this.elAPM.innerText=(s>0?Math.floor((this.linesSentTotal/s)*60):0); let ds=s; if(gameMode==='apm_test') ds=60-s; if(ds<0)ds=0; this.elTime.innerText=`${Math.floor(ds/60).toString().padStart(2,'0')}:${Math.floor(ds%60).toString().padStart(2,'0')}`; }
-            drawSide(ctx, ids){ ctx.fillStyle='#000'; ctx.fillRect(0,0,120,160); ids.forEach((id,i)=>{if(id!==null){ctx.fillStyle=COLORS[id];const sh=PIECES[id];const ox=(120-(sh[0].length*20))/2;const oy=i*80+(80-(sh.length*20))/2;sh.forEach((r,y)=>r.forEach((v,x)=>{if(v)ctx.fillRect(ox+x*20,oy+y*20,19,19);}));}}); }
+            
+            // FIXED DRAW SIDE (Clear canvas first)
+            drawSide(ctx, ids){ 
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,120,160); // Clear whole area
+                ids.forEach((id,i)=>{
+                    if(id!==null){
+                        ctx.fillStyle=COLORS[id];
+                        const sh=PIECES[id];
+                        const ox=(120-(sh[0].length*20))/2;
+                        const oy=i*80+(80-(sh.length*20))/2;
+                        sh.forEach((r,y)=>r.forEach((v,x)=>{if(v)ctx.fillRect(ox+x*20,oy+y*20,19,19);}));
+                    }
+                }); 
+            }
             sendBoard(){ if(socket&&!isSpectator){const d=JSON.parse(JSON.stringify(this.grid));this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v&&d[y+this.active.pos.y])d[y+this.active.pos.y][x+this.active.pos.x]=this.active.color;}));socket.emit('update_board',d);} }
             showText(el, msg){ el.innerText=msg; el.style.opacity=1; setTimeout(()=>el.style.opacity=0, 1000); }
             
@@ -629,7 +652,9 @@
             draw(){
                 this.ctx.fillStyle='#000'; this.ctx.fillRect(0,0,120,900);
                 this.ctx.fillStyle='rgba(255,0,0,0.2)'; this.ctx.fillRect(0,0,120,120);
-                if(settings.grid){this.ctx.strokeStyle='rgba(255,255,255,0.1)';this.ctx.lineWidth=1;this.ctx.beginPath();for(let x=1;x<COLS;x++){this.ctx.moveTo(x*B_SIZE,4*B_SIZE);this.ctx.lineTo(x*B_SIZE,ROWS*B_SIZE);}for(let y=4;y<ROWS;y++){this.ctx.moveTo(0,y*B_SIZE);this.ctx.lineTo(COLS*B_SIZE,y*B_SIZE);}this.ctx.stroke();}
+                // GRID ALWAYS ON
+                this.ctx.strokeStyle='rgba(255,255,255,0.1)';this.ctx.lineWidth=1;this.ctx.beginPath();for(let x=1;x<COLS;x++){this.ctx.moveTo(x*B_SIZE,4*B_SIZE);this.ctx.lineTo(x*B_SIZE,ROWS*B_SIZE);}for(let y=4;y<ROWS;y++){this.ctx.moveTo(0,y*B_SIZE);this.ctx.lineTo(COLS*B_SIZE,y*B_SIZE);}this.ctx.stroke();
+                
                 this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v;this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));
                 if(this.active&&!isSpectator){
                     let g={...this.active.pos}; while(!this.collide(this.active.matrix,g))g.y++; g.y--;
