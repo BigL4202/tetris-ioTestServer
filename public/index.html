@@ -41,7 +41,6 @@
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 950px; }
         .active { display: flex; }
         
-        /* CHANGED: COOLER TITLE */
         h1 { 
             font-size: 60px; 
             margin-bottom: 30px; 
@@ -62,7 +61,6 @@
             50% { filter: drop-shadow(0 0 25px var(--accent)); }
         }
 
-        /* CHANGED: Tech Panel Style for Login & Menu Sections */
         .tech-panel {
             background: rgba(10, 10, 10, 0.8);
             border: 1px solid var(--accent);
@@ -78,7 +76,6 @@
         .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
         .input-std:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--glow); outline: none; background: #000; }
         
-        /* CHANGED: Cooler Buttons */
         .btn { 
             padding: 15px 40px; 
             font-size: 16px; 
@@ -98,7 +95,7 @@
         .btn:hover { 
             transform: translateY(-2px) scale(1.02); 
             filter: brightness(1.2); 
-            letter-spacing: 3px; /* Expands on hover */
+            letter-spacing: 3px; 
             box-shadow: 0 0 20px var(--glow);
         }
         
@@ -108,24 +105,14 @@
         .btn-ffa { background: #ff9900; color: #000; }
         .btn-blue { background: #00a8ff; color: #fff; } 
 
-        /* MAIN MENU SPLIT */
         #main-split { display: flex; flex-direction: row; gap: 40px; align-items: stretch; margin-top: 10px; }
         
-        /* CHANGED: Boxed Left Column */
-        .menu-left { 
-            width: 340px; 
-            /* Inherits .tech-panel styles */
-        }
+        .menu-left { width: 340px; }
         
         .user-info { margin-bottom: 20px; font-size: 16px; color: #ccc; text-align: center; width: 100%; line-height: 1.6; border-bottom: 1px solid #333; padding-bottom: 15px; }
         .user-info span { color: #fff; font-weight: bold; font-size: 18px; }
         
-        /* RIGHT COLUMN (LEADERBOARDS) */
-        .menu-right { 
-            width: 340px; 
-            /* Inherits .tech-panel styles */
-            justify-content: flex-start;
-        }
+        .menu-right { width: 340px; justify-content: flex-start; }
         
         .lb-header-text { 
             color: var(--accent); 
@@ -240,7 +227,7 @@
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
     <div id="menu-container">
-        <div id="scr-login" class="screen active tech-panel" style="width:auto;">
+        <div id="scr-login" class="screen active" style="width:auto;">
             <h1>PROJECT <span>ASMONDY</span></h1>
             <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
             <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
@@ -388,8 +375,13 @@
         }
 
         window.onload = function() {
-            if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
-            if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
+            // CHANGED: Restored Login Screen requirement unless saved creds exist
+            if(localStorage.getItem('savedUser')) {
+                document.getElementById('username').value = localStorage.getItem('savedUser');
+                if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
+                attemptLogin(); // Auto-login if creds exist
+            }
+            // Removed the "else { connect() }" auto-guest logic.
         };
 
         function saveCreds() {
