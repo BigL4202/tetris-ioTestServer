@@ -48,19 +48,20 @@
         .player-item:hover { background: #222; }
 
         /* Game Area Layout (Scaled down to fit screens) */
-        .game-area { display: flex; gap: 20px; transform: scale(1); transition: 0.5s; width: 100%; justify-content: center; align-items: center; }
-        @media (max-height: 900px) { .game-area { transform: scale(0.85); } }
+        /* v1.4 UPDATE: Adjusted scale to fit taller board */
+        .game-area { display: flex; gap: 20px; transform: scale(0.9); transition: 0.5s; width: 100%; justify-content: center; align-items: center; }
+        @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
         
         .player-root { display: flex; flex-direction: column; align-items: center; }
         .player-container { display: flex; align-items: flex-start; gap: 10px; position: relative; }
         .main-board-wrap { position: relative; border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
-        /* CHANGED: Fixed Side Columns to match visual references */
+        /* Side Columns */
         .side-col { display: flex; flex-direction: column; width: 100px; gap: 10px; }
-        
         .side-box { border: 2px solid #333; background: #000; display: flex; flex-direction: column; align-items: center; padding-top: 5px; color:#888; font-size:12px; min-height: 80px; justify-content: center; }
         
-        .garbage-bar { width: 12px; height: 780px; background: #111; border: 1px solid #333; position: relative; overflow: hidden; }
+        /* v1.4 UPDATE: Increased height to match new ROWS count (30 * 30px = 900px) */
+        .garbage-bar { width: 12px; height: 900px; background: #111; border: 1px solid #333; position: relative; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
 
         /* Overlays (Countdown, Results, etc.) */
@@ -179,7 +180,7 @@
 
                 <div class="main-board-wrap">
                     <div id="p1-name" style="position:absolute; top:-25px; width:100%; text-align:center; color:#00e5ff; font-weight:bold;">YOU</div>
-                    <canvas id="p1" width="120" height="780"></canvas>
+                    <canvas id="p1" width="120" height="900"></canvas>
                     
                     <div id="pop-action" class="float-text action-text">QUAD</div>
                     <div id="pop-combo" class="float-text combo-text">2 COMBO</div>
@@ -196,7 +197,8 @@
 
     <script>
         // --- CONSTANTS ---
-        const COLS=4, ROWS=26, B_SIZE=30; // 4 Columns, 26 Rows (Standard Tetris is usually 10x20, this is custom)
+        // v1.4 UPDATE: ROWS set to 30 (4 Red Zone + 26 Safe Zone)
+        const COLS=4, ROWS=30, B_SIZE=30; 
         
         // Piece shapes definition (I, O, T, S, Z, J, L)
         const PIECES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
@@ -204,23 +206,18 @@
         
         // --- SRS OFFSET DATA (WALL KICKS) ---
         // These tables define where the piece tries to move if rotation fails (kick data).
-        // JLSTZ Offset Data (Standard SRS)
         const OFFSETS_JLSTZ = [
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,-1], [0,2], [1,2]],
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]]
         ];
-
-        // I Piece Offset Data (I piece rotates differently in SRS)
         const OFFSETS_I = [
             [[0,0], [-1,0], [2,0], [-1,0], [2,0]], [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]],
             [[-1,0], [0,0], [0,0], [0,1], [0,-2]], [[0,1], [0,1], [0,1], [0,-1], [0,2]],
             [[-1,1], [2,1], [-1,1], [2,0], [-1,0]], [[0,1], [0,1], [0,1], [0,-1], [0,2]],
             [[0,1], [0,1], [0,1], [0,-1], [0,2]], [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]]
         ];
-
-        // Maps rotation states (0->1, 1->0, etc.) to the correct row in the offset tables.
         const KICK_INDEX = { "0_1":0, "1_0":1, "1_2":2, "2_1":3, "2_3":4, "3_2":5, "3_0":6, "0_3":7 };
 
         // Global variables for game state
@@ -262,7 +259,7 @@
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
             if(!user || !pass) return alert("Please enter Username and Password.");
-            if(!socket) connect(); // Initialize socket connection if not already done
+            if(!socket) connect();
             socket.emit('login_attempt', { username: user, password: pass });
         }
 
@@ -405,7 +402,7 @@
                 
                 let n = data.duration;
                 tx.innerText = n;
-                inputLocked = true; // Lock controls during countdown
+                inputLocked = true;
                 
                 const iv = setInterval(()=>{
                     n--;
@@ -415,73 +412,41 @@
             });
 
             socket.on('match_start', data => {
-                inputLocked = false; // Unlock controls
+                inputLocked = false;
                 gameMode = data.mode;
                 isSpectator = false;
                 setupOnlineGame(data.seed, data.players);
             });
 
-            // Receiving garbage (attacks) from server
             socket.on('receive_garbage', n => { if (gameMode === 'ffa' && !isSpectator) p1.receiveGarbage(n); });
-            
-            // Updating enemy screens
             socket.on('enemy_board_update', d => { if (gameMode === 'ffa') drawEnemy(d.id, d.grid); });
-            
-            // Handling Eliminations
             socket.on('elimination', d => { feed(`${d.username} eliminated!`); });
-            
-            // Win Request
             socket.on('request_win_stats', () => { socket.emit('match_won', p1.getStats()); });
             
-            // Match Finished / Summary
             socket.on('match_summary', results => {
                 gameActive = false;
                 const ov = document.getElementById('overlay-results');
                 const tb = document.getElementById('results-body');
                 tb.innerHTML = '';
-                
-                // Populate results table
                 results.forEach(res => {
-                    const row = `<tr>
-                        <td class="${res.place===1?'rank-1':''}">${res.place}</td>
-                        <td>${res.username}</td>
-                        <td>${res.apm}</td>
-                        <td>${res.pps}</td>
-                        <td>${res.sent}</td>
-                        <td>${res.recv}</td>
-                    </tr>`;
+                    const row = `<tr><td class="${res.place===1?'rank-1':''}">${res.place}</td><td>${res.username}</td><td>${res.apm}</td><td>${res.pps}</td><td>${res.sent}</td><td>${res.recv}</td></tr>`;
                     tb.innerHTML += row;
                 });
                 ov.classList.remove('hidden');
-                
-                // 10 Second Cooldown timer before next match
                 let t = 10;
                 const sp = document.getElementById('res-timer');
                 sp.innerText = t;
-                const iv = setInterval(() => {
-                    t--;
-                    sp.innerText = t;
-                    if(t<=0) clearInterval(iv);
-                }, 1000);
+                const iv = setInterval(() => { t--; sp.innerText = t; if(t<=0) clearInterval(iv); }, 1000);
             });
             
-            socket.on('lobby_reset', () => { 
-                document.getElementById('overlay-results').classList.add('hidden');
-                if(gameMode === 'ffa') goHome(); 
-            });
-
-            // Chat Receiving
+            socket.on('lobby_reset', () => { document.getElementById('overlay-results').classList.add('hidden'); if(gameMode === 'ffa') goHome(); });
             socket.on('receive_chat', data => {
                 const box = document.getElementById('chat-history');
                 box.innerHTML += `<div class="chat-line"><span class="chat-user">${data.user}:</span> ${data.text}</div>`;
                 box.scrollTop = box.scrollHeight;
             });
-
-            // Update my own stats in menu
             socket.on('update_my_wins', w => document.getElementById('display-wins').innerText = w);
             socket.on('update_my_apm', a => document.getElementById('display-apm').innerText = a);
-            
-            // Spectating late join
             socket.on('ffa_spectate', d => {
                 document.getElementById('wait-msg').innerText = "SPECTATING...";
                 setTimeout(() => { isSpectator=true; gameMode='ffa'; setupGameUI(); setupOnlineGame(d.seed, d.players); }, 1000);
@@ -492,8 +457,6 @@
         function showStatDetails(user) {
             const d = statsCache[user];
             const div = document.getElementById('stats-detail');
-            
-            // Calculate Averages based on history array
             let avgAPM=0, avgPPS=0, avgSent=0, avgRecv=0, games=d.history.length;
             if (games > 0) {
                 avgAPM = (d.history.reduce((a,b)=>a+(b.apm||0), 0) / games).toFixed(1);
@@ -501,24 +464,18 @@
                 avgSent = (d.history.reduce((a,b)=>a+(b.sent||0), 0) / games).toFixed(1);
                 avgRecv = (d.history.reduce((a,b)=>a+(b.received||0), 0) / games).toFixed(1);
             }
-
-            // Render details HTML
             let html = `<h2 style="color:#00a8ff">${user.toUpperCase()}</h2>`;
             html += `<div style="display:flex; gap:20px; margin-bottom:20px;">
                 <div class="stat-box"><div>WINS</div><div class="stat-val">${d.wins}</div></div>
                 <div class="stat-box"><div>MAX COMBO</div><div class="stat-val">${d.bestCombo || 0}</div></div>
             </div>`;
-            
             html += `<h3 style="text-align:left; color:#888;">AVERAGES</h3><div style="display:flex; gap:10px; margin-bottom:20px;">
                 <div class="stat-box"><div>APM</div><div class="stat-val">${avgAPM}</div></div>
                 <div class="stat-box"><div>PPS</div><div class="stat-val">${avgPPS}</div></div>
                 <div class="stat-box"><div>SENT</div><div class="stat-val">${avgSent}</div></div>
                 <div class="stat-box"><div>RECV</div><div class="stat-val">${avgRecv}</div></div>
             </div>`;
-            
             html += `<h3>HISTORY</h3><table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>CMB</th></tr></thead><tbody>`;
-            
-            // Reverse history to show newest first
             [...d.history].reverse().forEach(h => {
                 const date = new Date(h.date).toLocaleDateString();
                 html += `<tr><td>${date}</td><td style="color:${h.place===1?'#ffcc00':'#fff'}">${h.place}</td><td>${h.apm}</td><td>${h.pps}</td><td>${h.sent}</td><td>${h.maxCombo||0}</td></tr>`;
@@ -530,12 +487,9 @@
         // --- GAME ENGINE ---
         function setupOnlineGame(seed, players) {
             gameActive = true;
-            p1.initRNG(seed); // Initialize Random Number Generator with server seed
-            p1.reset();
+            p1.initRNG(seed); p1.reset();
             const grid = document.getElementById('ffa-grid');
             grid.innerHTML = '';
-            
-            // Create mini-boards for opponents
             players.forEach(p => {
                 if(p.id !== socket.id) {
                     const d = document.createElement('div');
@@ -544,12 +498,10 @@
                     grid.appendChild(d);
                 }
             });
-            
             document.getElementById('p1-root').style.opacity = isSpectator ? '0.3' : '1';
-            loop(); // Start Game Loop
+            loop();
         }
 
-        // Draws the opponent's grid on the mini-canvas
         function drawEnemy(id, grid) {
             const cvs = document.getElementById(`cvs_${id}`);
             if(!cvs) return;
@@ -574,20 +526,13 @@
         }
 
         // --- PLAYER LOGIC (MAIN CLASS) ---
-        class SeededRNG { 
-            constructor(s){this.s=s;} 
-            // Simple Linear Congruential Generator for consistent random pieces
-            next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} 
-        }
+        class SeededRNG { constructor(s){this.s=s;} next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} }
         
         class Player {
             constructor(){
-                // Setup Canvas Contexts
                 this.ctx=document.getElementById('p1').getContext('2d');
                 this.nCtx=document.getElementById('p1-n').getContext('2d');
                 this.hCtx=document.getElementById('p1-h').getContext('2d');
-                
-                // UI Elements
                 this.gBar=document.getElementById('p1-g');
                 this.elSent=document.getElementById('s-sent');
                 this.elRecv=document.getElementById('s-recv');
@@ -599,105 +544,60 @@
                 this.popB2B=document.getElementById('pop-b2b');
                 this.popSent=document.getElementById('pop-sent');
 
-                this.rotation = 0; // Current rotation state (0-3)
-                // Grid: 26 Rows, 4 Cols (initialized to 0)
+                this.rotation = 0;
                 this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-                
-                this.bag=[]; this.queue=[]; 
-                this.holdId=null; this.canHold=true;
-                
-                // Game Stats
-                this.pendingG=0; // Garbage pending
-                this.combo=-1; 
-                this.maxCombo=0; 
-                this.b2b=0; // Back-to-Back (Tetris or T-Spin only)
-                
-                // Timers
-                this.dropCounter=0; // Gravity
-                this.lockTimer=0; // Lock delay
-                this.dasTimer=0; // Delayed Auto Shift (movement speed)
-                this.arrTimer=0; // Auto Repeat Rate
-                
-                this.piecesPlaced=0; 
-                this.linesSentTotal=0; 
-                this.linesRecvTotal=0;
-                
+                this.bag=[]; this.queue=[]; this.holdId=null; this.canHold=true;
+                this.pendingG=0; this.combo=-1; this.maxCombo=0; this.b2b=0; 
+                this.dropCounter=0; this.lockTimer=0; this.dasTimer=0; this.arrTimer=0;
+                this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0;
                 this.rng=new SeededRNG(1);
                 this.startTime = Date.now();
             }
             
-            // Generate stats object to send to server
             getStats() {
                 const sec = (Date.now() - this.startTime) / 1000;
                 return {
                     apm: (sec>0 ? Math.floor((this.linesSentTotal/sec)*60) : 0),
                     pps: (sec>0 ? (this.piecesPlaced/sec).toFixed(2) : "0.00"),
-                    sent: this.linesSentTotal,
-                    recv: this.linesRecvTotal,
-                    maxCombo: this.maxCombo 
+                    sent: this.linesSentTotal, recv: this.linesRecvTotal, maxCombo: this.maxCombo 
                 };
             }
 
             initRNG(s){this.rng=new SeededRNG(s);}
-            
-            // Full Game Reset
             reset(){ 
                 this.grid.forEach(r=>r.fill(0)); 
                 this.bag=[]; this.queue=[]; 
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0; this.pendingG=0;
                 this.startTime = Date.now();
-                this.holdId = null;
-                this.canHold = true;
-                this.maxCombo = 0;
-                this.rotation = 0;
+                this.holdId = null; this.canHold = true; this.maxCombo = 0; this.rotation = 0;
                 this.drawSide(this.hCtx, [this.holdId]);
-                // Fill queue with 4 pieces
                 for(let i=0;i<4;i++)this.queue.push(this.pull()); 
                 this.spawn(); 
             }
-            
-            // 7-Bag Randomizer (standard Tetris RNG)
             pull(){ if(!this.bag.length){this.bag=[0,1,2,3,4,5,6]; for(let i=6;i>0;i--){const j=Math.floor(this.rng.next()*(i+1));[this.bag[i],this.bag[j]]=[this.bag[j],this.bag[i]];}} return this.bag.pop(); }
             
-            // Spawns a new piece
             spawn(id=this.queue.shift()){
                 this.queue.push(this.pull());
-                this.rotation = 0; // Reset rotation
-                
-                // --- CHANGED: SPAWN POSITION FIX ---
-                // PREVIOUSLY: pos: {x: 3, y: -2}. 
-                // BUG: Board is only 4 columns (0,1,2,3). Spawning at 3 means the piece (width 3 or 4) extends into 4,5,6.
-                // RESULT: Immediate collision, causing the infinite black screen crash.
-                // FIX: Set x to 0.
-                this.active={pos:{x:0, y:-2}, matrix:PIECES[id], id:id, color:COLORS[id]};
+                this.rotation = 0;
+                // v1.2 FIX: Spawn position to x=0 for 4-wide board
+                this.active={pos:{x:0, y:-1}, matrix:PIECES[id], id:id, color:COLORS[id]};
                 
                 this.lastMoveRotate=false;
                 this.lockTimer = 0;
                 
-                // Immediate Game Over Check (Collision on Spawn)
-                if(this.collide()){
-                    if(gameMode !== 'zen' && gameMode !== 'apm_test' && socket) {
-                        socket.emit('player_died', this.getStats()); 
-                        isSpectator=true;
-                        document.getElementById('p1-root').style.opacity='0.3';
-                    } else {
-                        this.reset();
-                    }
-                }
+                // Spawn collision check (Death handled in Lock() via Red Zone)
+                if(this.collide()){}
                 this.drawSide(this.nCtx,this.queue); this.sendBoard();
             }
 
-            // --- COLLISION LOGIC ---
-            // Checks if the piece overlaps walls, floor, or existing blocks.
             collide(m=this.active.matrix, p=this.active.pos) {
                 for(let y=0; y<m.length; y++) {
                     for(let x=0; x<m[y].length; x++) {
                         if(m[y][x]) {
                             const gx = x + p.x;
                             const gy = y + p.y;
-                            if (gx < 0 || gx >= COLS) return true; // Wall
-                            if (gy >= ROWS) return true; // Floor
-                            // Block Collision: Ignore if piece is above the visible board (gy < 0)
+                            if (gx < 0 || gx >= COLS) return true; 
+                            if (gy >= ROWS) return true; 
                             if (gy >= 0 && this.grid[gy][gx]) return true; 
                         }
                     }
@@ -705,47 +605,51 @@
                 return false;
             }
 
-            // --- ROTATION SYSTEM (SRS) ---
+            // v1.3 UPDATE: SMALL BOARD KICKS
             rotate(dir=1) { 
                 const currentRot = this.rotation;
                 let nextRot = (currentRot + dir + 4) % 4; 
-                
-                // Create rotated matrix
-                const nextMatrix = this.active.matrix[0].map((_,i) => 
-                    this.active.matrix.map(row => row[i]).reverse()
-                );
-
+                const nextMatrix = this.active.matrix[0].map((_,i) => this.active.matrix.map(row => row[i]).reverse());
                 const isI = (this.active.id === 0); 
                 const isO = (this.active.id === 1);
-                if (isO) return; // O piece doesn't rotate
+                if (isO) return; 
 
-                // Select correct offset table
                 const kickTable = isI ? OFFSETS_I : OFFSETS_JLSTZ;
                 const kickRowIndex = KICK_INDEX[`${currentRot}_${nextRot}`];
                 const kicks = kickTable[kickRowIndex];
-
                 const initialPos = { x: this.active.pos.x, y: this.active.pos.y };
 
-                // Try standard rotation + 4 wall kicks
+                // 1. Standard SRS
                 for (let i = 0; i < kicks.length; i++) {
                     const offset = kicks[i];
-                    // Flip Y because canvas is top-down (offset[1] is normally up-positive)
                     this.active.pos.x = initialPos.x + offset[0];
                     this.active.pos.y = initialPos.y - offset[1]; 
-
                     if (!this.collide(nextMatrix, this.active.pos)) {
-                        // SUCCESS: Apply rotation
-                        this.active.matrix = nextMatrix;
-                        this.rotation = nextRot;
-                        this.lastMoveRotate = true;
-                        if(this.isGrounded()) this.lockTimer = 0; // Reset lock delay if rotating near ground
-                        this.sendBoard();
-                        return;
+                        this.applyRotation(nextMatrix, nextRot); return;
                     }
                 }
-                // FAIL: Reset position (rotation blocked)
+
+                // 2. Extra Safety Kicks for 4-wide board
+                const safetyKicks = [[-1,0],[1,0],[-2,0],[2,0],[-3,0]];
+                for(let k of safetyKicks) {
+                    this.active.pos.x = initialPos.x + k[0];
+                    this.active.pos.y = initialPos.y + k[1];
+                    if (!this.collide(nextMatrix, this.active.pos)) {
+                        this.applyRotation(nextMatrix, nextRot); return;
+                    }
+                }
+
+                // Fail
                 this.active.pos.x = initialPos.x;
                 this.active.pos.y = initialPos.y;
+            }
+
+            applyRotation(matrix, rot) {
+                this.active.matrix = matrix;
+                this.rotation = rot;
+                this.lastMoveRotate = true;
+                if(this.isGrounded()) this.lockTimer = 0;
+                this.sendBoard();
             }
 
             move(d){ 
@@ -753,89 +657,80 @@
                 if(this.collide()) this.active.pos.x-=d; 
                 else { this.lastMoveRotate=false; if(this.isGrounded()) this.lockTimer=0; this.sendBoard(); } 
             }
-            
             isGrounded() { this.active.pos.y++; const hit=this.collide(); this.active.pos.y--; return hit; }
-            
             hardDrop(){ while(!this.collide())this.active.pos.y++; this.active.pos.y--; this.lock(); }
-            
             hold(){ 
                 if(!this.canHold)return; 
                 const c=this.active.id; 
-                if(this.holdId===null){this.holdId=c;this.spawn();}
-                else{const t=this.holdId;this.holdId=c;this.spawn(t);} 
-                this.canHold=false; 
-                this.drawSide(this.hCtx,[this.holdId]); 
+                if(this.holdId===null){this.holdId=c;this.spawn();} else{const t=this.holdId;this.holdId=c;this.spawn(t);} 
+                this.canHold=false; this.drawSide(this.hCtx,[this.holdId]); 
             }
             
-            // Locks the piece into the grid
             lock(){
-                this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{ if(v) { const gy=y+this.active.pos.y; if(gy>=0) this.grid[gy][x+this.active.pos.x]=this.active.color; } }));
+                let entirelyInRed = true; // v1.3: Red Zone death tracking
+                
+                this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{ 
+                    if(v) { 
+                        const gy=y+this.active.pos.y; 
+                        if(gy>=0) {
+                            this.grid[gy][x+this.active.pos.x]=this.active.color; 
+                            // v1.3: If any block locks below row 3, we are safe
+                            if (gy >= 4) entirelyInRed = false;
+                        }
+                    } 
+                }));
                 this.piecesPlaced++;
-                this.sweep(); // Check for line clears
-                this.canHold=true; 
-                this.spawn();
+                const linesCleared = this.sweep(); 
+                
+                // v1.3: Game Over if locked entirely in Red Zone (rows 0-3) with no line clear
+                if (entirelyInRed && linesCleared === 0) {
+                     if(gameMode !== 'zen' && gameMode !== 'apm_test' && socket) {
+                        socket.emit('player_died', this.getStats()); 
+                        isSpectator=true; document.getElementById('p1-root').style.opacity='0.3';
+                        return;
+                    } else {
+                        this.reset();
+                        return;
+                    }
+                }
+
+                this.canHold=true; this.spawn();
             }
 
-            // Checks for full rows and clears them
             sweep(){
                 let lines=0, isPC=true;
-                for(let y=ROWS-1;y>=0;y--){ 
-                    if(this.grid[y].every(v=>v!==0)){ // Row Full
-                        this.grid.splice(y,1);
-                        this.grid.unshift(Array(COLS).fill(0)); // Add new empty row at top
-                        lines++; y++;
-                    } else if(this.grid[y].some(v=>v!==0)) isPC=false; 
-                }
+                for(let y=ROWS-1;y>=0;y--){ if(this.grid[y].every(v=>v!==0)){this.grid.splice(y,1);this.grid.unshift(Array(COLS).fill(0));lines++;y++;} else if(this.grid[y].some(v=>v!==0)) isPC=false; }
                 
                 if(lines>0){
                     this.combo++;
                     if(this.combo > this.maxCombo) this.maxCombo = this.combo;
-
-                    // Calculate Garbage (Attack Power)
                     let atk=0, txt="";
                     txt=(lines==1)?"SINGLE":(lines==2)?"DOUBLE":(lines==3)?"TRIPLE":"QUAD"; atk=(lines==4)?4:(lines-1); 
                     if(isPC){ txt="ALL CLEAR"; atk+=10; }
-                    
                     this.showText(this.popAct, txt);
-                    
-                    // Back-to-Back Bonus (Quad after Quad)
-                    if(lines==4){ 
-                        this.b2b++; 
-                        if(this.b2b>1){atk+=1; this.showText(this.popB2B, "B2B x"+(this.b2b-1));} 
-                    } else this.b2b=0;
-
-                    // Combo Bonus
+                    if(lines==4){ this.b2b++; if(this.b2b>1){atk+=1; this.showText(this.popB2B, "B2B x"+(this.b2b-1));} } else this.b2b=0;
                     if(this.combo>0){ atk+=Math.floor((this.combo-1)/2); this.showText(this.popCmbo, this.combo+" COMBO"); }
-                    
                     if(atk > 0) this.showText(this.popSent, `+${atk}`);
-
-                    // Cancel pending garbage first
                     if(this.pendingG>0){ let c=Math.min(this.pendingG,atk); this.pendingG-=c; atk-=c; }
-                    
                     this.linesSentTotal+=atk; 
-                    
-                    // Send garbage to opponents
                     if(atk>0 && (gameMode === 'ffa')){ if(socket && !isSpectator) socket.emit('send_garbage', {mode:gameMode, amount:atk}); }
                 } else {
-                    this.combo=-1; // Reset combo if no lines cleared
-                    // Accept pending garbage
+                    this.combo=-1;
                     while(this.pendingG>0){ this.pendingG--; const r=Array(COLS).fill('#555'); r[Math.floor(Math.random()*COLS)]=0; this.grid.shift(); this.grid.push(r); }
                 }
-                this.gBar.style.height=(this.pendingG*30)+'px'; // Update visual garbage bar
+                this.gBar.style.height=(this.pendingG*30)+'px';
                 this.updateStats();
+                return lines; // Return lines for Red Zone check
             }
 
             receiveGarbage(n){ this.pendingG+=n; this.linesRecvTotal+=n; this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats(); }
             
-            // Updates HUD texts
             updateStats(){
                 const sec = (Date.now() - this.startTime) / 1000;
-                
                 this.elSent.innerText = this.linesSentTotal;
                 this.elRecv.innerText = this.linesRecvTotal;
                 this.elPPS.innerText = (sec>0 ? (this.piecesPlaced/sec).toFixed(2) : "0.00");
                 this.elAPM.innerText = (sec>0 ? Math.floor((this.linesSentTotal/sec)*60) : 0);
-                
                 let displaySec = sec;
                 if(gameMode === 'apm_test') displaySec = 60 - sec; 
                 if(displaySec < 0) displaySec = 0;
@@ -844,20 +739,16 @@
                 this.elTime.innerText = `${m}:${s}`;
             }
 
-            // Helper to draw Next/Hold queues (and centers piece)
             drawSide(ctx, ids){
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#000'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 ids.forEach((id, i) => {
                     if (id !== null) {
                         ctx.fillStyle = COLORS[id];
-                        // Center piece in box logic
                         const shape = PIECES[id];
                         const pw = shape[0].length * 20;
                         const ph = shape.length * 20;
                         const ox = (ctx.canvas.width - pw) / 2;
                         const oy = i * 80 + (80-ph)/2;
-                        
                         shape.forEach((row, y) => {
                             row.forEach((value, x) => {
                                 if (value) ctx.fillRect(ox + x * 20, oy + y * 20, 19, 19);
@@ -868,34 +759,33 @@
             }
             
             sendBoard(){ if(socket && !isSpectator){ const d=JSON.parse(JSON.stringify(this.grid)); this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v&&d[y+this.active.pos.y])d[y+this.active.pos.y][x+this.active.pos.x]=this.active.color;})); socket.emit('update_board',d); } }
-            
             showText(el, msg){ el.innerText=msg; el.style.opacity=1; setTimeout(()=>el.style.opacity=0, 1000); }
             
-            // Update loop (Gravity)
             update(dt){
                 this.dropCounter+=dt;
-                // Auto drop every 700ms (can be faster based on level)
                 if(this.dropCounter > 700) {
                     this.active.pos.y++;
                     if(this.collide()) { this.active.pos.y--; } else { this.lockTimer = 0; this.lastMoveRotate = false; }
                     this.dropCounter = 0;
                 }
-                // Lock Delay logic (allows sliding on floor for 500ms)
                 if(this.isGrounded()) { this.lockTimer += dt; if(this.lockTimer > 500) this.lock(); }
                 this.sendBoard();
             }
 
-            // Main Render Function
             draw(){
-                this.ctx.fillStyle='#000'; this.ctx.fillRect(0,0,120,780);
+                // v1.4 UPDATE: Clear 900px height
+                this.ctx.fillStyle='#000'; this.ctx.fillRect(0,0,120,900);
+                
+                // v1.3 UPDATE: Draw Red Zone (Rows 0-3)
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+                this.ctx.fillRect(0, 0, 120, 120); 
+                
                 // Draw Grid
                 this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v; this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));
-                // Draw Active Piece (Ghost and Solid)
+                // Draw Active Piece
                 if(this.active && !isSpectator){
-                    // Ghost Piece
                     let g={...this.active.pos}; while(!this.collide(this.active.matrix,g))g.y++; g.y--;
                     this.ctx.fillStyle='rgba(255,255,255,0.15)'; this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v)this.ctx.fillRect((g.x+x)*B_SIZE,(g.y+y)*B_SIZE,B_SIZE-1,B_SIZE-1);}));
-                    // Active Piece
                     this.ctx.fillStyle=this.active.color; this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v)this.ctx.fillRect((this.active.pos.x+x)*B_SIZE,(this.active.pos.y+y)*B_SIZE,B_SIZE-1,B_SIZE-1);}));
                 }
             }
@@ -905,7 +795,6 @@
         const keys = new Set();
         const ctrl = {left:'ArrowLeft',right:'ArrowRight',rotate:'ArrowUp',soft:'ArrowDown',hard:'Space',hold:'ShiftLeft'};
         
-        // Input Handling
         window.addEventListener('keydown', e=>{
             if(gameMode === 'zen' || gameMode === 'apm_test') {
                 if(document.activeElement.tagName !== 'INPUT' && e.code === 'KeyR') {
@@ -927,15 +816,12 @@
         });
         window.addEventListener('keyup', e=>keys.delete(e.code));
 
-        // Game Loop (RequestAnimationFrame)
         let lastT=0;
         function loop(t=0){
             const dt=t-lastT; lastT=t;
             if(gameActive) {
                 if(!isSpectator && !inputLocked){
-                    // Handle Soft Drop
                     if(keys.has(ctrl.soft)){ p1.active.pos.y++; if(p1.collide())p1.active.pos.y--; else { p1.lastMoveRotate=false; p1.lockTimer=0; } }
-                    // Handle DAS/ARR (Movement Speed)
                     if(keys.has(ctrl.left)||keys.has(ctrl.right)){
                         const d=keys.has(ctrl.left)?-1:1;
                         p1.dasTimer+=dt;
