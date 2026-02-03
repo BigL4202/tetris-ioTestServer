@@ -48,9 +48,18 @@
         .player-item:hover { background: #222; }
 
         /* Game Area Layout (Scaled down to fit screens) */
-        .game-area { display: flex; gap: 40px; transform: scale(0.75); transition: 0.5s; width: 100%; justify-content: center; }
-        .player-container { display: flex; align-items: flex-end; gap: 10px; position: relative; }
+        .game-area { display: flex; gap: 20px; transform: scale(1); transition: 0.5s; width: 100%; justify-content: center; align-items: center; }
+        @media (max-height: 900px) { .game-area { transform: scale(0.85); } }
+        
+        .player-root { display: flex; flex-direction: column; align-items: center; }
+        .player-container { display: flex; align-items: flex-start; gap: 10px; position: relative; }
         .main-board-wrap { position: relative; border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        
+        /* CHANGED: Fixed Side Columns to match visual references */
+        .side-col { display: flex; flex-direction: column; width: 100px; gap: 10px; }
+        
+        .side-box { border: 2px solid #333; background: #000; display: flex; flex-direction: column; align-items: center; padding-top: 5px; color:#888; font-size:12px; min-height: 80px; justify-content: center; }
+        
         .garbage-bar { width: 12px; height: 780px; background: #111; border: 1px solid #333; position: relative; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
 
@@ -71,8 +80,15 @@
         #chat-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 250px; display: flex; flex-direction: column; z-index: 300; pointer-events: auto; }
         #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; }
         #chat-close { background: red; color: white; border: none; cursor: pointer; font-weight: bold; padding: 2px 8px; border-radius: 3px; }
+        
+        /* Stats Row at Top */
+        .stats-row { display: flex; gap: 10px; margin-bottom: 10px; width: 100%; justify-content: center; }
+        .stat-box { background: #111; border: 1px solid #333; padding: 5px 15px; border-radius: 4px; text-align: center; min-width: 70px; }
+        .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; }
+        .stat-val { font-size: 16px; font-weight: bold; color: #fff; font-family: monospace; }
 
         @keyframes pop { from { transform: scale(1); } to { transform: scale(1.1); } }
+        canvas { display: block; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -83,10 +99,9 @@
     <div id="menu-container">
         <div id="scr-login" class="screen active">
             <h1>PROJECT <span style="color:#00ffcc">ASMONDY</span></h1>
-            <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
             <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
             <input type="password" id="password" class="input-std" placeholder="PASSWORD" oninput="saveCreds()">
-            <button class="btn btn-green" onclick="attemptLogin()">LOGIN / REGISTER</button>
+            <button class="btn btn-green" onclick="attemptLogin()">LOGIN</button>
         </div>
 
         <div id="scr-main" class="screen">
@@ -95,8 +110,8 @@
                 <div class="menu-left">
                     <div class="user-info">
                         Welcome, <span id="display-user">Guest</span><br>
-                        Your Wins: <span id="display-wins" class="stat-highlight">0</span><br>
-                        Best APM: <span id="display-apm" class="stat-highlight-apm">0</span>
+                        Wins: <span id="display-wins" class="stat-highlight">0</span><br>
+                        APM: <span id="display-apm" class="stat-highlight-apm">0</span>
                     </div>
                     <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
                     <button class="btn btn-apm" onclick="startAPMTest()">APM TEST</button>
@@ -105,18 +120,18 @@
                     <button class="btn" style="background:#333; color:#aaa; font-size:14px;" onclick="logOut()">LOGOUT</button>
                 </div>
                 <div class="menu-right">
-                    <h3>ONLINE WIN LEADERBOARD</h3>
+                    <h3>LEADERBOARD (WINS)</h3>
                     <div id="lb-wins" class="lb-list"><div style="text-align:center; color:#666;">Loading...</div></div>
-                    <h3>HIGHEST COMBOS</h3>
+                    <h3>LEADERBOARD (COMBO)</h3>
                     <div id="lb-combo" class="lb-list"><div style="text-align:center; color:#666;">Loading...</div></div>
                 </div>
             </div>
         </div>
 
         <div id="scr-stats" class="screen">
-            <h2 style="color:#00a8ff">PLAYER STATISTICS</h2>
+            <h2 style="color:#00a8ff">STATISTICS</h2>
             <div id="stats-layout">
-                <div id="stats-list"></div> <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:50px;">Select a player to view history.</div></div>
+                <div id="stats-list"></div> <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:50px;">Select a player.</div></div>
             </div>
             <button class="btn" onclick="goHome()" style="margin-top:20px; background:#333;">BACK</button>
         </div>
@@ -131,7 +146,7 @@
     <div id="overlay-cnt" class="overlay hidden"><div id="cnt-txt">3</div></div>
     
     <div id="overlay-results" class="overlay hidden">
-        <h1 style="color:#00ffcc; text-shadow:0 0 20px #00ffcc">MATCH RESULTS</h1>
+        <h1 style="color:#00ffcc;">RESULTS</h1>
         <table id="results-table">
             <thead><tr><th>#</th><th>PLAYER</th><th>APM</th><th>PPS</th><th>SENT</th><th>RECV</th></tr></thead>
             <tbody id="results-body"></tbody>
@@ -155,21 +170,25 @@
             </div>
             <div class="player-container">
                 <div class="garbage-bar"><div id="p1-g" class="garbage-fill"></div></div>
+                
                 <div class="side-col">
-                    <div class="side-box" style="height:120px">HOLD<canvas id="p1-h" width="100" height="80"></canvas></div>
+                    <div class="side-box">HOLD<canvas id="p1-h" width="80" height="60"></canvas></div>
                     <div class="side-box">SENT<div id="s-sent" class="stat-val">0</div></div>
                     <div class="side-box">RECV<div id="s-recv" class="stat-val">0</div></div>
+                </div>
+
+                <div class="main-board-wrap">
+                    <div id="p1-name" style="position:absolute; top:-25px; width:100%; text-align:center; color:#00e5ff; font-weight:bold;">YOU</div>
+                    <canvas id="p1" width="120" height="780"></canvas>
+                    
                     <div id="pop-action" class="float-text action-text">QUAD</div>
                     <div id="pop-combo" class="float-text combo-text">2 COMBO</div>
                     <div id="pop-b2b" class="float-text b2b-text">B2B</div>
                     <div id="pop-sent" class="float-text sent-text">+4</div>
                 </div>
-                <div class="main-board-wrap">
-                    <div id="p1-name" style="position:absolute; top:-25px; width:100%; text-align:center; color:#00e5ff; font-weight:bold;">YOU</div>
-                    <canvas id="p1" width="120" height="780"></canvas>
-                </div>
+
                 <div class="side-col">
-                    <div class="side-box" style="height:320px">NEXT<canvas id="p1-n" width="100" height="300"></canvas></div>
+                    <div class="side-box" style="height:350px; justify-content: flex-start;">NEXT<canvas id="p1-n" width="80" height="320"></canvas></div>
                 </div>
             </div>
         </div>
@@ -187,26 +206,18 @@
         // These tables define where the piece tries to move if rotation fails (kick data).
         // JLSTZ Offset Data (Standard SRS)
         const OFFSETS_JLSTZ = [
-            [[0,0], [0,0], [0,0], [0,0], [0,0]], // 0>>1 (0)
-            [[0,0], [1,0], [1,-1], [0,2], [1,2]], // 1>>0 (1)
-            [[0,0], [0,0], [0,0], [0,0], [0,0]], // 1>>2 (2)
-            [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]], // 2>>1 (3)
-            [[0,0], [0,0], [0,0], [0,0], [0,0]], // 2>>3 (4)
-            [[0,0], [1,0], [1,1], [0,-2], [1,-2]], // 3>>2 (5)
-            [[0,0], [0,0], [0,0], [0,0], [0,0]], // 3>>0 (6)
-            [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]]  // 0>>3 (7)
+            [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,-1], [0,2], [1,2]],
+            [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
+            [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,1], [0,-2], [1,-2]],
+            [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]]
         ];
 
         // I Piece Offset Data (I piece rotates differently in SRS)
         const OFFSETS_I = [
-            [[0,0], [-1,0], [2,0], [-1,0], [2,0]], // 0>>1 (0)
-            [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]], // 1>>0 (1)
-            [[-1,0], [0,0], [0,0], [0,1], [0,-2]], // 1>>2 (2)
-            [[0,1], [0,1], [0,1], [0,-1], [0,2]], // 2>>1 (3)
-            [[-1,1], [2,1], [-1,1], [2,0], [-1,0]], // 2>>3 (4)
-            [[0,1], [0,1], [0,1], [0,-1], [0,2]], // 3>>2 (5)
-            [[0,1], [0,1], [0,1], [0,-1], [0,2]], // 3>>0 (6)
-            [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]]  // 0>>3 (7)
+            [[0,0], [-1,0], [2,0], [-1,0], [2,0]], [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]],
+            [[-1,0], [0,0], [0,0], [0,1], [0,-2]], [[0,1], [0,1], [0,1], [0,-1], [0,2]],
+            [[-1,1], [2,1], [-1,1], [2,0], [-1,0]], [[0,1], [0,1], [0,1], [0,-1], [0,2]],
+            [[0,1], [0,1], [0,1], [0,-1], [0,2]], [[0,-1], [0,-1], [0,-1], [0,1], [0,-2]]
         ];
 
         // Maps rotation states (0->1, 1->0, etc.) to the correct row in the offset tables.
@@ -384,16 +395,6 @@
             });
 
             // Gameplay Sockets
-            socket.on('ffa_spectate', data => {
-                document.getElementById('wait-msg').innerText = "MATCH IN PROGRESS. SPECTATING...";
-                setTimeout(() => {
-                    isSpectator = true;
-                    gameMode = 'ffa';
-                    setupGameUI(); 
-                    setupOnlineGame(data.seed, data.players);
-                }, 1000);
-            });
-
             socket.on('start_countdown', data => {
                 gameMode = 'ffa';
                 setupGameUI();
@@ -427,11 +428,10 @@
             socket.on('enemy_board_update', d => { if (gameMode === 'ffa') drawEnemy(d.id, d.grid); });
             
             // Handling Eliminations
-            socket.on('elimination', d => {
-                feed(`${d.username} eliminated!`);
-                const cvs = document.getElementById(`cvs_${d.id}`);
-                if (cvs && cvs.parentElement) cvs.parentElement.style.opacity = '0'; // Dim eliminated player
-            });
+            socket.on('elimination', d => { feed(`${d.username} eliminated!`); });
+            
+            // Win Request
+            socket.on('request_win_stats', () => { socket.emit('match_won', p1.getStats()); });
             
             // Match Finished / Summary
             socket.on('match_summary', results => {
@@ -476,6 +476,16 @@
                 box.innerHTML += `<div class="chat-line"><span class="chat-user">${data.user}:</span> ${data.text}</div>`;
                 box.scrollTop = box.scrollHeight;
             });
+
+            // Update my own stats in menu
+            socket.on('update_my_wins', w => document.getElementById('display-wins').innerText = w);
+            socket.on('update_my_apm', a => document.getElementById('display-apm').innerText = a);
+            
+            // Spectating late join
+            socket.on('ffa_spectate', d => {
+                document.getElementById('wait-msg').innerText = "SPECTATING...";
+                setTimeout(() => { isSpectator=true; gameMode='ffa'; setupGameUI(); setupOnlineGame(d.seed, d.players); }, 1000);
+            });
         }
 
         // --- STATS LOGIC ---
@@ -499,16 +509,14 @@
                 <div class="stat-box"><div>MAX COMBO</div><div class="stat-val">${d.bestCombo || 0}</div></div>
             </div>`;
             
-            html += `<h3 style="text-align:left; color:#888;">AVERAGE PERFORMANCE</h3>
-            <div style="display:flex; gap:20px; margin-bottom:20px;">
-                <div class="stat-box"><div>AVG APM</div><div class="stat-val">${avgAPM}</div></div>
-                <div class="stat-box"><div>AVG PPS</div><div class="stat-val">${avgPPS}</div></div>
-                <div class="stat-box"><div>AVG SENT</div><div class="stat-val">${avgSent}</div></div>
-                <div class="stat-box"><div>AVG RECV</div><div class="stat-val">${avgRecv}</div></div>
+            html += `<h3 style="text-align:left; color:#888;">AVERAGES</h3><div style="display:flex; gap:10px; margin-bottom:20px;">
+                <div class="stat-box"><div>APM</div><div class="stat-val">${avgAPM}</div></div>
+                <div class="stat-box"><div>PPS</div><div class="stat-val">${avgPPS}</div></div>
+                <div class="stat-box"><div>SENT</div><div class="stat-val">${avgSent}</div></div>
+                <div class="stat-box"><div>RECV</div><div class="stat-val">${avgRecv}</div></div>
             </div>`;
             
-            html += `<h3>MATCH HISTORY</h3>`;
-            html += `<table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>COMBO</th></tr></thead><tbody>`;
+            html += `<h3>HISTORY</h3><table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>CMB</th></tr></thead><tbody>`;
             
             // Reverse history to show newest first
             [...d.history].reverse().forEach(h => {
@@ -537,13 +545,7 @@
                 }
             });
             
-            if(isSpectator) {
-                document.getElementById('p1-root').style.opacity = '0.3';
-                feed("SPECTATING MODE");
-            } else {
-                document.getElementById('p1-root').style.opacity = '1';
-            }
-            grid.style.opacity = '1';
+            document.getElementById('p1-root').style.opacity = isSpectator ? '0.3' : '1';
             loop(); // Start Game Loop
         }
 
@@ -567,10 +569,7 @@
             if(e.key === 'Enter') {
                 const input = document.getElementById('chat-input');
                 const txt = input.value.trim();
-                if(txt && socket) {
-                    socket.emit('send_chat', txt);
-                    input.value = '';
-                }
+                if(txt && socket) { socket.emit('send_chat', txt); input.value = ''; }
             }
         }
 
@@ -664,8 +663,14 @@
             spawn(id=this.queue.shift()){
                 this.queue.push(this.pull());
                 this.rotation = 0; // Reset rotation
-                // Spawn higher (y: -2) to use buffer zone
-                this.active={pos:{x:3,y:-2},matrix:PIECES[id],id:id,color:COLORS[id]};
+                
+                // --- CHANGED: SPAWN POSITION FIX ---
+                // PREVIOUSLY: pos: {x: 3, y: -2}. 
+                // BUG: Board is only 4 columns (0,1,2,3). Spawning at 3 means the piece (width 3 or 4) extends into 4,5,6.
+                // RESULT: Immediate collision, causing the infinite black screen crash.
+                // FIX: Set x to 0.
+                this.active={pos:{x:0, y:-2}, matrix:PIECES[id], id:id, color:COLORS[id]};
+                
                 this.lastMoveRotate=false;
                 this.lockTimer = 0;
                 
@@ -724,11 +729,9 @@
                 // Try standard rotation + 4 wall kicks
                 for (let i = 0; i < kicks.length; i++) {
                     const offset = kicks[i];
-                    const kickX = offset[0]; 
-                    const kickY = -offset[1]; // Flip Y because canvas is top-down
-
-                    this.active.pos.x = initialPos.x + kickX;
-                    this.active.pos.y = initialPos.y + kickY;
+                    // Flip Y because canvas is top-down (offset[1] is normally up-positive)
+                    this.active.pos.x = initialPos.x + offset[0];
+                    this.active.pos.y = initialPos.y - offset[1]; 
 
                     if (!this.collide(nextMatrix, this.active.pos)) {
                         // SUCCESS: Apply rotation
@@ -764,20 +767,17 @@
                 this.drawSide(this.hCtx,[this.holdId]); 
             }
             
-            checkTSpin() { return false; } // Placeholder
-
             // Locks the piece into the grid
             lock(){
-                const isTSpin = this.checkTSpin();
                 this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{ if(v) { const gy=y+this.active.pos.y; if(gy>=0) this.grid[gy][x+this.active.pos.x]=this.active.color; } }));
                 this.piecesPlaced++;
-                this.sweep(isTSpin); // Check for line clears
+                this.sweep(); // Check for line clears
                 this.canHold=true; 
                 this.spawn();
             }
 
             // Checks for full rows and clears them
-            sweep(isTSpin){
+            sweep(){
                 let lines=0, isPC=true;
                 for(let y=ROWS-1;y>=0;y--){ 
                     if(this.grid[y].every(v=>v!==0)){ // Row Full
@@ -844,22 +844,23 @@
                 this.elTime.innerText = `${m}:${s}`;
             }
 
-            // Helper to draw Next/Hold queues
+            // Helper to draw Next/Hold queues (and centers piece)
             drawSide(ctx, ids){
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 ids.forEach((id, i) => {
                     if (id !== null) {
                         ctx.fillStyle = COLORS[id];
+                        // Center piece in box logic
                         const shape = PIECES[id];
-                        const pieceWidth = shape[0].length * 20;
-                        const offsetX = (100 - pieceWidth) / 2;
-                        const offsetY = i * 70 + 10;
+                        const pw = shape[0].length * 20;
+                        const ph = shape.length * 20;
+                        const ox = (ctx.canvas.width - pw) / 2;
+                        const oy = i * 80 + (80-ph)/2;
+                        
                         shape.forEach((row, y) => {
                             row.forEach((value, x) => {
-                                if (value) {
-                                    ctx.fillRect(offsetX + x * 20, offsetY + y * 20, 19, 19);
-                                }
+                                if (value) ctx.fillRect(ox + x * 20, oy + y * 20, 19, 19);
                             });
                         });
                     }
