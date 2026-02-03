@@ -29,17 +29,8 @@ function createLobby() {
 
 let lobbies = {
     'ffa': createLobby(),
-    'madness': createLobby()
+    'madness': createLobby() // New Lobby
 };
-
-// --- MUTATOR ROTATION ---
-const MUTATORS = ['double_hold', 'sniper']; // Added sniper to rotation list
-let currentMutator = 'double_hold'; 
-setInterval(() => {
-    const r = Math.floor(Math.random() * MUTATORS.length);
-    currentMutator = MUTATORS[r];
-    io.to('lobby_madness').emit('madness_update', { mutator: currentMutator });
-}, 30 * 60 * 1000);
 
 // --- SOCKET CONNECTION ---
 io.on('connection', (socket) => {
@@ -97,34 +88,30 @@ io.on('connection', (socket) => {
 
     // --- LOBBY MANAGEMENT ---
     
-    // Helper: Remove player from any lobby they are in
+    // Universal Leave Function
     async function leaveAll() {
-        const lobbyTypes = ['ffa', 'madness'];
-        
-        for (const type of lobbyTypes) {
+        const types = ['ffa', 'madness'];
+        for (let type of types) {
             const lobby = lobbies[type];
+            const room = 'lobby_' + type;
             const idx = lobby.players.findIndex(p => p.id === socket.id);
             
             if (idx !== -1) {
                 const p = lobby.players[idx];
                 lobby.players.splice(idx, 1);
+                await socket.leave(room); // Async wait
                 
-                await socket.leave('lobby_' + type); // Async leave
+                io.to(room).emit('lobby_update', { count: lobby.players.length });
                 
-                // Notify others
-                io.to('lobby_' + type).emit('lobby_update', { count: lobby.players.length });
-                
-                // If game is playing, kill them
                 if (lobby.state === 'playing' && p.alive) {
-                    io.to('lobby_' + type).emit('elimination', { username: p.username, killer: "Disconnect" });
+                    io.to(room).emit('elimination', { username: p.username, killer: "Disconnect" });
                     checkWinCondition(type);
                 }
                 
-                // If waiting and now empty/1 player, reset countdown
                 if (lobby.players.length < 2 && lobby.state === 'countdown') {
                     lobby.state = 'waiting';
                     clearTimeout(lobby.timer);
-                    io.to('lobby_' + type).emit('lobby_reset');
+                    io.to(room).emit('lobby_reset');
                 }
             }
         }
@@ -136,24 +123,18 @@ io.on('connection', (socket) => {
     // JOIN FFA
     socket.on('join_ffa', async () => {
         if (!socket.username) return;
-        await leaveAll(); // Wait for full disconnect
-        
-        const roomName = 'lobby_ffa';
-        await socket.join(roomName); // Wait for join to complete
+        await leaveAll();
+        await socket.join('lobby_ffa');
         
         const lobby = lobbies['ffa'];
         const pData = { id: socket.id, username: socket.username, alive: true, damageLog: [] };
-        
-        // Add to lobby
         lobby.players.push(pData);
-        
+
         if (lobby.state === 'waiting' || lobby.state === 'finished') {
-            io.to(roomName).emit('lobby_update', { count: lobby.players.length });
+            io.to('lobby_ffa').emit('lobby_update', { count: lobby.players.length });
             tryStartGame('ffa');
         } else {
-            // Late join = Spectator
             pData.alive = false;
-            // Send game state to just this person
             const living = lobby.players.filter(p => p.alive).map(p => ({ id: p.id, username: p.username }));
             socket.emit('ffa_spectate', { seed: lobby.seed, players: living });
         }
@@ -163,9 +144,7 @@ io.on('connection', (socket) => {
     socket.on('join_madness', async (passiveChoice) => {
         if (!socket.username) return;
         await leaveAll();
-        
-        const roomName = 'lobby_madness';
-        await socket.join(roomName); // Critical Await
+        await socket.join('lobby_madness');
         
         const lobby = lobbies['madness'];
         const pData = { 
@@ -175,11 +154,10 @@ io.on('connection', (socket) => {
             damageLog: [],
             passive: passiveChoice || 'double_hold'
         };
-
         lobby.players.push(pData);
 
         if (lobby.state === 'waiting' || lobby.state === 'finished') {
-            io.to(roomName).emit('lobby_update', { count: lobby.players.length });
+            io.to('lobby_madness').emit('lobby_update', { count: lobby.players.length });
             tryStartGame('madness');
         } else {
             pData.alive = false;
@@ -262,19 +240,18 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- GAME LOGIC ---
+// --- HELPER LOGIC ---
+
 function tryStartGame(type) {
     const lobby = lobbies[type];
     const room = 'lobby_' + type;
 
-    // Only start if not already counting down or playing
     if (lobby.state === 'waiting' && lobby.players.length >= 2) {
         lobby.state = 'countdown';
         lobby.seed = Math.floor(Math.random() * 1000000);
         lobby.matchStats = [];
         lobby.players.forEach(p => { p.alive = true; p.damageLog = []; });
 
-        console.log(`Starting ${type} game with ${lobby.players.length} players...`);
         io.to(room).emit('start_countdown', { duration: 3 });
 
         lobby.timer = setTimeout(() => {
@@ -342,18 +319,12 @@ function finishGame(type, winnerName) {
     io.emit('leaderboard_update', getLeaderboards());
     io.to(room).emit('match_summary', results);
 
-    // RESET & RESTART LOGIC
     setTimeout(() => {
         lobby.state = 'waiting';
         io.to(room).emit('lobby_reset');
-        
-        // Critical Check: Is everyone still here?
-        if (lobby.players.length >= 2) {
-            tryStartGame(type);
-        } else {
-            io.to(room).emit('lobby_update', { count: lobby.players.length });
-        }
-    }, 10000);
+        if (lobby.players.length >= 2) tryStartGame(type);
+        else io.to(room).emit('lobby_update', { count: lobby.players.length });
+    }, 5000);
 }
 
 function getLeaderboards() {
