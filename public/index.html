@@ -43,51 +43,64 @@
         .game-area { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); transition: 0.5s; }
         @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
 
-        /* Top Stats Row (Time, PPS, APM) */
+        /* Top Stats Row */
         .stats-header { display: flex; gap: 15px; margin-bottom: 10px; }
-        .stat-box-top { background: #000; border: 2px solid #333; width: 100px; padding: 8px 0; text-align: center; border-radius: 0; }
-        .stat-label { font-size: 11px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+        
+        /* CHANGED: Teal Border + Glow */
+        .stat-box-top { 
+            background: #000; 
+            border: 1px solid #00ffcc; /* TEAL BORDER */
+            box-shadow: 0 0 5px rgba(0, 255, 204, 0.2); /* TEAL GLOW */
+            width: 100px; 
+            padding: 8px 0; 
+            text-align: center; 
+        }
+        .stat-label { font-size: 11px; color: #00ffcc; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
         .stat-val { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
 
-        /* Main Game Columns */
+        /* Columns */
         .game-columns { display: flex; align-items: flex-start; gap: 15px; }
-
-        /* Left Column: Hold, Sent, Recv */
         .col-left { display: flex; flex-direction: column; gap: 15px; width: 120px; }
         
-        /* Unified Box Styles (Hold/Next) */
-        /* CHANGED: Box sizing fixes border overlap issues */
+        /* Box Styles */
+        /* CHANGED: Teal Border + Glow */
         .box-container { 
             background: #000; 
-            border: 2px solid #333; 
+            border: 1px solid #00ffcc; /* TEAL BORDER */
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.2); /* TEAL GLOW */
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             position: relative; 
             width: 100%; 
             box-sizing: border-box; 
-            padding-bottom: 5px; /* Padding for bottom spacing */
+            padding-bottom: 5px; 
         }
-        .box-header { width: 100%; text-align: center; font-size: 12px; color: #888; padding-top: 5px; padding-bottom: 5px; font-weight: bold; }
+        .box-header { width: 100%; text-align: center; font-size: 12px; color: #00ffcc; padding-top: 5px; padding-bottom: 5px; font-weight: bold; }
         
-        .box-stat-side { height: 60px; justify-content: center; padding: 0; } /* For SENT/RECV */
+        .box-hold { height: 100px; justify-content: flex-start; }
+        .box-stat-side { height: 60px; justify-content: center; padding: 0; }
 
-        /* Center Column: Board */
+        /* Center Board */
         .col-center { position: relative; }
-        .main-board-wrap { border: 4px solid #333; background: #000; box-shadow: 0 0 40px rgba(0,0,0,0.6); position: relative; }
+        /* CHANGED: Teal Border + Stronger Glow */
+        .main-board-wrap { 
+            border: 2px solid #00ffcc; /* TEAL BORDER */
+            background: #000; 
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3); /* STRONG GLOW */
+            position: relative; 
+        }
         
-        /* Right Column: Next */
         .col-right { display: flex; flex-direction: column; width: 120px; }
+        .box-next { height: 400px; justify-content: flex-start; }
         
-        /* Canvas Styling inside boxes */
-        /* CHANGED: Width 100% ensures it stays inside the border */
         .side-canvas { width: 100%; display: block; }
 
         /* Garbage Bar */
         .garbage-container { width: 12px; height: 900px; background: #111; border: 1px solid #333; position: absolute; left: -20px; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
 
-        /* --- HOME BUTTON --- */
+        /* Home Button */
         #home-btn { 
             position: fixed; top: 20px; left: 20px; z-index: 2000; 
             padding: 10px 25px; background: #ff0033; color: #fff; 
@@ -97,23 +110,23 @@
         }
         #home-btn:hover { background: #ff3355; transform: scale(1.05); }
 
-        /* --- CHAT (Bottom Right) --- */
+        /* Chat */
         #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
-        #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; border-top: 1px solid #333; }
+        #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; border-top: 1px solid #00ffcc; }
         #chat-close { background: #ff0000; color: white; border: none; cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 2px; display:flex; align-items:center; justify-content:center; }
-        #chat-history { height: 200px; background: rgba(0,0,0,0.9); border-left: 1px solid #333; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; }
+        #chat-history { height: 200px; background: rgba(0,0,0,0.9); border-left: 1px solid #00ffcc; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; }
         #chat-input { background: #fff; color: #000; border: none; padding: 10px; font-family: 'Segoe UI', sans-serif; outline: none; }
         .chat-line { margin-bottom: 4px; word-wrap: break-word; }
         .chat-user { font-weight: bold; color: #00ffcc; }
 
-        /* --- FLOATING TEXT --- */
+        /* Floating Text */
         .float-text { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; opacity: 0; pointer-events: none; transition: 0.1s; text-align: center; width: 300px; text-shadow: 0 4px 8px rgba(0,0,0,0.9); font-style: italic; z-index: 50; }
-        .action-text { top: 250px; font-size: 36px; color: rgba(255,255,255,0.6); letter-spacing: 2px; }
-        .combo-text { top: 200px; font-size: 28px; color: rgba(255,204,0,0.6); }
-        .b2b-text { top: 160px; font-size: 18px; color: rgba(0,255,204,0.6); letter-spacing: 2px; }
+        .action-text { top: 250px; font-size: 36px; color: #fff; letter-spacing: 2px; }
+        .combo-text { top: 200px; font-size: 28px; color: #ffcc00; }
+        .b2b-text { top: 160px; font-size: 18px; color: #00ffcc; letter-spacing: 2px; }
         .sent-text { top: 300px; font-size: 50px; color: #ff0055; font-weight: 900; }
 
-        /* OVERLAYS */
+        /* Overlays */
         .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 150; display: flex; justify-content: center; align-items: center; flex-direction: column; pointer-events: none; }
         .hidden { display: none !important; }
         #cnt-txt { font-size: 120px; font-weight: 900; color: #fff; animation: pop 0.5s infinite alternate; }
@@ -255,13 +268,10 @@
     </div>
 
     <script>
-        // --- CONSTANTS ---
         const COLS=4, ROWS=30, B_SIZE=30; 
-        
         const PIECES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
         const COLORS=['#31C7EF','#F7D308','#FF69B4','#EF2029','#42B642','#9D00FF','#EF7921'];
         
-        // SRS Offsets
         const OFFSETS_JLSTZ = [
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,-1], [0,2], [1,2]],
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
@@ -788,6 +798,23 @@
                 this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
                 this.ctx.fillRect(0, 0, 120, 120); 
                 
+                // v1.8 UPDATE: Draw Grid Lines (Only Safe Zone, Rows 4+)
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath();
+                
+                // Vertical Lines
+                for (let x = 1; x < COLS; x++) {
+                    this.ctx.moveTo(x * B_SIZE, 4 * B_SIZE); // Start at row 4
+                    this.ctx.lineTo(x * B_SIZE, ROWS * B_SIZE);
+                }
+                // Horizontal Lines
+                for (let y = 4; y < ROWS; y++) { // Start at boundary line
+                    this.ctx.moveTo(0, y * B_SIZE);
+                    this.ctx.lineTo(COLS * B_SIZE, y * B_SIZE);
+                }
+                this.ctx.stroke();
+
                 this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v; this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));
                 if(this.active && !isSpectator){
                     let g={...this.active.pos}; while(!this.collide(this.active.matrix,g))g.y++; g.y--;
