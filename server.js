@@ -24,9 +24,17 @@ loadAccounts();
 
 // --- GAME STATE ---
 function createLobby() {
-    return { players: [], state: 'waiting', seed: 12345, matchStats: [], startTime: 0, timer: null };
+    return { 
+        players: [],      
+        state: 'waiting', 
+        seed: 12345, 
+        matchStats: [], 
+        startTime: 0, 
+        timer: null 
+    };
 }
 
+// We now have TWO distinct lobbies
 let lobbies = {
     'ffa': createLobby(),
     'madness': createLobby()
@@ -88,7 +96,7 @@ io.on('connection', (socket) => {
 
     // --- LOBBY MANAGEMENT ---
     
-    // Universal Leave
+    // Async Leave to prevent race conditions
     async function leaveAll() {
         const types = ['ffa', 'madness'];
         for (let type of types) {
@@ -99,6 +107,7 @@ io.on('connection', (socket) => {
             if (idx !== -1) {
                 const p = lobby.players[idx];
                 lobby.players.splice(idx, 1);
+                
                 await socket.leave(room); 
                 
                 io.to(room).emit('lobby_update', { count: lobby.players.length });
@@ -152,6 +161,7 @@ io.on('connection', (socket) => {
             username: socket.username, 
             alive: true, 
             damageLog: [],
+            // Store the chosen passive on the player object
             passive: passiveChoice || 'double_hold' 
         };
         lobby.players.push(pData);
@@ -186,7 +196,9 @@ io.on('connection', (socket) => {
                 const targets = lobby.players.filter(p => p.alive && p.id !== socket.id);
                 if (targets.length > 0) {
                     let split = Math.floor(data.amount / targets.length);
+                    // Minimum 1 garbage if amount >= 4 (Tetris)
                     if (data.amount >= 4 && split === 0) split = 1;
+                    
                     if (split > 0) {
                         targets.forEach(t => {
                             t.damageLog.push({ attacker: sender.username, amount: split, time: Date.now() });
@@ -257,10 +269,11 @@ function tryStartGame(type) {
         lobby.timer = setTimeout(() => {
             lobby.state = 'playing';
             lobby.startTime = Date.now();
+            
+            // SEND PASSIVE DATA TO CLIENTS HERE
             io.to(room).emit('match_start', {
                 mode: type,
                 seed: lobby.seed,
-                // PASSIVE IS SENT HERE
                 players: lobby.players.map(p => ({ id: p.id, username: p.username, passive: p.passive }))
             });
         }, 3000);
@@ -327,7 +340,7 @@ function finishGame(type, winnerName) {
         io.to(room).emit('lobby_reset');
         if (lobby.players.length >= 2) tryStartGame(type);
         else io.to(room).emit('lobby_update', { count: lobby.players.length });
-    }, 5000); // 5 Seconds
+    }, 5000);
 }
 
 function getLeaderboards() {
