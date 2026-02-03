@@ -23,7 +23,6 @@ function saveAccounts() {
 loadAccounts();
 
 // --- GAME STATE ---
-// We use a helper to create fresh lobbies
 function createLobby() {
     return { players: [], state: 'waiting', seed: 12345, matchStats: [], startTime: 0, timer: null };
 }
@@ -36,7 +35,6 @@ let lobbies = {
 // --- SOCKET CONNECTION ---
 io.on('connection', (socket) => {
     
-    // CHAT
     socket.on('send_chat', (msg) => {
         const cleanMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50);
         const name = socket.username || "Anon";
@@ -45,7 +43,6 @@ io.on('connection', (socket) => {
         else io.emit('receive_chat', { user: name, text: cleanMsg });
     });
 
-    // LOGIN
     socket.on('login_attempt', (data) => {
         const user = data.username.trim().substring(0, 12);
         const pass = data.password.trim();
@@ -68,7 +65,6 @@ io.on('connection', (socket) => {
         io.emit('leaderboard_update', getLeaderboards());
     });
 
-    // STATS
     socket.on('request_all_stats', () => {
         const safeData = {};
         for (const [key, val] of Object.entries(accounts)) {
@@ -87,7 +83,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- LOBBY MANAGEMENT (STRICT ISOLATION) ---
+    // --- LOBBY MANAGEMENT ---
     function removeFromLobby(type) {
         const lobby = lobbies[type];
         const roomName = 'lobby_' + type;
@@ -97,17 +93,13 @@ io.on('connection', (socket) => {
             const p = lobby.players[idx];
             lobby.players.splice(idx, 1);
             socket.leave(roomName);
-            
-            // Notify others
             io.to(roomName).emit('lobby_update', { count: lobby.players.length });
             
-            // Handle mid-game leave
             if (lobby.state === 'playing' && p.alive) {
                 io.to(roomName).emit('elimination', { username: p.username, killer: "Disconnect" });
                 checkWinCondition(type);
             }
             
-            // Cancel countdown if not enough players
             if (lobby.players.length < 2 && lobby.state === 'countdown') {
                 lobby.state = 'waiting';
                 clearTimeout(lobby.timer);
@@ -124,7 +116,6 @@ io.on('connection', (socket) => {
     socket.on('leave_lobby', () => { leaveAll(); });
     socket.on('disconnect', () => { leaveAll(); });
 
-    // JOIN FFA
     socket.on('join_ffa', () => {
         if (!socket.username) return;
         leaveAll();
@@ -144,7 +135,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // JOIN MADNESS
     socket.on('join_madness', (passiveChoice) => {
         if (!socket.username) return;
         leaveAll();
@@ -170,7 +160,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // --- GAMEPLAY EVENTS ---
+    // --- GAMEPLAY ---
     socket.on('update_board', (grid) => {
         if (socket.rooms.has('lobby_ffa')) socket.to('lobby_ffa').emit('enemy_board_update', { id: socket.id, grid: grid });
         if (socket.rooms.has('lobby_madness')) socket.to('lobby_madness').emit('enemy_board_update', { id: socket.id, grid: grid });
@@ -244,7 +234,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- GAME LOGIC ---
 function tryStartGame(type) {
     const lobby = lobbies[type];
     const room = 'lobby_' + type;
