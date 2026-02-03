@@ -86,30 +86,46 @@
         .passive-card.selected { border-color: var(--accent); background: rgba(0, 255, 204, 0.1); color: var(--accent); box-shadow: 0 0 10px var(--glow); }
         .passive-card.locked { opacity: 0.3; cursor: not-allowed; border-style: dashed; }
 
-        /* SETTINGS & OTHER SCREENS */
+        /* KEYBIND SETTINGS */
         .settings-row { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0; border-bottom: 1px solid #222; }
         .settings-label { color: #ccc; font-weight: bold; }
         .bind-btn { background: #111; border: 1px solid #444; color: #fff; padding: 5px 15px; border-radius: 4px; cursor: pointer; min-width: 100px; text-align: center; font-family: monospace; }
         .bind-btn:hover { border-color: var(--accent); }
         .bind-btn.listening { background: var(--accent); color: #000; font-weight: bold; animation: pulse 1s infinite; }
 
-        /* GAME UI */
-        .game-area { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; transform: scale(0.9); transition: 0.5s; }
-        /* IPAD / MOBILE SCALING */
-        @media only screen and (max-width: 1024px) { .game-area { transform: scale(0.65); } }
+        /* GAME UI & SCALING FIXES */
+        .game-area { 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: center; 
+            align-items: flex-start; 
+            gap: 40px; 
+            transform: scale(0.9); 
+            transition: 0.5s; 
+            margin-top: 20px;
+        }
+        
+        /* IPAD / MOBILE SCALING - AGGRESSIVE & CENTERED */
+        @media only screen and (max-width: 1200px) { 
+            .game-area { 
+                transform: scale(0.55); 
+                transform-origin: top center; 
+                margin-top: 0;
+            } 
+        }
 
         .stats-header { display: flex; gap: 15px; margin-bottom: 10px; }
-        .stat-box-top { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); width: 100px; padding: 8px 0; text-align: center; transition: border-color 0.3s, box-shadow 0.3s; }
-        .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; transition: color 0.3s; }
+        .stat-box-top { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); width: 100px; padding: 8px 0; text-align: center; }
+        .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
         .stat-val { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
         .game-columns { display: flex; align-items: flex-start; gap: 15px; }
         .col-left { display: flex; flex-direction: column; gap: 15px; width: 120px; }
-        .box-container { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 8px var(--glow); display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; box-sizing: border-box; padding-bottom: 5px; transition: border-color 0.3s, box-shadow 0.3s; }
-        .box-header { width: 100%; text-align: center; font-size: 12px; color: var(--accent); padding-top: 5px; padding-bottom: 5px; font-weight: bold; transition: color 0.3s; }
+        .box-container { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 8px var(--glow); display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; box-sizing: border-box; padding-bottom: 5px; }
+        .box-header { width: 100%; text-align: center; font-size: 12px; color: var(--accent); padding-top: 5px; padding-bottom: 5px; font-weight: bold; }
         .box-hold { height: 100px; justify-content: flex-start; }
         .box-stat-side { height: 60px; justify-content: center; padding: 0; }
         .col-center { position: relative; }
-        .main-board-wrap { border: 2px solid var(--accent); background: #000; box-shadow: 0 0 20px var(--glow-strong); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
+        .main-board-wrap { border: 2px solid var(--accent); background: #000; box-shadow: 0 0 20px var(--glow-strong); position: relative; }
         .col-right { display: flex; flex-direction: column; width: 120px; }
         .box-next { height: 400px; justify-content: flex-start; }
         .side-canvas { width: 100%; display: block; }
@@ -143,6 +159,23 @@
         #hold-ind { font-size:12px; color:#32ff7e; text-align:center; display:none; margin-top:5px; font-weight:bold; letter-spacing:1px; }
         #kill-feed { position: absolute; bottom: 20px; left: 20px; width: 300px; display: flex; flex-direction: column; gap: 5px; pointer-events: none; z-index: 100; }
         .feed-msg { background: rgba(255,0,0,0.2); color: #ff5555; padding: 5px; border-left: 3px solid #ff5555; font-family: monospace; }
+        
+        /* RESTORED STATS LAYOUT */
+        #stats-layout { display: flex; width: 900px; height: 500px; gap: 20px; }
+        #stats-list { width: 300px; background: rgba(10,10,10,0.9); border: 1px solid var(--accent); overflow-y: auto; padding: 10px; }
+        #stats-detail { flex: 1; background: rgba(10,10,10,0.9); border: 1px solid var(--accent); padding: 20px; display: flex; flex-direction: column; }
+        .player-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #333; color: #888; transition:0.2s; }
+        .player-item:hover { background: #222; color: #fff; padding-left: 15px; }
+        .stat-user-title { font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 20px; }
+        .stat-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: #111; border: 1px solid #333; padding: 10px; text-align: center; }
+        .stat-card-label { font-size: 10px; color: #888; }
+        .stat-card-val { font-size: 20px; color: #fff; font-weight: bold; }
+        .history-wrapper { flex: 1; overflow-y: auto; border: 1px solid #333; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .history-table th { background: #111; color: var(--accent); padding: 8px; position: sticky; top: 0; }
+        .history-table td { padding: 5px; border-bottom: 1px solid #333; text-align: center; }
+
         @keyframes pop { from { transform: scale(1); } to { transform: scale(1.1); } }
         canvas { display: block; }
 
@@ -153,7 +186,7 @@
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body class="bg-on">
 
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
@@ -180,7 +213,7 @@
                     <button class="btn btn-ffa" onclick="joinFFA()">ONLINE FFA</button>
                     <button class="btn btn-mixtape" onclick="openPassiveSelect()">MUTATOR MADNESS</button>
                     <button class="btn btn-blue" onclick="openStats()">STATS / HISTORY</button>
-                    <button class="btn btn-gray" onclick="navTo('scr-settings')">SETTINGS</button>
+                    <button class="btn btn-gray" onclick="navTo('scr-settings')">CONTROLS</button>
                     <button class="btn" style="background:#222; color:#888; margin-top:10px;" onclick="logOut()">LOGOUT</button>
                 </div>
                 <div class="menu-right tech-panel">
@@ -232,7 +265,10 @@
 
         <div id="scr-stats" class="screen">
             <h2 style="color: var(--accent); margin-bottom:10px;">PLAYER STATISTICS</h2>
-            <div id="stats-layout"><div id="stats-list"></div><div id="stats-detail"><div style="text-align:center; color:#666; margin-top:100px; font-size:18px;">Select a player to view details.</div></div></div>
+            <div id="stats-layout">
+                <div id="stats-list"></div>
+                <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:100px; font-size:18px;">Select a player to view details.</div></div>
+            </div>
             <button class="btn" onclick="goHome()" style="margin-top:20px; background:#222; color:#fff; border:1px solid #444;">BACK TO MENU</button>
         </div>
         <div id="scr-wait" class="screen"><h2 id="wait-msg">JOINING...</h2><div id="lobby-count" style="color:#888; margin-top:10px;"></div><button class="btn btn-ffa" style="background:#333; color:#fff;" onclick="goHome()">CANCEL</button></div>
@@ -350,7 +386,6 @@
             saveSettings();
 
             document.querySelectorAll('.passive-card').forEach(el => el.classList.remove('selected'));
-            // 0=Double, 1=Sniper
             const idx = (id === 'double_hold' ? 0 : 1);
             document.querySelector('.passive-grid').children[idx].classList.add('selected');
 
@@ -476,7 +511,6 @@
                 if(gameMode==='madness') {
                     setTheme('#32ff7e'); 
                     activeMutator = d.players.find(p => p.id === socket.id)?.passive || 'double_hold';
-                    
                     if (activeMutator === 'double_hold') {
                         const l=document.getElementById('hold-ind'); l.style.display='block'; l.innerText="ABILITY: EXTRA HOLD";
                     } else if (activeMutator === 'sniper') {
@@ -497,7 +531,7 @@
             socket.on('ffa_spectate', d => { if(gameMode==='zen'||gameMode==='apm_test')return; document.getElementById('wait-msg').innerText="SPECTATING..."; setTimeout(()=>{isSpectator=true; gameMode=(gameMode==='madness'?'madness':'ffa'); setupGameUI(); setupOnlineGame(d.seed, d.players);},1000); });
         }
 
-        function showStatDetails(u) { const d=statsCache[u]; document.getElementById('stats-detail').innerHTML=`<div class="stat-user-title">${u}</div><div class="stat-row"><div class="stat-card"><div class="stat-card-label">WINS</div><div class="stat-card-val">${d.wins}</div></div><div class="stat-card"><div class="stat-card-label">BEST COMBO</div><div class="stat-card-val">${d.bestCombo||0}</div></div></div>`; }
+        function showStatDetails(u) { const d=statsCache[u]; document.getElementById('stats-detail').innerHTML=`<div class="stat-user-title">${u}</div><div class="stat-row"><div class="stat-card"><div class="stat-card-label">WINS</div><div class="stat-card-val">${d.wins}</div></div><div class="stat-card"><div class="stat-card-label">BEST COMBO</div><div class="stat-card-val">${d.bestCombo||0}</div></div></div><div class="history-wrapper"><table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>SENT</th><th>COMBO</th></tr></thead><tbody>${[...d.history].reverse().map(h=>`<tr><td>${new Date(h.date).toLocaleDateString()}</td><td style="color:${h.place===1?'#ffcc00':'#fff'}">#${h.place}</td><td>${h.sent}</td><td>${h.maxCombo||0}</td></tr>`).join('')}</tbody></table></div>`; }
         function setupOnlineGame(s, p) { gameActive=true; p1.initRNG(s); p1.reset(); const g=document.getElementById('ffa-grid'); g.innerHTML=''; p.forEach(pl=>{ if(pl.id!==socket.id){ const d=document.createElement('div'); d.className='mini-card'; d.innerHTML=`<div style="font-size:10px;color:#888">${pl.username}</div><canvas id="cvs_${pl.id}" width="80" height="520"></canvas>`; g.appendChild(d); } }); document.getElementById('p1-root').style.opacity=isSpectator?'0.3':'1'; loop(); }
         function drawEnemy(id, g) { const c=document.getElementById(`cvs_${id}`); if(!c)return; const ctx=c.getContext('2d'); ctx.fillStyle='#000'; ctx.fillRect(0,0,80,520); if(g) g.forEach((r,y)=>r.forEach((v,x)=>{if(v){ctx.fillStyle=v;ctx.fillRect(x*20,y*20,19,19);}})); }
         function feed(m) { const f=document.getElementById('kill-feed'); const d=document.createElement('div'); d.className='feed-msg'; d.innerText=m; f.appendChild(d); setTimeout(()=>d.remove(),4000); }
@@ -529,7 +563,6 @@
                 this.piecesPlaced=0; this.linesSentTotal=0; this.linesRecvTotal=0;
                 this.rng=new SeededRNG(1);
                 this.startTime = Date.now();
-                // Sniper
                 this.ammo = 0;
             }
             getStats(){ const s=(Date.now()-this.startTime)/1000; return { apm:(s>0?Math.floor((this.linesSentTotal/s)*60):0), pps:(s>0?(this.piecesPlaced/s).toFixed(2):"0.00"), sent:this.linesSentTotal, recv:this.linesRecvTotal, maxCombo:this.maxCombo }; }
@@ -576,22 +609,18 @@
                     
                     let atk=0;
                     if (activeMutator === 'sniper') {
-                        // SNIPER LOGIC
                         if (lines < 4) {
-                            // Add bullets
                             this.ammo = Math.min(10, this.ammo + lines);
                             this.updateMag();
-                            atk = 0; // Send nothing
+                            atk = 0; 
                             this.showText(this.popAct, `+${lines} AMMO`);
                         } else {
-                            // Quad - FIRE
                             atk = Math.floor(this.ammo * 1.5);
                             this.showText(this.popAct, `SNIPE! ${atk} DMG`);
                             this.ammo = 0;
                             this.updateMag();
                         }
                     } else {
-                        // NORMAL / DOUBLE HOLD LOGIC
                         if(lines==4) atk=4; else atk=lines-1;
                         if(lines==4){ this.b2b++; if(this.b2b>1) atk+=1; } else this.b2b=0;
 
@@ -626,9 +655,9 @@
             receiveGarbage(n){ this.pendingG=Math.min(this.pendingG+n, 10); this.linesRecvTotal+=n; this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats(); }
             updateStats(){ const s=(Date.now()-this.startTime)/1000; this.elSent.innerText=this.linesSentTotal; this.elRecv.innerText=this.linesRecvTotal; this.elPPS.innerText=(s>0?(this.piecesPlaced/s).toFixed(2):"0.00"); this.elAPM.innerText=(s>0?Math.floor((this.linesSentTotal/s)*60):0); let ds=s; if(gameMode==='apm_test') ds=60-s; if(ds<0)ds=0; this.elTime.innerText=`${Math.floor(ds/60).toString().padStart(2,'0')}:${Math.floor(ds%60).toString().padStart(2,'0')}`; }
             
-            // FIXED DRAW SIDE (Clear canvas first)
             drawSide(ctx, ids){ 
-                ctx.fillStyle='#000'; ctx.fillRect(0,0,120,160); // Clear whole area
+                ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height); // FIX: Clear canvas properly
+                ctx.fillStyle='#000'; ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height); 
                 ids.forEach((id,i)=>{
                     if(id!==null){
                         ctx.fillStyle=COLORS[id];
@@ -652,7 +681,6 @@
             draw(){
                 this.ctx.fillStyle='#000'; this.ctx.fillRect(0,0,120,900);
                 this.ctx.fillStyle='rgba(255,0,0,0.2)'; this.ctx.fillRect(0,0,120,120);
-                // GRID ALWAYS ON
                 this.ctx.strokeStyle='rgba(255,255,255,0.1)';this.ctx.lineWidth=1;this.ctx.beginPath();for(let x=1;x<COLS;x++){this.ctx.moveTo(x*B_SIZE,4*B_SIZE);this.ctx.lineTo(x*B_SIZE,ROWS*B_SIZE);}for(let y=4;y<ROWS;y++){this.ctx.moveTo(0,y*B_SIZE);this.ctx.lineTo(COLS*B_SIZE,y*B_SIZE);}this.ctx.stroke();
                 
                 this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v;this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));
