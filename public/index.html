@@ -86,7 +86,7 @@
         .passive-card.selected { border-color: var(--accent); background: rgba(0, 255, 204, 0.1); color: var(--accent); box-shadow: 0 0 10px var(--glow); }
         .passive-card.locked { opacity: 0.3; cursor: not-allowed; border-style: dashed; }
 
-        /* GAME UI & SCALING FIXES */
+        /* GAME UI LAYOUT */
         .game-area { 
             display: flex; 
             flex-direction: row; 
@@ -95,15 +95,12 @@
             gap: 40px; 
             transform: scale(0.9); 
             transition: 0.5s; 
-            margin-top: 20px;
         }
-        
-        /* IPAD / MOBILE SCALING - AGGRESSIVE & CENTERED */
+        /* IPAD/MOBILE FIX - Scale Down */
         @media only screen and (max-width: 1200px) { 
             .game-area { 
                 transform: scale(0.65); 
-                transform-origin: top center; 
-                margin-top: 0;
+                margin-top: -50px; 
             } 
         }
 
@@ -111,6 +108,7 @@
         .stat-box-top { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); width: 100px; padding: 8px 0; text-align: center; transition: border-color 0.3s, box-shadow 0.3s; }
         .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; transition: color 0.3s; }
         .stat-val { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
+
         .game-columns { display: flex; align-items: flex-start; gap: 15px; }
         
         /* INCREASED SIZE FOR HOLD/NEXT */
@@ -182,7 +180,7 @@
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body class="bg-on">
 
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
@@ -300,24 +298,28 @@
     </div>
 
     <script>
+        // --- 1. DEFINITIONS FIRST ---
         const PASSIVES = {
             'double_hold': { name: "EXTRA HOLD", desc: "Gain a second Hold inventory slot.", act: "Shift (Slot 1) / Ctrl (Slot 2)", pro: "• 2 Inventory Slots", con: "• Combo scaling is delayed" },
             'sniper': { name: "COMBO SNIPER", desc: "Build ammo with small clears, fire massive damage with Quads.", act: "Passive (Builds Ammo) / Quad (Fire)", pro: "• Quads send 1.5x Ammo Damage", con: "• Singles/Doubles/Triples send 0 Lines" }
         };
+        const COLS=4, ROWS=30, B_SIZE=30; 
+        const PIECES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
+        const COLORS=['#31C7EF','#F7D308','#FF69B4','#EF2029','#42B642','#9D00FF','#EF7921'];
+        const OFFSETS_JLSTZ = [[[0,0],[0,0],[0,0],[0,0],[0,0]],[[0,0],[1,0],[1,-1],[0,2],[1,2]],[[0,0],[0,0],[0,0],[0,0],[0,0]],[[0,0],[-1,0],[-1,-1],[0,2],[-1,2]]];
+        const OFFSETS_I = [[[0,0],[-1,0],[2,0],[-1,0],[2,0]],[[0,-1],[0,-1],[0,-1],[0,1],[0,-2]],[[-1,0],[0,0],[0,0],[0,1],[0,-2]],[[0,1],[0,1],[0,1],[0,-1],[0,2]]];
+        
+        let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
+        let gameMode='zen', startTime=0, apmTimer=null;
+        let activeMutator = null; 
+        let statsCache = {}; 
         let selectedPassive = null;
 
-        // --- CONTROLS ---
-        const KEYS = { LEFT:'ArrowLeft', RIGHT:'ArrowRight', SOFT:'ArrowDown', HARD:'Space', ROTATE:'ArrowUp', HOLD:'ShiftLeft', HOLD2_A:'ControlLeft', HOLD2_B:'Tab' };
-
+        // --- 2. CORE FUNCTIONS ---
         function saveCreds() { localStorage.setItem('savedUser', document.getElementById('username').value); localStorage.setItem('savedPass', document.getElementById('password').value); }
         function navTo(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function logOut() { localStorage.removeItem('savedUser'); localStorage.removeItem('savedPass'); document.getElementById('chat-container').classList.add('hidden'); location.reload(); }
-        
-        function toggleChat() {
-            const c = document.getElementById('chat-container');
-            const b = document.getElementById('chat-open-btn');
-            if(c.classList.contains('hidden')) { c.classList.remove('hidden'); b.style.display='none'; } else { c.classList.add('hidden'); b.style.display='block'; }
-        }
+        function toggleChat() { const c=document.getElementById('chat-container'); const b=document.getElementById('chat-open-btn'); if(c.classList.contains('hidden')){c.classList.remove('hidden');b.style.display='none';}else{c.classList.add('hidden');b.style.display='block';} }
 
         function attemptLogin() {
             const u = document.getElementById('username').value.trim();
@@ -359,7 +361,6 @@
 
         function joinFFA() { navTo('scr-wait'); document.getElementById('wait-msg').innerText="JOINING FFA LOBBY..."; socket.emit('join_ffa'); }
         
-        // PASSIVE SELECTION
         function openPassiveSelect() { navTo('scr-passive'); selectPassive('double_hold'); }
         function selectPassive(id) {
             selectedPassive = id;
@@ -463,6 +464,15 @@
         function feed(m) { const f=document.getElementById('kill-feed'); const d=document.createElement('div'); d.className='feed-msg'; d.innerText=m; f.appendChild(d); setTimeout(()=>d.remove(),4000); }
         function sendChat(e) { if(e.key==='Enter'){ const i=document.getElementById('chat-input'); if(i.value&&socket){socket.emit('send_chat',i.value);i.value='';} } }
 
+        // --- 3. AUTO-LOGIN ON LOAD ---
+        window.onload = function() {
+            if(localStorage.getItem('savedUser')) {
+                document.getElementById('username').value = localStorage.getItem('savedUser');
+                if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
+                attemptLogin(); 
+            }
+        };
+
         class SeededRNG { constructor(s){this.s=s;} next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} }
         
         class Player {
@@ -534,6 +544,7 @@
                     if(this.combo > this.maxCombo) this.maxCombo = this.combo;
                     
                     let atk=0;
+                    // SNIPER LOGIC
                     if (activeMutator === 'sniper') {
                         if (lines < 4) {
                             this.ammo = Math.min(10, this.ammo + lines);
@@ -547,6 +558,7 @@
                             this.updateMag();
                         }
                     } else {
+                        // NORMAL SCALING
                         if(lines==4) atk=4; else atk=lines-1;
                         if(lines==4){ this.b2b++; if(this.b2b>1) atk+=1; } else this.b2b=0;
 
@@ -582,7 +594,7 @@
             updateStats(){ const s=(Date.now()-this.startTime)/1000; this.elSent.innerText=this.linesSentTotal; this.elRecv.innerText=this.linesRecvTotal; this.elPPS.innerText=(s>0?(this.piecesPlaced/s).toFixed(2):"0.00"); this.elAPM.innerText=(s>0?Math.floor((this.linesSentTotal/s)*60):0); let ds=s; if(gameMode==='apm_test') ds=60-s; if(ds<0)ds=0; this.elTime.innerText=`${Math.floor(ds/60).toString().padStart(2,'0')}:${Math.floor(ds%60).toString().padStart(2,'0')}`; }
             
             drawSide(ctx, ids){ 
-                ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height); // CLEAR FIX
+                ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height); 
                 ctx.fillStyle='#000'; ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height); 
                 ids.forEach((id,i)=>{
                     if(id!==null){
@@ -621,18 +633,19 @@
 
         const p1 = new Player();
         const keys = new Set();
+        const CTRL = {LEFT:'ArrowLeft',RIGHT:'ArrowRight',SOFT:'ArrowDown',HARD:'Space',ROTATE:'ArrowUp',HOLD:'ShiftLeft',HOLD2:'ControlLeft', HOLD2B:'Tab'};
         
         window.addEventListener('keydown', e=>{
             if(gameMode === 'zen' || gameMode === 'apm_test') { if(document.activeElement.tagName !== 'INPUT' && e.code === 'KeyR') { if(gameMode === 'zen') startZen(); if(gameMode === 'apm_test') startAPMTest(); return; } }
             if(!inputLocked && gameActive && !isSpectator){
-                if(["Space","ArrowUp","ArrowDown"].includes(e.code)) e.preventDefault();
+                if([CTRL.HARD, CTRL.ROTATE, CTRL.SOFT].includes(e.code)) e.preventDefault();
                 if(!keys.has(e.code)){
                     keys.add(e.code);
-                    if(e.code===KEYS.ROTATE) p1.rotate();
-                    if(e.code===KEYS.HOLD) p1.hold(1);
-                    if(e.code===KEYS.HARD) p1.hardDrop();
-                    if(e.code===KEYS.LEFT || e.code===KEYS.RIGHT){ p1.dasTimer=0; p1.arrTimer=0; p1.move(e.code===KEYS.LEFT ? -1 : 1); }
-                    if(e.code===KEYS.HOLD2_A || e.code===KEYS.HOLD2_B) p1.hold(2);
+                    if(e.code===CTRL.ROTATE) p1.rotate();
+                    if(e.code===CTRL.HOLD) p1.hold(1);
+                    if(e.code===CTRL.HARD) p1.hardDrop();
+                    if(e.code===CTRL.LEFT || e.code===CTRL.RIGHT){ p1.dasTimer=0; p1.arrTimer=0; p1.move(e.code===CTRL.LEFT ? -1 : 1); }
+                    if(e.code===CTRL.HOLD2 || e.code===CTRL.HOLD2B) p1.hold(2);
                 }
             }
         });
@@ -643,9 +656,9 @@
             const dt=t-lastT; lastT=t;
             if(gameActive) {
                 if(!isSpectator && !inputLocked){
-                    if(keys.has(KEYS.SOFT)){ p1.active.pos.y++; if(p1.collide())p1.active.pos.y--; else { p1.lastMoveRotate=false; p1.lockTimer=0; } }
-                    if(keys.has(KEYS.LEFT)||keys.has(KEYS.RIGHT)){
-                        const d=keys.has(KEYS.LEFT)?-1:1;
+                    if(keys.has(CTRL.SOFT)){ p1.active.pos.y++; if(p1.collide())p1.active.pos.y--; else { p1.lastMoveRotate=false; p1.lockTimer=0; } }
+                    if(keys.has(CTRL.LEFT)||keys.has(CTRL.RIGHT)){
+                        const d=keys.has(CTRL.LEFT)?-1:1;
                         p1.dasTimer+=dt;
                         if(p1.dasTimer>130){ p1.arrTimer+=dt; if(p1.arrTimer>0){ p1.move(d); p1.arrTimer=0; } }
                     }
