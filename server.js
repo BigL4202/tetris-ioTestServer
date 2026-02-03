@@ -24,7 +24,7 @@ loadAccounts();
 
 // --- GAME STATE ---
 let ffa = { players: [], state: 'waiting', seed: 12345, matchStats: [], startTime: 0 };
-let madness = { players: [], state: 'waiting', seed: 67890, matchStats: [], startTime: 0 }; // Renamed from mixtape
+let madness = { players: [], state: 'waiting', seed: 67890, matchStats: [], startTime: 0 };
 
 // --- SOCKET CONNECTION ---
 io.on('connection', (socket) => {
@@ -130,7 +130,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // CHANGED: Accepts 'passive' argument now
     socket.on('join_madness', (passiveChoice) => {
         if (!socket.username) return;
         leaveAllLobbies();
@@ -234,7 +233,6 @@ function checkStart(lobby, roomName) {
             lobby.startTime = Date.now();
             io.to(roomName).emit('match_start', {
                 mode: (roomName === 'lobby_madness' ? 'madness' : 'ffa'),
-                // Madness mode now uses the passive stored in the player object
                 seed: lobby.seed,
                 players: lobby.players.map(p => ({ id: p.id, username: p.username, passive: p.passive }))
             });
