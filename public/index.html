@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Project Asmondy</title>
+    <title>Student Learning Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        /* --- CSS VARIABLES --- */
         :root {
             --accent: #00ffcc;               
             --glow: rgba(0, 255, 204, 0.2);  
+            --glow-strong: rgba(0, 255, 204, 0.4);
             --bg-color: #050505;
         }
+
+        /* --- GLOBAL --- */
         body { 
             background-color: var(--bg-color);
             background-image: 
@@ -25,6 +29,7 @@
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
+        /* --- MENU STYLES --- */
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 950px; }
         .active { display: flex; }
@@ -68,6 +73,7 @@
         .lb-item:hover { background: rgba(255,255,255,0.05); }
         .rank-num { color: #ffcc00; font-weight: bold; margin-right: 5px; } 
 
+        /* PASSIVE SELECT SCREEN */
         .passive-info-box { width: 100%; background: #111; border: 1px solid var(--accent); padding: 20px; margin-bottom: 20px; height: 180px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
         .p-title { font-size: 24px; color: var(--accent); font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
         .p-desc { color: #ccc; font-size: 14px; margin-bottom: 10px; }
@@ -80,6 +86,7 @@
         .passive-card.selected { border-color: var(--accent); background: rgba(0, 255, 204, 0.1); color: var(--accent); box-shadow: 0 0 10px var(--glow); }
         .passive-card.locked { opacity: 0.3; cursor: not-allowed; border-style: dashed; }
 
+        /* GAME UI LAYOUT */
         .game-area { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; transform: scale(0.9); transition: 0.5s; margin-top: 20px; }
         @media only screen and (max-width: 1200px) { .game-area { transform: scale(0.65); transform-origin: top center; margin-top: 0; } }
 
@@ -125,7 +132,6 @@
         #results-table th { color: var(--accent); padding: 10px; border-bottom: 2px solid #fff; }
         #results-table td { padding: 10px; border-bottom: 1px solid #444; text-align: center; color: #fff; }
         .rank-1 { color: #ffcc00 !important; font-weight: bold; }
-        #hold-ind { font-size:12px; color:#32ff7e; text-align:center; display:none; margin-top:5px; font-weight:bold; letter-spacing:1px; }
         #kill-feed { position: absolute; bottom: 20px; left: 20px; width: 300px; display: flex; flex-direction: column; gap: 5px; pointer-events: none; z-index: 100; }
         .feed-msg { background: rgba(255,0,0,0.2); color: #ff5555; padding: 5px; border-left: 3px solid #ff5555; font-family: monospace; }
         
@@ -144,19 +150,21 @@
         .history-table th { background: #111; color: var(--accent); padding: 8px; position: sticky; top: 0; }
         .history-table td { padding: 5px; border-bottom: 1px solid #333; text-align: center; }
 
+        /* PASSIVE UIs */
+        #hold-ind { font-size:12px; color:#32ff7e; text-align:center; display:none; margin-top:5px; font-weight:bold; letter-spacing:1px; }
         #sniper-mag { margin-top: 20px; width: 60px; height: 200px; border: 2px solid #444; background: #111; position: relative; display:none; flex-direction: column-reverse; padding: 2px; }
         .mag-bullet { width: 100%; height: 9%; background: #ffcc00; margin-bottom: 1%; border-radius: 2px; box-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
         .mag-label { color: #ffcc00; font-size: 10px; text-align: center; margin-top: 5px; font-weight: bold; display:none; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body class="bg-on">
+<body>
 
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
     <div id="menu-container">
         <div id="scr-login" class="screen active" style="width:auto;">
-            <h1>PROJECT <span>ASMONDY</span></h1>
+            <h1>PROJECT <span>A</span></h1>
             <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
             <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
             <input type="password" id="password" class="input-std" placeholder="PASSWORD" oninput="saveCreds()">
@@ -164,7 +172,7 @@
         </div>
 
         <div id="scr-main" class="screen">
-            <h1>PROJECT <span>ASMONDY</span></h1>
+            <h1>PROJECT <span>A</span></h1>
             <div id="main-split">
                 <div class="menu-left tech-panel">
                     <div class="user-info">
@@ -229,7 +237,7 @@
     </div>
 
     <div id="overlay-cnt" class="overlay hidden"><div id="cnt-txt">3</div></div>
-    <div id="overlay-results" class="overlay hidden"><h1 style="color: var(--accent);">RESULTS</h1><table id="results-table"><thead><tr><th>#</th><th>PLAYER</th><th>SURVIVED</th><th>APM</th><th>PPS</th><th>SENT</th><th>RECV</th></tr></thead><tbody id="results-body"></tbody></table><div class="sub-txt" style="margin-top:20px; font-size:16px; color:#888;">Next round in <span id="res-timer">10</span>s...</div></div>
+    <div id="overlay-results" class="overlay hidden"><h1 style="color: var(--accent);">RESULTS</h1><table id="results-table"><thead><tr><th>#</th><th>PLAYER</th><th>SURVIVED</th><th>APM</th><th>PPS</th><th>SENT</th><th>RECV</th></tr></thead><tbody id="results-body"></tbody></table><div class="sub-txt" style="margin-top:20px; font-size:16px; color:#888;">Next round in <span id="res-timer">5</span>s...</div></div>
     <div id="kill-feed"></div>
     
     <button id="chat-open-btn" onclick="toggleChat()">CHAT</button>
@@ -411,7 +419,7 @@
                 if(gameMode==='zen'||gameMode==='apm_test')return; 
                 gameActive=false; const ov=document.getElementById('overlay-results'); const tb=document.getElementById('results-body'); tb.innerHTML=''; 
                 r.forEach(res=>{tb.innerHTML+=`<tr><td class="${res.place===1?'rank-1':''}">${res.place}</td><td>${res.username}</td><td>${res.durationStr}</td><td>${res.apm}</td><td>${res.pps}</td><td>${res.sent}</td><td>${res.recv}</td></tr>`;}); 
-                ov.classList.remove('hidden'); let t=10; const sp=document.getElementById('res-timer'); sp.innerText=t; const iv=setInterval(()=>{t--;sp.innerText=t;if(t<=0)clearInterval(iv);},1000); 
+                ov.classList.remove('hidden'); let t=5; const sp=document.getElementById('res-timer'); sp.innerText=t; const iv=setInterval(()=>{t--;sp.innerText=t;if(t<=0)clearInterval(iv);},1000); 
             });
             
             socket.on('lobby_reset', () => { 
@@ -528,6 +536,7 @@
                             this.updateMag();
                         }
                     } else {
+                        // NORMAL SCALING
                         if(lines==4) atk=4; else atk=lines-1;
                         if(lines==4){ this.b2b++; if(this.b2b>1) atk+=1; } else this.b2b=0;
 
@@ -602,18 +611,25 @@
 
         const p1 = new Player();
         const keys = new Set();
+        const ctrl = {left:'ArrowLeft',right:'ArrowRight',rotate:'ArrowUp',soft:'ArrowDown',hard:'Space',hold:'ShiftLeft'};
         
         window.addEventListener('keydown', e=>{
-            if(gameMode === 'zen' || gameMode === 'apm_test') { if(document.activeElement.tagName !== 'INPUT' && e.code === 'KeyR') { if(gameMode === 'zen') startZen(); if(gameMode === 'apm_test') startAPMTest(); return; } }
+            if(gameMode === 'zen' || gameMode === 'apm_test') {
+                if(document.activeElement.tagName !== 'INPUT' && e.code === 'KeyR') {
+                    if(gameMode === 'zen') startZen();
+                    if(gameMode === 'apm_test') startAPMTest();
+                    return;
+                }
+            }
             if(!inputLocked && gameActive && !isSpectator){
                 if(["Space","ArrowUp","ArrowDown"].includes(e.code)) e.preventDefault();
                 if(!keys.has(e.code)){
                     keys.add(e.code);
-                    if(e.code===KEYS.ROTATE) p1.rotate();
-                    if(e.code===KEYS.HOLD) p1.hold(1);
-                    if(e.code===KEYS.HARD) p1.hardDrop();
-                    if(e.code===KEYS.LEFT || e.code===KEYS.RIGHT){ p1.dasTimer=0; p1.arrTimer=0; p1.move(e.code===KEYS.LEFT ? -1 : 1); }
-                    if(e.code===KEYS.HOLD2_A || e.code===KEYS.HOLD2_B) p1.hold(2);
+                    if(e.code==ctrl.rotate)p1.rotate();
+                    if(e.code==ctrl.hold)p1.hold(1); // Standard hold
+                    if(e.code==ctrl.hard)p1.hardDrop();
+                    if(e.code==ctrl.left || e.code==ctrl.right){ p1.dasTimer=0; p1.arrTimer=0; p1.move(e.code==ctrl.left?-1:1); }
+                    if(e.code === 'ControlLeft' || e.code === 'Tab') { e.preventDefault(); p1.hold(2); }
                 }
             }
         });
@@ -624,9 +640,9 @@
             const dt=t-lastT; lastT=t;
             if(gameActive) {
                 if(!isSpectator && !inputLocked){
-                    if(keys.has(KEYS.SOFT)){ p1.active.pos.y++; if(p1.collide())p1.active.pos.y--; else { p1.lastMoveRotate=false; p1.lockTimer=0; } }
-                    if(keys.has(KEYS.LEFT)||keys.has(KEYS.RIGHT)){
-                        const d=keys.has(KEYS.LEFT)?-1:1;
+                    if(keys.has(ctrl.soft)){ p1.active.pos.y++; if(p1.collide())p1.active.pos.y--; else { p1.lastMoveRotate=false; p1.lockTimer=0; } }
+                    if(keys.has(ctrl.left)||keys.has(ctrl.right)){
+                        const d=keys.has(ctrl.left)?-1:1;
                         p1.dasTimer+=dt;
                         if(p1.dasTimer>130){ p1.arrTimer+=dt; if(p1.arrTimer>0){ p1.move(d); p1.arrTimer=0; } }
                     }
