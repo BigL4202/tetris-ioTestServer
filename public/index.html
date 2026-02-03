@@ -5,28 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         /* --- CSS STYLING --- */
-        /* Basic body setup: Dark background, white text, no scrolling on the main page */
         body { background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
         
-        /* Custom Scrollbar Styling (makes scrollbars look modern/dark) */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #00ffcc; }
 
-        /* Menu Container: Holds all the non-game screens (Login, Main Menu, Stats) */
+        /* MENU STYLES */
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.98); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        
-        /* Screens are hidden by default. The 'active' class makes them flex (visible). */
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 900px; }
         .active { display: flex; }
         
-        /* Text and Button Styles */
         h1 { font-size: 50px; margin-bottom: 20px; text-shadow: 0 0 20px rgba(0,255,204,0.3); letter-spacing: 3px; text-align: center; }
         .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
         .input-std:focus { border-color: #00ffcc; outline: none; background: #333; }
         
-        /* Buttons with hover effects */
         .btn { padding: 15px 40px; font-size: 18px; cursor: pointer; border: none; font-weight: bold; border-radius: 6px; margin: 10px; width: 280px; text-transform: uppercase; transition: 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
         .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
         .btn-green { background: #00ffcc; color: #000; }
@@ -35,58 +29,78 @@
         .btn-ffa { background: #ff9900; color: #000; }
         .btn-blue { background: #00a8ff; color: #fff; }
 
-        /* Layout for Main Menu (Split into user info on left, leaderboards on right) */
         #main-split { display: flex; flex-direction: row; gap: 50px; align-items: flex-start; margin-top: 20px; }
         .menu-left { display: flex; flex-direction: column; align-items: center; }
         .menu-right { width: 320px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 15px; max-height: 500px; overflow-y: auto; }
         
-        /* Stats Page Layout */
         #stats-layout { display: flex; width: 800px; height: 500px; background: #111; border: 1px solid #333; }
         #stats-list { width: 300px; border-right: 1px solid #333; overflow-y: auto; }
         #stats-detail { flex: 1; padding: 20px; overflow-y: auto; }
         .player-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #222; display:flex; justify-content:space-between; font-family:monospace; font-size:12px; }
         .player-item:hover { background: #222; }
 
-        /* Game Area Layout (Scaled down to fit screens) */
-        /* v1.4 UPDATE: Adjusted scale to fit taller board */
-        .game-area { display: flex; gap: 20px; transform: scale(0.9); transition: 0.5s; width: 100%; justify-content: center; align-items: center; }
+        /* --- GAME UI LAYOUT (MATCHING SCREENSHOT) --- */
+        .game-area { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); transition: 0.5s; }
         @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
+
+        /* Top Stats Row (Time, PPS, APM) */
+        .stats-header { display: flex; gap: 10px; margin-bottom: 5px; }
+        .stat-box-top { background: #111; border: 1px solid #333; width: 80px; padding: 5px 0; text-align: center; border-radius: 4px; }
+        .stat-label { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
+        .stat-val { font-size: 16px; font-weight: bold; color: #fff; font-family: monospace; }
+
+        /* Main Game Columns */
+        .game-columns { display: flex; align-items: flex-start; gap: 10px; }
+
+        /* Left Column: Hold, Sent, Recv */
+        .col-left { display: flex; flex-direction: column; gap: 10px; width: 80px; }
+        .box-side { background: #000; border: 2px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .box-label { font-size: 10px; color: #888; margin-top: 5px; margin-bottom: 2px; }
         
-        .player-root { display: flex; flex-direction: column; align-items: center; }
-        .player-container { display: flex; align-items: flex-start; gap: 10px; position: relative; }
-        .main-board-wrap { position: relative; border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        
-        /* Side Columns */
-        .side-col { display: flex; flex-direction: column; width: 100px; gap: 10px; }
-        .side-box { border: 2px solid #333; background: #000; display: flex; flex-direction: column; align-items: center; padding-top: 5px; color:#888; font-size:12px; min-height: 80px; justify-content: center; }
-        
-        /* v1.4 UPDATE: Increased height to match new ROWS count (30 * 30px = 900px) */
-        .garbage-bar { width: 12px; height: 900px; background: #111; border: 1px solid #333; position: relative; overflow: hidden; }
+        .box-hold { height: 80px; }
+        .box-stat-side { height: 50px; justify-content: center; } /* For SENT/RECV */
+
+        /* Center Column: Board */
+        .col-center { position: relative; }
+        .main-board-wrap { border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); position: relative; }
+        .player-name { position: absolute; top: -20px; width: 100%; text-align: center; color: #00e5ff; font-weight: 900; font-size: 14px; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,229,255,0.5); }
+
+        /* Right Column: Next */
+        .col-right { display: flex; flex-direction: column; width: 80px; }
+        .box-next { background: #000; border: 2px solid #333; height: 350px; display: flex; flex-direction: column; align-items: center; }
+
+        /* Garbage Bar */
+        .garbage-container { width: 10px; height: 900px; background: #111; border: 1px solid #333; position: absolute; left: -15px; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
 
-        /* Overlays (Countdown, Results, etc.) */
-        .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 150; display: flex; justify-content: center; align-items: center; flex-direction: column; pointer-events: none; }
-        .hidden { display: none !important; }
-        #cnt-txt { font-size: 120px; font-weight: 900; color: #fff; animation: pop 0.5s infinite alternate; }
+        /* --- CHAT (Bottom Right) --- */
+        #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
+        #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; border-top: 1px solid #333; }
+        #chat-close { background: #ff0000; color: white; border: none; cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 2px; display:flex; align-items:center; justify-content:center; }
+        #chat-history { height: 200px; background: rgba(0,0,0,0.9); border-left: 1px solid #333; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; }
+        #chat-input { background: #fff; color: #000; border: none; padding: 10px; font-family: 'Segoe UI', sans-serif; outline: none; }
+        .chat-line { margin-bottom: 4px; word-wrap: break-word; }
+        .chat-user { font-weight: bold; color: #00ffcc; }
 
-        /* Floating Text Effects (Combo, B2B, Sent Lines) */
+        /* --- FLOATING TEXT --- */
         .float-text { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; opacity: 0; pointer-events: none; transition: 0.1s; text-align: center; width: 300px; text-shadow: 0 4px 8px rgba(0,0,0,0.9); font-style: italic; z-index: 50; }
-        /* Translucent colors for text */
         .action-text { top: 250px; font-size: 36px; color: rgba(255,255,255,0.6); letter-spacing: 2px; }
         .combo-text { top: 200px; font-size: 28px; color: rgba(255,204,0,0.6); }
         .b2b-text { top: 160px; font-size: 18px; color: rgba(0,255,204,0.6); letter-spacing: 2px; }
         .sent-text { top: 300px; font-size: 50px; color: #ff0055; font-weight: 900; }
 
-        /* Chat Styling */
-        #chat-container { position: absolute; bottom: 20px; right: 20px; width: 300px; height: 250px; display: flex; flex-direction: column; z-index: 300; pointer-events: auto; }
-        #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; }
-        #chat-close { background: red; color: white; border: none; cursor: pointer; font-weight: bold; padding: 2px 8px; border-radius: 3px; }
+        /* OVERLAYS */
+        .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 150; display: flex; justify-content: center; align-items: center; flex-direction: column; pointer-events: none; }
+        .hidden { display: none !important; }
+        #cnt-txt { font-size: 120px; font-weight: 900; color: #fff; animation: pop 0.5s infinite alternate; }
         
-        /* Stats Row at Top */
-        .stats-row { display: flex; gap: 10px; margin-bottom: 10px; width: 100%; justify-content: center; }
-        .stat-box { background: #111; border: 1px solid #333; padding: 5px 15px; border-radius: 4px; text-align: center; min-width: 70px; }
-        .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; }
-        .stat-val { font-size: 16px; font-weight: bold; color: #fff; font-family: monospace; }
+        #results-table { border-collapse: collapse; margin-top: 20px; font-family: monospace; font-size: 20px; width: 600px; }
+        #results-table th { color: #00ffcc; padding: 10px; border-bottom: 2px solid #fff; }
+        #results-table td { padding: 10px; border-bottom: 1px solid #444; text-align: center; color: #fff; }
+        .rank-1 { color: #ffcc00 !important; font-weight: bold; }
+
+        #kill-feed { position: absolute; bottom: 20px; left: 20px; width: 300px; display: flex; flex-direction: column; gap: 5px; pointer-events: none; z-index: 100; }
+        .feed-msg { background: rgba(255,0,0,0.2); color: #ff5555; padding: 5px; border-left: 3px solid #ff5555; font-family: monospace; }
 
         @keyframes pop { from { transform: scale(1); } to { transform: scale(1.1); } }
         canvas { display: block; }
@@ -132,7 +146,8 @@
         <div id="scr-stats" class="screen">
             <h2 style="color:#00a8ff">STATISTICS</h2>
             <div id="stats-layout">
-                <div id="stats-list"></div> <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:50px;">Select a player.</div></div>
+                <div id="stats-list"></div>
+                <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:50px;">Select a player.</div></div>
             </div>
             <button class="btn" onclick="goHome()" style="margin-top:20px; background:#333;">BACK</button>
         </div>
@@ -156,6 +171,7 @@
     </div>
     
     <div id="kill-feed"></div>
+
     <div id="chat-container" class="hidden">
         <div id="chat-header"><button id="chat-close" onclick="toggleChat()">X</button></div>
         <div id="chat-history"></div>
@@ -164,48 +180,64 @@
 
     <div id="game-ui" class="game-area hidden">
         <div id="p1-root" class="player-root">
-            <div class="stats-row">
-                <div class="stat-box"><div class="stat-label">TIME</div><div id="s-time" class="stat-val">00:00</div></div>
-                <div class="stat-box"><div class="stat-label">PPS</div><div id="s-pps" class="stat-val">0.00</div></div>
-                <div class="stat-box"><div class="stat-label">APM</div><div id="s-apm" class="stat-val">0</div></div>
+            
+            <div class="stats-header">
+                <div class="stat-box-top"><div class="stat-label">TIME</div><div id="s-time" class="stat-val">00:00</div></div>
+                <div class="stat-box-top"><div class="stat-label">PPS</div><div id="s-pps" class="stat-val">0.00</div></div>
+                <div class="stat-box-top"><div class="stat-label">APM</div><div id="s-apm" class="stat-val">0</div></div>
             </div>
-            <div class="player-container">
-                <div class="garbage-bar"><div id="p1-g" class="garbage-fill"></div></div>
+
+            <div class="game-columns">
                 
-                <div class="side-col">
-                    <div class="side-box">HOLD<canvas id="p1-h" width="80" height="60"></canvas></div>
-                    <div class="side-box">SENT<div id="s-sent" class="stat-val">0</div></div>
-                    <div class="side-box">RECV<div id="s-recv" class="stat-val">0</div></div>
-                </div>
-
-                <div class="main-board-wrap">
-                    <div id="p1-name" style="position:absolute; top:-25px; width:100%; text-align:center; color:#00e5ff; font-weight:bold;">YOU</div>
-                    <canvas id="p1" width="120" height="900"></canvas>
+                <div class="col-left">
+                    <div class="box-side box-hold">
+                        <div class="box-label" style="position:absolute; top:2px;">HOLD</div>
+                        <canvas id="p1-h" width="80" height="50" style="margin-top:10px;"></canvas>
+                    </div>
                     
-                    <div id="pop-action" class="float-text action-text">QUAD</div>
-                    <div id="pop-combo" class="float-text combo-text">2 COMBO</div>
-                    <div id="pop-b2b" class="float-text b2b-text">B2B</div>
-                    <div id="pop-sent" class="float-text sent-text">+4</div>
+                    <div style="flex:1"></div> <div class="box-side box-stat-side">
+                        <div class="box-label">SENT</div>
+                        <div id="s-sent" class="stat-val">0</div>
+                    </div>
+                    <div class="box-side box-stat-side">
+                        <div class="box-label">RECV</div>
+                        <div id="s-recv" class="stat-val">0</div>
+                    </div>
                 </div>
 
-                <div class="side-col">
-                    <div class="side-box" style="height:350px; justify-content: flex-start;">NEXT<canvas id="p1-n" width="80" height="320"></canvas></div>
+                <div class="col-center">
+                    <div class="garbage-container"><div id="p1-g" class="garbage-fill"></div></div>
+                    <div class="main-board-wrap">
+                        <div id="p1-name" class="player-name">YOU</div>
+                        <canvas id="p1" width="120" height="900"></canvas>
+                        
+                        <div id="pop-action" class="float-text action-text">QUAD</div>
+                        <div id="pop-combo" class="float-text combo-text">2 COMBO</div>
+                        <div id="pop-b2b" class="float-text b2b-text">B2B</div>
+                        <div id="pop-sent" class="float-text sent-text">+4</div>
+                    </div>
                 </div>
+
+                <div class="col-right">
+                    <div class="box-side box-next">
+                        <div class="box-label">NEXT</div>
+                        <canvas id="p1-n" width="80" height="320" style="margin-top:5px;"></canvas>
+                    </div>
+                </div>
+
             </div>
         </div>
-        <div id="ffa-grid"></div> </div>
+        <div id="ffa-grid"></div> 
+    </div>
 
     <script>
         // --- CONSTANTS ---
-        // v1.4 UPDATE: ROWS set to 30 (4 Red Zone + 26 Safe Zone)
         const COLS=4, ROWS=30, B_SIZE=30; 
         
-        // Piece shapes definition (I, O, T, S, Z, J, L)
         const PIECES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
         const COLORS=['#31C7EF','#F7D308','#FF69B4','#EF2029','#42B642','#9D00FF','#EF7921'];
         
-        // --- SRS OFFSET DATA (WALL KICKS) ---
-        // These tables define where the piece tries to move if rotation fails (kick data).
+        // SRS Offsets
         const OFFSETS_JLSTZ = [
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [1,0], [1,-1], [0,2], [1,2]],
             [[0,0], [0,0], [0,0], [0,0], [0,0]], [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]],
@@ -220,12 +252,10 @@
         ];
         const KICK_INDEX = { "0_1":0, "1_0":1, "1_2":2, "2_1":3, "2_3":4, "3_2":5, "3_0":6, "0_3":7 };
 
-        // Global variables for game state
         let socket=null, gameActive=false, inputLocked=false, isSpectator=false;
         let gameMode='zen', startTime=0, apmTimer=null;
         let statsCache = {}; 
         
-        // Auto-fill username/password if saved in LocalStorage
         window.onload = function() {
             if(localStorage.getItem('savedUser')) document.getElementById('username').value = localStorage.getItem('savedUser');
             if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
@@ -236,7 +266,6 @@
             localStorage.setItem('savedPass', document.getElementById('password').value);
         }
 
-        // --- NAVIGATION & UI HELPERS ---
         function navTo(id) {
             document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -254,7 +283,6 @@
             else chat.style.display = 'none';
         }
 
-        // Sends login credentials to server
         function attemptLogin() {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -263,7 +291,6 @@
             socket.emit('login_attempt', { username: user, password: pass });
         }
 
-        // Returns user to the main menu and resets game UI
         function goHome() {
             gameActive = false;
             clearTimeout(apmTimer);
@@ -282,7 +309,6 @@
             navTo('scr-stats');
         }
 
-        // --- GAME MODES ---
         function startZen() {
             if(socket) socket.emit('leave_lobby'); 
             gameMode='zen';
@@ -291,7 +317,6 @@
             gameActive = true; loop();
         }
 
-        // APM Test: 60 seconds sprint
         function startAPMTest() {
             if(socket) socket.emit('leave_lobby'); 
             gameMode='apm_test';
@@ -299,15 +324,12 @@
             setupGameUI();
             p1.initRNG(Math.random()*999); p1.reset();
             gameActive = true; loop();
-            
-            // End game after 60 seconds
             apmTimer = setTimeout(() => {
                 gameActive = false;
                 const finalAPM = p1.elAPM.innerText;
                 const winOver = document.getElementById('overlay-cnt'); 
                 winOver.classList.remove('hidden');
                 document.getElementById('cnt-txt').innerText = "FINISH";
-                
                 if(socket) socket.emit('submit_apm', finalAPM);
                 setTimeout(goHome, 3000);
             }, 60000);
@@ -325,12 +347,10 @@
             document.getElementById('home-btn').classList.remove('hidden');
         }
 
-        // --- SOCKET.IO HANDLING ---
         function connect() {
             if(socket) return;
             socket = io();
 
-            // Handle Login Response
             socket.on('login_response', data => {
                 if(data.success) {
                     navTo('scr-main');
@@ -344,45 +364,28 @@
                 }
             });
 
-            // Update Leaderboards (Wins & Combos)
             socket.on('leaderboard_update', data => {
                 const winDiv = document.getElementById('lb-wins');
                 winDiv.innerHTML = '';
-                data.wins.forEach((p, i) => {
-                    winDiv.innerHTML += `<div class="lb-item"><span>${i+1}. ${p.name}</span> <span>${p.val} W</span></div>`;
-                });
-                
+                data.wins.forEach((p, i) => { winDiv.innerHTML += `<div class="lb-item"><span>${i+1}. ${p.name}</span> <span>${p.val} W</span></div>`; });
                 const cmbDiv = document.getElementById('lb-combo');
                 cmbDiv.innerHTML = '';
                 if(data.combos) {
-                    data.combos.forEach((p, i) => {
-                        cmbDiv.innerHTML += `<div class="lb-item"><span>${i+1}. ${p.name}</span> <span>${p.val} x</span></div>`;
-                    });
+                    data.combos.forEach((p, i) => { cmbDiv.innerHTML += `<div class="lb-item"><span>${i+1}. ${p.name}</span> <span>${p.val} x</span></div>`; });
                 }
             });
 
-            // Receive Data for Stats Page
             socket.on('receive_all_stats', data => {
                 statsCache = data;
                 const list = document.getElementById('stats-list');
                 list.innerHTML = '';
-                
-                // Sort by Average APM logic
                 const sortedUsers = Object.keys(data).sort((a,b) => {
-                    const getAvg = (u) => {
-                        const h = data[u].history || [];
-                        if(!h.length) return 0;
-                        return h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length;
-                    };
+                    const getAvg = (u) => { const h = data[u].history || []; return h.length ? h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length : 0; };
                     return getAvg(b) - getAvg(a);
                 });
-
                 sortedUsers.forEach(user => {
                     const h = data[user].history || [];
-                    let avgAPM = 0;
-                    if(h.length > 0) {
-                        avgAPM = (h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length).toFixed(0);
-                    }
+                    let avgAPM = h.length ? (h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length).toFixed(0) : 0;
                     const div = document.createElement('div');
                     div.className = 'player-item';
                     div.innerHTML = `<span>${user}</span> <span style="color:#666">${avgAPM} APM</span>`;
@@ -391,7 +394,6 @@
                 });
             });
 
-            // Gameplay Sockets
             socket.on('start_countdown', data => {
                 gameMode = 'ffa';
                 setupGameUI();
@@ -399,16 +401,10 @@
                 const ov = document.getElementById('overlay-cnt');
                 const tx = document.getElementById('cnt-txt');
                 ov.classList.remove('hidden');
-                
                 let n = data.duration;
                 tx.innerText = n;
                 inputLocked = true;
-                
-                const iv = setInterval(()=>{
-                    n--;
-                    if(n>0) tx.innerText = n;
-                    else { clearInterval(iv); ov.classList.add('hidden'); }
-                }, 1000);
+                const iv = setInterval(()=>{ n--; if(n>0) tx.innerText = n; else { clearInterval(iv); ov.classList.add('hidden'); } }, 1000);
             });
 
             socket.on('match_start', data => {
@@ -453,7 +449,6 @@
             });
         }
 
-        // --- STATS LOGIC ---
         function showStatDetails(user) {
             const d = statsCache[user];
             const div = document.getElementById('stats-detail');
@@ -484,7 +479,6 @@
             div.innerHTML = html;
         }
 
-        // --- GAME ENGINE ---
         function setupOnlineGame(seed, players) {
             gameActive = true;
             p1.initRNG(seed); p1.reset();
@@ -525,7 +519,6 @@
             }
         }
 
-        // --- PLAYER LOGIC (MAIN CLASS) ---
         class SeededRNG { constructor(s){this.s=s;} next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;} }
         
         class Player {
@@ -579,13 +572,11 @@
             spawn(id=this.queue.shift()){
                 this.queue.push(this.pull());
                 this.rotation = 0;
-                // v1.2 FIX: Spawn position to x=0 for 4-wide board
                 this.active={pos:{x:0, y:-1}, matrix:PIECES[id], id:id, color:COLORS[id]};
                 
                 this.lastMoveRotate=false;
                 this.lockTimer = 0;
                 
-                // Spawn collision check (Death handled in Lock() via Red Zone)
                 if(this.collide()){}
                 this.drawSide(this.nCtx,this.queue); this.sendBoard();
             }
@@ -605,7 +596,6 @@
                 return false;
             }
 
-            // v1.3 UPDATE: SMALL BOARD KICKS
             rotate(dir=1) { 
                 const currentRot = this.rotation;
                 let nextRot = (currentRot + dir + 4) % 4; 
@@ -667,14 +657,13 @@
             }
             
             lock(){
-                let entirelyInRed = true; // v1.3: Red Zone death tracking
+                let entirelyInRed = true; 
                 
                 this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{ 
                     if(v) { 
                         const gy=y+this.active.pos.y; 
                         if(gy>=0) {
                             this.grid[gy][x+this.active.pos.x]=this.active.color; 
-                            // v1.3: If any block locks below row 3, we are safe
                             if (gy >= 4) entirelyInRed = false;
                         }
                     } 
@@ -682,7 +671,6 @@
                 this.piecesPlaced++;
                 const linesCleared = this.sweep(); 
                 
-                // v1.3: Game Over if locked entirely in Red Zone (rows 0-3) with no line clear
                 if (entirelyInRed && linesCleared === 0) {
                      if(gameMode !== 'zen' && gameMode !== 'apm_test' && socket) {
                         socket.emit('player_died', this.getStats()); 
@@ -720,7 +708,7 @@
                 }
                 this.gBar.style.height=(this.pendingG*30)+'px';
                 this.updateStats();
-                return lines; // Return lines for Red Zone check
+                return lines;
             }
 
             receiveGarbage(n){ this.pendingG+=n; this.linesRecvTotal+=n; this.gBar.style.height=(this.pendingG*30)+'px'; this.updateStats(); }
@@ -773,16 +761,13 @@
             }
 
             draw(){
-                // v1.4 UPDATE: Clear 900px height
                 this.ctx.fillStyle='#000'; this.ctx.fillRect(0,0,120,900);
                 
-                // v1.3 UPDATE: Draw Red Zone (Rows 0-3)
+                // Red Zone (Rows 0-3)
                 this.ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
                 this.ctx.fillRect(0, 0, 120, 120); 
                 
-                // Draw Grid
                 this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v; this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));
-                // Draw Active Piece
                 if(this.active && !isSpectator){
                     let g={...this.active.pos}; while(!this.collide(this.active.matrix,g))g.y++; g.y--;
                     this.ctx.fillStyle='rgba(255,255,255,0.15)'; this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v)this.ctx.fillRect((g.x+x)*B_SIZE,(g.y+y)*B_SIZE,B_SIZE-1,B_SIZE-1);}));
