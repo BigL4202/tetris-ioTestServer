@@ -39,39 +39,62 @@
         .player-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #222; display:flex; justify-content:space-between; font-family:monospace; font-size:12px; }
         .player-item:hover { background: #222; }
 
-        /* --- GAME UI LAYOUT (MATCHING SCREENSHOT) --- */
+        /* --- GAME UI LAYOUT --- */
         .game-area { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); transition: 0.5s; }
         @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
 
         /* Top Stats Row (Time, PPS, APM) */
-        .stats-header { display: flex; gap: 10px; margin-bottom: 5px; }
-        .stat-box-top { background: #111; border: 1px solid #333; width: 80px; padding: 5px 0; text-align: center; border-radius: 4px; }
-        .stat-label { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
-        .stat-val { font-size: 16px; font-weight: bold; color: #fff; font-family: monospace; }
+        .stats-header { display: flex; gap: 15px; margin-bottom: 10px; }
+        /* CHANGED: Bigger top boxes (100px wide) */
+        .stat-box-top { background: #000; border: 2px solid #333; width: 100px; padding: 8px 0; text-align: center; border-radius: 0; }
+        .stat-label { font-size: 11px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+        .stat-val { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
 
         /* Main Game Columns */
-        .game-columns { display: flex; align-items: flex-start; gap: 10px; }
+        .game-columns { display: flex; align-items: flex-start; gap: 15px; }
 
         /* Left Column: Hold, Sent, Recv */
-        .col-left { display: flex; flex-direction: column; gap: 10px; width: 80px; }
-        .box-side { background: #000; border: 2px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .box-label { font-size: 10px; color: #888; margin-top: 5px; margin-bottom: 2px; }
+        /* CHANGED: Width increased to 120px for "bigger ui" */
+        .col-left { display: flex; flex-direction: column; gap: 15px; width: 120px; }
         
-        .box-hold { height: 80px; }
-        .box-stat-side { height: 50px; justify-content: center; } /* For SENT/RECV */
+        /* Unified Box Styles (Hold/Next) */
+        .box-container { background: #000; border: 2px solid #333; display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; box-sizing: border-box; }
+        .box-header { width: 100%; text-align: center; font-size: 12px; color: #888; padding-top: 5px; font-weight: bold; }
+        
+        .box-hold { height: 100px; justify-content: flex-start; }
+        .box-stat-side { height: 60px; justify-content: center; } /* For SENT/RECV */
 
         /* Center Column: Board */
         .col-center { position: relative; }
-        .main-board-wrap { border: 4px solid #333; background: #000; box-shadow: 0 0 30px rgba(0,0,0,0.5); position: relative; }
-        .player-name { position: absolute; top: -20px; width: 100%; text-align: center; color: #00e5ff; font-weight: 900; font-size: 14px; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,229,255,0.5); }
-
+        .main-board-wrap { border: 4px solid #333; background: #000; box-shadow: 0 0 40px rgba(0,0,0,0.6); position: relative; }
+        
         /* Right Column: Next */
-        .col-right { display: flex; flex-direction: column; width: 80px; }
-        .box-next { background: #000; border: 2px solid #333; height: 350px; display: flex; flex-direction: column; align-items: center; }
+        /* CHANGED: Width increased to 120px */
+        .col-right { display: flex; flex-direction: column; width: 120px; }
+        .box-next { height: 400px; justify-content: flex-start; }
 
         /* Garbage Bar */
-        .garbage-container { width: 10px; height: 900px; background: #111; border: 1px solid #333; position: absolute; left: -15px; overflow: hidden; }
+        .garbage-container { width: 12px; height: 900px; background: #111; border: 1px solid #333; position: absolute; left: -20px; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
+
+        /* --- HOME BUTTON --- */
+        /* CHANGED: Styled red button in top left */
+        #home-btn { 
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 2000; 
+            padding: 10px 25px; 
+            background: #ff0033; 
+            color: #fff; 
+            border: none; 
+            font-weight: 900; 
+            cursor: pointer; 
+            box-shadow: 0 0 10px rgba(255, 0, 51, 0.4);
+            font-family: 'Segoe UI', sans-serif;
+            letter-spacing: 1px;
+        }
+        #home-btn:hover { background: #ff3355; transform: scale(1.05); }
 
         /* --- CHAT (Bottom Right) --- */
         #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
@@ -190,25 +213,26 @@
             <div class="game-columns">
                 
                 <div class="col-left">
-                    <div class="box-side box-hold">
-                        <div class="box-label" style="position:absolute; top:2px;">HOLD</div>
-                        <canvas id="p1-h" width="80" height="50" style="margin-top:10px;"></canvas>
+                    <div class="box-container box-hold">
+                        <div class="box-header">HOLD</div>
+                        <canvas id="p1-h" width="120" height="70"></canvas>
                     </div>
                     
-                    <div style="flex:1"></div> <div class="box-side box-stat-side">
-                        <div class="box-label">SENT</div>
-                        <div id="s-sent" class="stat-val">0</div>
+                    <div style="flex:1"></div>
+
+                    <div class="box-container box-stat-side">
+                        <div class="box-header">SENT</div>
+                        <div id="s-sent" class="stat-val" style="margin-bottom:5px;">0</div>
                     </div>
-                    <div class="box-side box-stat-side">
-                        <div class="box-label">RECV</div>
-                        <div id="s-recv" class="stat-val">0</div>
+                    <div class="box-container box-stat-side">
+                        <div class="box-header">RECV</div>
+                        <div id="s-recv" class="stat-val" style="margin-bottom:5px;">0</div>
                     </div>
                 </div>
 
                 <div class="col-center">
                     <div class="garbage-container"><div id="p1-g" class="garbage-fill"></div></div>
                     <div class="main-board-wrap">
-                        <div id="p1-name" class="player-name">YOU</div>
                         <canvas id="p1" width="120" height="900"></canvas>
                         
                         <div id="pop-action" class="float-text action-text">QUAD</div>
@@ -219,9 +243,9 @@
                 </div>
 
                 <div class="col-right">
-                    <div class="box-side box-next">
-                        <div class="box-label">NEXT</div>
-                        <canvas id="p1-n" width="80" height="320" style="margin-top:5px;"></canvas>
+                    <div class="box-container box-next">
+                        <div class="box-header">NEXT</div>
+                        <canvas id="p1-n" width="120" height="360"></canvas>
                     </div>
                 </div>
 
@@ -609,7 +633,6 @@
                 const kicks = kickTable[kickRowIndex];
                 const initialPos = { x: this.active.pos.x, y: this.active.pos.y };
 
-                // 1. Standard SRS
                 for (let i = 0; i < kicks.length; i++) {
                     const offset = kicks[i];
                     this.active.pos.x = initialPos.x + offset[0];
@@ -619,7 +642,6 @@
                     }
                 }
 
-                // 2. Extra Safety Kicks for 4-wide board
                 const safetyKicks = [[-1,0],[1,0],[-2,0],[2,0],[-3,0]];
                 for(let k of safetyKicks) {
                     this.active.pos.x = initialPos.x + k[0];
@@ -629,7 +651,6 @@
                     }
                 }
 
-                // Fail
                 this.active.pos.x = initialPos.x;
                 this.active.pos.y = initialPos.y;
             }
@@ -728,6 +749,7 @@
             }
 
             drawSide(ctx, ids){
+                // CHANGED: Clear rect to full width of new canvas size
                 ctx.fillStyle = '#000'; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 ids.forEach((id, i) => {
                     if (id !== null) {
