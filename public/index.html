@@ -41,14 +41,66 @@
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 950px; }
         .active { display: flex; }
         
-        h1 { font-size: 50px; margin-bottom: 30px; text-shadow: 0 0 20px var(--glow); letter-spacing: 3px; text-align: center; font-weight: 900; }
-        h1 span { color: var(--accent); transition: color 0.3s; }
+        /* CHANGED: COOLER TITLE */
+        h1 { 
+            font-size: 60px; 
+            margin-bottom: 30px; 
+            letter-spacing: 4px; 
+            text-align: center; 
+            font-weight: 900; 
+            text-transform: uppercase;
+        }
+        h1 span { 
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px var(--glow);
+            animation: titlePulse 3s infinite ease-in-out;
+        }
+        @keyframes titlePulse {
+            0%, 100% { filter: drop-shadow(0 0 10px var(--glow)); }
+            50% { filter: drop-shadow(0 0 25px var(--accent)); }
+        }
 
-        .input-std { background: #222; border: 1px solid #444; color: #fff; padding: 12px; font-size: 18px; border-radius: 5px; margin: 5px 0; width: 300px; text-align: center; transition: 0.2s; }
-        .input-std:focus { border-color: var(--accent); outline: none; background: #333; }
+        /* CHANGED: Tech Panel Style for Login & Menu Sections */
+        .tech-panel {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 20px var(--glow);
+            border-radius: 8px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
+        .input-std:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--glow); outline: none; background: #000; }
         
-        .btn { padding: 15px 40px; font-size: 16px; cursor: pointer; border: none; font-weight: bold; border-radius: 6px; margin: 8px; width: 300px; text-transform: uppercase; transition: 0.2s; box-shadow: 0 0 10px rgba(0,0,0,0.5); letter-spacing: 1px; }
-        .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+        /* CHANGED: Cooler Buttons */
+        .btn { 
+            padding: 15px 40px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border: none; 
+            font-weight: 800; 
+            border-radius: 4px; 
+            margin: 8px; 
+            width: 300px; 
+            text-transform: uppercase; 
+            transition: all 0.2s ease-in-out; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            letter-spacing: 1px; 
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:hover { 
+            transform: translateY(-2px) scale(1.02); 
+            filter: brightness(1.2); 
+            letter-spacing: 3px; /* Expands on hover */
+            box-shadow: 0 0 20px var(--glow);
+        }
         
         .btn-green { background: #00ffcc; color: #000; }
         .btn-zen { background: #a29bfe; color: #000; }
@@ -57,110 +109,62 @@
         .btn-blue { background: #00a8ff; color: #fff; } 
 
         /* MAIN MENU SPLIT */
-        #main-split { display: flex; flex-direction: row; gap: 60px; align-items: flex-start; margin-top: 10px; }
-        .menu-left { display: flex; flex-direction: column; align-items: center; }
+        #main-split { display: flex; flex-direction: row; gap: 40px; align-items: stretch; margin-top: 10px; }
         
-        .user-info { margin-bottom: 25px; font-size: 18px; color: #ccc; text-align: center; width: 100%; line-height: 1.5; }
-        .user-info span { color: #fff; font-weight: bold; }
+        /* CHANGED: Boxed Left Column */
+        .menu-left { 
+            width: 340px; 
+            /* Inherits .tech-panel styles */
+        }
+        
+        .user-info { margin-bottom: 20px; font-size: 16px; color: #ccc; text-align: center; width: 100%; line-height: 1.6; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .user-info span { color: #fff; font-weight: bold; font-size: 18px; }
         
         /* RIGHT COLUMN (LEADERBOARDS) */
         .menu-right { 
-            width: 320px; 
-            background: #0a0a0a; 
-            border: 1px solid #333; 
-            border-radius: 8px; 
-            padding: 20px; 
-            min-height: 400px;
+            width: 340px; 
+            /* Inherits .tech-panel styles */
+            justify-content: flex-start;
         }
         
         .lb-header-text { 
-            color: #00ffcc; 
+            color: var(--accent); 
             font-size: 14px; 
             font-weight: bold; 
             text-align: center; 
             margin-bottom: 10px; 
             margin-top: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             border-bottom: 1px solid #333;
             padding-bottom: 5px;
+            width: 100%;
         }
         .lb-header-text:first-child { margin-top: 0; }
 
         .lb-list { width: 100%; font-family: 'Segoe UI', sans-serif; font-size: 13px; color: #fff; }
-        .lb-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
+        .lb-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #1a1a1a; transition: background 0.2s; }
+        .lb-item:hover { background: rgba(255,255,255,0.05); }
         .rank-num { color: #ffcc00; font-weight: bold; margin-right: 5px; } 
         
-        /* --- STATS PAGE OVERHAUL --- */
-        #stats-layout { 
-            display: flex; 
-            width: 900px; 
-            height: 550px; 
-            gap: 20px;
-            /* No background on container, split into two panels */
-        }
+        /* STATS PAGE */
+        #stats-layout { display: flex; width: 900px; height: 550px; gap: 20px; }
+        #stats-list { width: 250px; background: #050505; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--glow); border-radius: 4px; overflow-y: auto; padding: 10px; }
+        #stats-detail { flex: 1; background: #050505; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--glow); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Left Panel: List */
-        #stats-list { 
-            width: 250px; 
-            background: #050505; 
-            border: 1px solid var(--accent); 
-            box-shadow: 0 0 15px var(--glow); 
-            border-radius: 4px;
-            overflow-y: auto; 
-            padding: 10px;
-        }
-        
-        /* Right Panel: Details */
-        #stats-detail { 
-            flex: 1; 
-            background: #050505; 
-            border: 1px solid var(--accent); 
-            box-shadow: 0 0 15px var(--glow); 
-            border-radius: 4px; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-        }
-
-        .player-item { 
-            padding: 12px; 
-            cursor: pointer; 
-            border-bottom: 1px solid #222; 
-            color: #888;
-            font-weight: bold;
-            transition: 0.2s;
-        }
+        .player-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #222; color: #888; font-weight: bold; transition: 0.2s; }
         .player-item:hover { background: #111; color: #fff; padding-left: 15px; }
         .player-item.selected { background: var(--glow); color: var(--accent); border-color: var(--accent); }
 
-        /* Detail Elements */
         .stat-user-title { font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--glow); }
-        
         .stat-section-label { font-size: 12px; color: #666; margin-bottom: 8px; letter-spacing: 1px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 4px; width: 100%; display:block; }
-
-        /* Stat Grid (Cards) */
         .stat-row { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; }
-        
-        .stat-card { 
-            flex: 1; 
-            background: #111; 
-            border: 1px solid #333; 
-            border-radius: 4px; 
-            padding: 10px; 
-            text-align: center;
-            transition: 0.2s;
-        }
+        .stat-card { flex: 1; background: #111; border: 1px solid #333; border-radius: 4px; padding: 10px; text-align: center; transition: 0.2s; }
         .stat-card:hover { border-color: var(--accent); box-shadow: 0 0 5px var(--glow); transform: translateY(-2px); }
-        
         .stat-card-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .stat-card-val { font-size: 20px; color: #fff; font-weight: 900; font-family: monospace; }
         .stat-card-val.highlight { color: #ffcc00; }
-
-        /* History Table Container */
         .history-wrapper { flex: 1; overflow-y: auto; border: 1px solid #222; background: #0a0a0a; border-radius: 4px; }
-        
         .history-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace; }
         .history-table th { background: #111; color: var(--accent); padding: 10px; text-align: center; position: sticky; top: 0; border-bottom: 1px solid #333; z-index: 2; }
         .history-table td { padding: 8px; border-bottom: 1px solid #222; text-align: center; color: #ccc; }
@@ -171,31 +175,21 @@
         @media (max-height: 950px) { .game-area { transform: scale(0.75); } }
 
         .stats-header { display: flex; gap: 15px; margin-bottom: 10px; }
-        .stat-box-top { 
-            background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); 
-            width: 100px; padding: 8px 0; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;
-        }
+        .stat-box-top { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); width: 100px; padding: 8px 0; text-align: center; transition: border-color 0.3s, box-shadow 0.3s; }
         .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; transition: color 0.3s; }
         .stat-val { font-size: 18px; font-weight: bold; color: #fff; font-family: monospace; }
 
         .game-columns { display: flex; align-items: flex-start; gap: 15px; }
         .col-left { display: flex; flex-direction: column; gap: 15px; width: 120px; }
         
-        .box-container { 
-            background: #000; border: 1px solid var(--accent); box-shadow: 0 0 8px var(--glow); 
-            display: flex; flex-direction: column; align-items: center; position: relative; 
-            width: 100%; box-sizing: border-box; padding-bottom: 5px; transition: border-color 0.3s, box-shadow 0.3s;
-        }
+        .box-container { background: #000; border: 1px solid var(--accent); box-shadow: 0 0 8px var(--glow); display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; box-sizing: border-box; padding-bottom: 5px; transition: border-color 0.3s, box-shadow 0.3s; }
         .box-header { width: 100%; text-align: center; font-size: 12px; color: var(--accent); padding-top: 5px; padding-bottom: 5px; font-weight: bold; transition: color 0.3s; }
         
         .box-hold { height: 100px; justify-content: flex-start; }
         .box-stat-side { height: 60px; justify-content: center; padding: 0; }
 
         .col-center { position: relative; }
-        .main-board-wrap { 
-            border: 2px solid var(--accent); background: #000; box-shadow: 0 0 20px var(--glow-strong); 
-            position: relative; transition: border-color 0.3s, box-shadow 0.3s;
-        }
+        .main-board-wrap { border: 2px solid var(--accent); background: #000; box-shadow: 0 0 20px var(--glow-strong); position: relative; transition: border-color 0.3s, box-shadow 0.3s; }
         
         .col-right { display: flex; flex-direction: column; width: 120px; }
         .box-next { height: 400px; justify-content: flex-start; }
@@ -204,15 +198,9 @@
         .garbage-container { width: 12px; height: 900px; background: #111; border: 1px solid #333; position: absolute; left: -20px; overflow: hidden; }
         .garbage-fill { position: absolute; bottom: 0; width: 100%; background: #ff0033; transition: height 0.2s; }
 
-        /* Home Button */
-        #home-btn { 
-            position: fixed; top: 20px; left: 20px; z-index: 2000; padding: 10px 25px; 
-            background: #ff0033; color: #fff; border: none; font-weight: 900; cursor: pointer; 
-            box-shadow: 0 0 10px rgba(255, 0, 51, 0.4); font-family: 'Segoe UI', sans-serif; letter-spacing: 1px;
-        }
+        #home-btn { position: fixed; top: 20px; left: 20px; z-index: 2000; padding: 10px 25px; background: #ff0033; color: #fff; border: none; font-weight: 900; cursor: pointer; box-shadow: 0 0 10px rgba(255, 0, 51, 0.4); font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; }
         #home-btn:hover { background: #ff3355; transform: scale(1.05); }
 
-        /* --- CHAT SYSTEM --- */
         #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
         #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; }
         #chat-close { background: #ff0000; color: white; border: none; cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 2px; display:flex; align-items:center; justify-content:center; }
@@ -221,23 +209,15 @@
         .chat-line { margin-bottom: 4px; word-wrap: break-word; }
         .chat-user { font-weight: bold; color: var(--accent); }
 
-        #chat-open-btn {
-            position: fixed; bottom: 10px; right: 10px; z-index: 190;
-            padding: 10px 20px; background: #000; color: var(--accent);
-            border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow);
-            font-weight: bold; cursor: pointer; font-family: monospace;
-            display: none; 
-        }
+        #chat-open-btn { position: fixed; bottom: 10px; right: 10px; z-index: 190; padding: 10px 20px; background: #000; color: var(--accent); border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow); font-weight: bold; cursor: pointer; font-family: monospace; display: none; }
         #chat-open-btn:hover { background: #111; }
 
-        /* Floating Text */
         .float-text { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 900; opacity: 0; pointer-events: none; transition: 0.1s; text-align: center; width: 300px; text-shadow: 0 4px 8px rgba(0,0,0,0.9); font-style: italic; z-index: 50; }
         .action-text { top: 250px; font-size: 36px; color: #fff; letter-spacing: 2px; }
         .combo-text { top: 200px; font-size: 28px; color: #ffcc00; }
         .b2b-text { top: 160px; font-size: 18px; color: var(--accent); letter-spacing: 2px; }
         .sent-text { top: 300px; font-size: 50px; color: #ff0055; font-weight: 900; }
 
-        /* Overlays */
         .overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 150; display: flex; justify-content: center; align-items: center; flex-direction: column; pointer-events: none; }
         .hidden { display: none !important; }
         #cnt-txt { font-size: 120px; font-weight: 900; color: #fff; animation: pop 0.5s infinite alternate; }
@@ -260,7 +240,7 @@
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
 
     <div id="menu-container">
-        <div id="scr-login" class="screen active">
+        <div id="scr-login" class="screen active tech-panel" style="width:auto;">
             <h1>PROJECT <span>ASMONDY</span></h1>
             <p style="color:#888; margin-bottom:10px;">STUDENT LOGIN</p>
             <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12" oninput="saveCreds()">
@@ -271,7 +251,7 @@
         <div id="scr-main" class="screen">
             <h1>PROJECT <span>ASMONDY</span></h1>
             <div id="main-split">
-                <div class="menu-left">
+                <div class="menu-left tech-panel">
                     <div class="user-info">
                         Welcome, <span id="display-user">Guest</span><br>
                         Your Wins: <span id="display-wins">0</span><br>
@@ -283,7 +263,8 @@
                     <button class="btn btn-blue" onclick="openStats()">STATS / HISTORY</button>
                     <button class="btn" style="background:#222; color:#888; margin-top:20px;" onclick="logOut()">LOGOUT</button>
                 </div>
-                <div class="menu-right">
+                
+                <div class="menu-right tech-panel">
                     <div class="lb-header-text">ONLINE WIN LEADERBOARD</div>
                     <div id="lb-wins" class="lb-list"><div style="text-align:center; color:#666;">Loading...</div></div>
                     
@@ -331,23 +312,18 @@
 
     <div id="game-ui" class="game-area hidden">
         <div id="p1-root" class="player-root">
-            
             <div class="stats-header">
                 <div class="stat-box-top"><div class="stat-label">TIME</div><div id="s-time" class="stat-val">00:00</div></div>
                 <div class="stat-box-top"><div class="stat-label">PPS</div><div id="s-pps" class="stat-val">0.00</div></div>
                 <div class="stat-box-top"><div class="stat-label">APM</div><div id="s-apm" class="stat-val">0</div></div>
             </div>
-
             <div class="game-columns">
-                
                 <div class="col-left">
                     <div class="box-container">
                         <div class="box-header">HOLD</div>
                         <canvas id="p1-h" class="side-canvas" width="120" height="80"></canvas>
                     </div>
-                    
                     <div style="flex:1"></div>
-
                     <div class="box-container box-stat-side">
                         <div class="box-header">SENT</div>
                         <div id="s-sent" class="stat-val" style="margin-bottom:5px;">0</div>
@@ -357,7 +333,6 @@
                         <div id="s-recv" class="stat-val" style="margin-bottom:5px;">0</div>
                     </div>
                 </div>
-
                 <div class="col-center">
                     <div class="garbage-container"><div id="p1-g" class="garbage-fill"></div></div>
                     <div class="main-board-wrap">
@@ -368,14 +343,12 @@
                         <div id="pop-sent" class="float-text sent-text">+4</div>
                     </div>
                 </div>
-
                 <div class="col-right">
                     <div class="box-container">
                         <div class="box-header">NEXT</div>
                         <canvas id="p1-n" class="side-canvas" width="120" height="320"></canvas>
                     </div>
                 </div>
-
             </div>
         </div>
         <div id="ffa-grid"></div> 
@@ -536,13 +509,13 @@
                 const winDiv = document.getElementById('lb-wins');
                 winDiv.innerHTML = '';
                 data.wins.forEach((p, i) => { 
-                    winDiv.innerHTML += `<div class="lb-item"><span class="rank-num">${i+1}.</span> <span>${p.name}</span> <span style="font-weight:bold; color:#00ffcc;">${p.val} W</span></div>`; 
+                    winDiv.innerHTML += `<div class="lb-item"><span class="rank-num">${i+1}.</span> <span>${p.name}</span> <span style="font-weight:bold; color:var(--accent);">${p.val} W</span></div>`; 
                 });
                 const cmbDiv = document.getElementById('lb-combo');
                 cmbDiv.innerHTML = '';
                 if(data.combos) {
                     data.combos.forEach((p, i) => { 
-                        cmbDiv.innerHTML += `<div class="lb-item"><span class="rank-num">${i+1}.</span> <span>${p.name}</span> <span style="font-weight:bold; color:#00ffcc;">${p.val} x</span></div>`; 
+                        cmbDiv.innerHTML += `<div class="lb-item"><span class="rank-num">${i+1}.</span> <span>${p.name}</span> <span style="font-weight:bold; color:var(--accent);">${p.val} x</span></div>`; 
                     });
                 }
             });
@@ -551,18 +524,16 @@
                 statsCache = data;
                 const list = document.getElementById('stats-list');
                 list.innerHTML = '';
-                
-                // Sort by Average APM logic
                 const sortedUsers = Object.keys(data).sort((a,b) => {
                     const getAvg = (u) => { const h = data[u].history || []; return h.length ? h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length : 0; };
                     return getAvg(b) - getAvg(a);
                 });
-
                 sortedUsers.forEach(user => {
                     const h = data[user].history || [];
+                    let avgAPM = h.length ? (h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length).toFixed(0) : 0;
                     const div = document.createElement('div');
                     div.className = 'player-item';
-                    div.innerText = user;
+                    div.innerHTML = `<span>${user}</span> <span style="color:#666">${avgAPM} APM</span>`;
                     div.onclick = () => {
                         document.querySelectorAll('.player-item').forEach(el=>el.classList.remove('selected'));
                         div.classList.add('selected');
@@ -628,11 +599,9 @@
             });
         }
 
-        // --- NEW STATS RENDERER ---
         function showStatDetails(user) {
             const d = statsCache[user];
             const div = document.getElementById('stats-detail');
-            
             let avgAPM=0, avgPPS=0, avgSent=0, avgRecv=0, games=d.history.length;
             if (games > 0) {
                 avgAPM = (d.history.reduce((a,b)=>a+(b.apm||0), 0) / games).toFixed(1);
@@ -640,28 +609,13 @@
                 avgSent = (d.history.reduce((a,b)=>a+(b.sent||0), 0) / games).toFixed(1);
                 avgRecv = (d.history.reduce((a,b)=>a+(b.received||0), 0) / games).toFixed(1);
             }
-
-            // Create Visual Cards Structure
             let html = `<div class="stat-user-title">${user}</div>`;
-            
-            // Section 1: Career Highs
             html += `<span class="stat-section-label">CAREER HIGHS</span>`;
             html += `<div class="stat-row">
-                <div class="stat-card">
-                    <div class="stat-card-label">WINS</div>
-                    <div class="stat-card-val highlight">${d.wins}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">MAX COMBO</div>
-                    <div class="stat-card-val highlight">${d.bestCombo || 0}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-label">BEST APM</div>
-                    <div class="stat-card-val highlight">${d.bestAPM || 0}</div>
-                </div>
+                <div class="stat-card"><div class="stat-card-label">WINS</div><div class="stat-card-val highlight">${d.wins}</div></div>
+                <div class="stat-card"><div class="stat-card-label">MAX COMBO</div><div class="stat-card-val highlight">${d.bestCombo || 0}</div></div>
+                <div class="stat-card"><div class="stat-card-label">BEST APM</div><div class="stat-card-val highlight">${d.bestAPM || 0}</div></div>
             </div>`;
-
-            // Section 2: Averages
             html += `<span class="stat-section-label">AVERAGE PERFORMANCE</span>`;
             html += `<div class="stat-row">
                 <div class="stat-card"><div class="stat-card-label">AVG APM</div><div class="stat-card-val">${avgAPM}</div></div>
@@ -669,27 +623,14 @@
                 <div class="stat-card"><div class="stat-card-label">AVG SENT</div><div class="stat-card-val">${avgSent}</div></div>
                 <div class="stat-card"><div class="stat-card-label">AVG RECV</div><div class="stat-card-val">${avgRecv}</div></div>
             </div>`;
-
-            // Section 3: History Table
             html += `<span class="stat-section-label">RECENT MATCHES (${games})</span>`;
-            html += `<div class="history-wrapper"><table class="history-table">
-                <thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>COMBO</th></tr></thead>
-                <tbody>`;
-            
+            html += `<div class="history-wrapper"><table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>COMBO</th></tr></thead><tbody>`;
             [...d.history].reverse().forEach(h => {
                 const date = new Date(h.date).toLocaleDateString();
                 const placeColor = h.place === 1 ? '#ffcc00' : (h.place === 2 ? '#c0c0c0' : (h.place === 3 ? '#cd7f32' : '#fff'));
-                html += `<tr>
-                    <td>${date}</td>
-                    <td style="color:${placeColor}; font-weight:bold;">#${h.place}</td>
-                    <td>${h.apm}</td>
-                    <td>${h.pps}</td>
-                    <td>${h.sent}</td>
-                    <td>${h.maxCombo||0}</td>
-                </tr>`;
+                html += `<tr><td>${date}</td><td style="color:${placeColor}; font-weight:bold;">#${h.place}</td><td>${h.apm}</td><td>${h.pps}</td><td>${h.sent}</td><td>${h.maxCombo||0}</td></tr>`;
             });
             html += `</tbody></table></div>`;
-            
             div.innerHTML = html;
         }
 
