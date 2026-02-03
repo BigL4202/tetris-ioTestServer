@@ -361,6 +361,7 @@
             navTo('scr-stats');
         }
 
+        // CHANGED: Explicitly leave lobbies for singleplayer
         function startZen() {
             if(socket) socket.emit('leave_lobby'); 
             gameMode='zen'; activeMutator=null;
@@ -464,7 +465,9 @@
                 });
             });
 
+            // CHANGED: Guard clause to prevent singleplayer interference
             socket.on('start_countdown', data => {
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
                 setupGameUI();
                 document.getElementById('overlay-results').classList.add('hidden'); 
                 const ov = document.getElementById('overlay-cnt');
@@ -477,6 +480,7 @@
             });
 
             socket.on('match_start', data => {
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
                 inputLocked = false;
                 gameMode = data.mode;
                 isSpectator = false;
@@ -493,15 +497,20 @@
             });
 
             socket.on('receive_garbage', n => { 
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
                 if ((gameMode === 'ffa' || gameMode === 'mixtape') && !isSpectator) {
                     p1.receiveGarbage(n);
                 } 
             });
-            socket.on('enemy_board_update', d => { if (gameMode === 'ffa' || gameMode === 'mixtape') drawEnemy(d.id, d.grid); });
+            socket.on('enemy_board_update', d => { 
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
+                if (gameMode === 'ffa' || gameMode === 'mixtape') drawEnemy(d.id, d.grid); 
+            });
             socket.on('elimination', d => { feed(`${d.username} eliminated!`); });
             socket.on('request_win_stats', () => { socket.emit('match_won', p1.getStats()); });
             
             socket.on('match_summary', results => {
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
                 gameActive = false;
                 const ov = document.getElementById('overlay-results');
                 const tb = document.getElementById('results-body');
@@ -525,7 +534,12 @@
                 const iv = setInterval(() => { t--; sp.innerText = t; if(t<=0) clearInterval(iv); }, 1000);
             });
             
-            socket.on('lobby_reset', () => { document.getElementById('overlay-results').classList.add('hidden'); if(gameMode === 'ffa' || gameMode === 'mixtape') goHome(); });
+            socket.on('lobby_reset', () => { 
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
+                document.getElementById('overlay-results').classList.add('hidden'); 
+                if(gameMode === 'ffa' || gameMode === 'mixtape') goHome(); 
+            });
+            
             socket.on('receive_chat', data => {
                 const box = document.getElementById('chat-history');
                 box.innerHTML += `<div class="chat-line"><span class="chat-user">${data.user}:</span> ${data.text}</div>`;
@@ -534,6 +548,7 @@
             socket.on('update_my_wins', w => document.getElementById('display-wins').innerText = w);
             socket.on('update_my_apm', a => document.getElementById('display-apm').innerText = a);
             socket.on('ffa_spectate', d => {
+                if (gameMode === 'zen' || gameMode === 'apm_test') return;
                 document.getElementById('wait-msg').innerText = "SPECTATING...";
                 setTimeout(() => { isSpectator=true; gameMode='ffa'; setupGameUI(); setupOnlineGame(d.seed, d.players); }, 1000);
             });
@@ -797,7 +812,6 @@
             }
 
             receiveGarbage(n){ 
-                // CHANGED: Cap garbage at 10 lines
                 this.pendingG = Math.min(this.pendingG + n, 10);
                 this.linesRecvTotal += n;
                 this.gBar.style.height = (this.pendingG * 30) + 'px';
@@ -841,13 +855,11 @@
             showText(el, msg){ el.innerText=msg; el.style.opacity=1; setTimeout(()=>el.style.opacity=0, 1000); }
             
             update(dt){
-                // CHANGED: Dynamic Gravity logic
-                let dropSpeed = 700; // Base speed
+                let dropSpeed = 700; 
                 if (gameMode === 'ffa' || gameMode === 'mixtape') {
-                    // Increase speed every 30 seconds
                     const secondsPassed = (Date.now() - this.startTime) / 1000;
-                    const speedIncrease = Math.floor(secondsPassed / 30) * 70; // -70ms every 30s
-                    dropSpeed = Math.max(100, 700 - speedIncrease); // Cap at 100ms
+                    const speedIncrease = Math.floor(secondsPassed / 30) * 70; 
+                    dropSpeed = Math.max(100, 700 - speedIncrease); 
                 }
 
                 this.dropCounter += dt;
