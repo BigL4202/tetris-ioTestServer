@@ -58,7 +58,6 @@
 
         /* MAIN MENU SPLIT */
         #main-split { display: flex; flex-direction: row; gap: 60px; align-items: flex-start; margin-top: 10px; }
-        
         .menu-left { display: flex; flex-direction: column; align-items: center; }
         
         .user-info { margin-bottom: 25px; font-size: 18px; color: #ccc; text-align: center; width: 100%; line-height: 1.5; }
@@ -92,12 +91,80 @@
         .lb-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
         .rank-num { color: #ffcc00; font-weight: bold; margin-right: 5px; } 
         
-        /* STATS PAGE */
-        #stats-layout { display: flex; width: 800px; height: 500px; background: #111; border: 1px solid #333; }
-        #stats-list { width: 300px; border-right: 1px solid #333; overflow-y: auto; }
-        #stats-detail { flex: 1; padding: 20px; overflow-y: auto; }
-        .player-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #222; display:flex; justify-content:space-between; font-family:monospace; font-size:12px; }
-        .player-item:hover { background: #222; }
+        /* --- STATS PAGE OVERHAUL --- */
+        #stats-layout { 
+            display: flex; 
+            width: 900px; 
+            height: 550px; 
+            gap: 20px;
+            /* No background on container, split into two panels */
+        }
+
+        /* Left Panel: List */
+        #stats-list { 
+            width: 250px; 
+            background: #050505; 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 0 15px var(--glow); 
+            border-radius: 4px;
+            overflow-y: auto; 
+            padding: 10px;
+        }
+        
+        /* Right Panel: Details */
+        #stats-detail { 
+            flex: 1; 
+            background: #050505; 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 0 15px var(--glow); 
+            border-radius: 4px; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+        }
+
+        .player-item { 
+            padding: 12px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #222; 
+            color: #888;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .player-item:hover { background: #111; color: #fff; padding-left: 15px; }
+        .player-item.selected { background: var(--glow); color: var(--accent); border-color: var(--accent); }
+
+        /* Detail Elements */
+        .stat-user-title { font-size: 32px; color: var(--accent); font-weight: 900; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--glow); }
+        
+        .stat-section-label { font-size: 12px; color: #666; margin-bottom: 8px; letter-spacing: 1px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 4px; width: 100%; display:block; }
+
+        /* Stat Grid (Cards) */
+        .stat-row { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; }
+        
+        .stat-card { 
+            flex: 1; 
+            background: #111; 
+            border: 1px solid #333; 
+            border-radius: 4px; 
+            padding: 10px; 
+            text-align: center;
+            transition: 0.2s;
+        }
+        .stat-card:hover { border-color: var(--accent); box-shadow: 0 0 5px var(--glow); transform: translateY(-2px); }
+        
+        .stat-card-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .stat-card-val { font-size: 20px; color: #fff; font-weight: 900; font-family: monospace; }
+        .stat-card-val.highlight { color: #ffcc00; }
+
+        /* History Table Container */
+        .history-wrapper { flex: 1; overflow-y: auto; border: 1px solid #222; background: #0a0a0a; border-radius: 4px; }
+        
+        .history-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace; }
+        .history-table th { background: #111; color: var(--accent); padding: 10px; text-align: center; position: sticky; top: 0; border-bottom: 1px solid #333; z-index: 2; }
+        .history-table td { padding: 8px; border-bottom: 1px solid #222; text-align: center; color: #ccc; }
+        .history-table tr:hover td { background: #151515; color: #fff; }
 
         /* --- GAME UI LAYOUT --- */
         .game-area { display: flex; flex-direction: column; align-items: center; transform: scale(0.9); transition: 0.5s; }
@@ -147,22 +214,19 @@
 
         /* --- CHAT SYSTEM --- */
         #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
-        /* CHANGED: Removed Border */
         #chat-header { background: #222; padding: 5px; display: flex; justify-content: flex-end; }
         #chat-close { background: #ff0000; color: white; border: none; cursor: pointer; font-weight: bold; width: 24px; height: 24px; border-radius: 2px; display:flex; align-items:center; justify-content:center; }
-        /* CHANGED: Removed Border */
         #chat-history { height: 200px; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; }
         #chat-input { background: #fff; color: #000; border: none; padding: 10px; font-family: 'Segoe UI', sans-serif; outline: none; }
         .chat-line { margin-bottom: 4px; word-wrap: break-word; }
         .chat-user { font-weight: bold; color: var(--accent); }
 
-        /* CHANGED: Persistent Chat Open Button */
         #chat-open-btn {
             position: fixed; bottom: 10px; right: 10px; z-index: 190;
             padding: 10px 20px; background: #000; color: var(--accent);
             border: 1px solid var(--accent); box-shadow: 0 0 5px var(--glow);
             font-weight: bold; cursor: pointer; font-family: monospace;
-            display: none; /* Hidden by default (Chat starts open) */
+            display: none; 
         }
         #chat-open-btn:hover { background: #111; }
 
@@ -230,12 +294,12 @@
         </div>
 
         <div id="scr-stats" class="screen">
-            <h2 style="color: var(--accent)">PLAYER STATISTICS</h2>
+            <h2 style="color: var(--accent); margin-bottom:10px;">PLAYER STATISTICS</h2>
             <div id="stats-layout">
                 <div id="stats-list"></div>
-                <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:50px;">Select a player.</div></div>
+                <div id="stats-detail"><div style="text-align:center; color:#666; margin-top:100px; font-size:18px;">Select a player to view details.</div></div>
             </div>
-            <button class="btn" onclick="goHome()" style="margin-top:20px; background:#333;">BACK</button>
+            <button class="btn" onclick="goHome()" style="margin-top:20px; background:#222; color:#fff; border:1px solid #444;">BACK TO MENU</button>
         </div>
 
         <div id="scr-wait" class="screen">
@@ -371,19 +435,16 @@
             location.reload();
         }
 
-        // CHANGED: Update Toggle Logic
         function toggleChat() {
             const chat = document.getElementById('chat-container');
             const btn = document.getElementById('chat-open-btn');
-            
-            // If chat is currently hidden (either by 'hidden' class or style)
             if (chat.style.display === 'none' || chat.classList.contains('hidden')) {
                 chat.style.display = 'flex';
                 chat.classList.remove('hidden');
-                btn.style.display = 'none'; // Hide Open Button
+                btn.style.display = 'none'; 
             } else {
                 chat.style.display = 'none';
-                btn.style.display = 'block'; // Show Open Button
+                btn.style.display = 'block'; 
             }
         }
 
@@ -490,17 +551,23 @@
                 statsCache = data;
                 const list = document.getElementById('stats-list');
                 list.innerHTML = '';
+                
+                // Sort by Average APM logic
                 const sortedUsers = Object.keys(data).sort((a,b) => {
                     const getAvg = (u) => { const h = data[u].history || []; return h.length ? h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length : 0; };
                     return getAvg(b) - getAvg(a);
                 });
+
                 sortedUsers.forEach(user => {
                     const h = data[user].history || [];
-                    let avgAPM = h.length ? (h.reduce((sum, x) => sum + (x.apm||0), 0) / h.length).toFixed(0) : 0;
                     const div = document.createElement('div');
                     div.className = 'player-item';
-                    div.innerHTML = `<span>${user}</span> <span style="color:#666">${avgAPM} APM</span>`;
-                    div.onclick = () => showStatDetails(user);
+                    div.innerText = user;
+                    div.onclick = () => {
+                        document.querySelectorAll('.player-item').forEach(el=>el.classList.remove('selected'));
+                        div.classList.add('selected');
+                        showStatDetails(user);
+                    };
                     list.appendChild(div);
                 });
             });
@@ -561,9 +628,11 @@
             });
         }
 
+        // --- NEW STATS RENDERER ---
         function showStatDetails(user) {
             const d = statsCache[user];
             const div = document.getElementById('stats-detail');
+            
             let avgAPM=0, avgPPS=0, avgSent=0, avgRecv=0, games=d.history.length;
             if (games > 0) {
                 avgAPM = (d.history.reduce((a,b)=>a+(b.apm||0), 0) / games).toFixed(1);
@@ -571,23 +640,56 @@
                 avgSent = (d.history.reduce((a,b)=>a+(b.sent||0), 0) / games).toFixed(1);
                 avgRecv = (d.history.reduce((a,b)=>a+(b.received||0), 0) / games).toFixed(1);
             }
-            let html = `<h2 style="color:var(--accent)">${user.toUpperCase()}</h2>`;
-            html += `<div style="display:flex; gap:20px; margin-bottom:20px;">
-                <div class="stat-box"><div>WINS</div><div class="stat-val">${d.wins}</div></div>
-                <div class="stat-box"><div>MAX COMBO</div><div class="stat-val">${d.bestCombo || 0}</div></div>
+
+            // Create Visual Cards Structure
+            let html = `<div class="stat-user-title">${user}</div>`;
+            
+            // Section 1: Career Highs
+            html += `<span class="stat-section-label">CAREER HIGHS</span>`;
+            html += `<div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-card-label">WINS</div>
+                    <div class="stat-card-val highlight">${d.wins}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">MAX COMBO</div>
+                    <div class="stat-card-val highlight">${d.bestCombo || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">BEST APM</div>
+                    <div class="stat-card-val highlight">${d.bestAPM || 0}</div>
+                </div>
             </div>`;
-            html += `<h3 style="text-align:left; color:#888;">AVERAGES</h3><div style="display:flex; gap:10px; margin-bottom:20px;">
-                <div class="stat-box"><div>APM</div><div class="stat-val">${avgAPM}</div></div>
-                <div class="stat-box"><div>PPS</div><div class="stat-val">${avgPPS}</div></div>
-                <div class="stat-box"><div>SENT</div><div class="stat-val">${avgSent}</div></div>
-                <div class="stat-box"><div>RECV</div><div class="stat-val">${avgRecv}</div></div>
+
+            // Section 2: Averages
+            html += `<span class="stat-section-label">AVERAGE PERFORMANCE</span>`;
+            html += `<div class="stat-row">
+                <div class="stat-card"><div class="stat-card-label">AVG APM</div><div class="stat-card-val">${avgAPM}</div></div>
+                <div class="stat-card"><div class="stat-card-label">AVG PPS</div><div class="stat-card-val">${avgPPS}</div></div>
+                <div class="stat-card"><div class="stat-card-label">AVG SENT</div><div class="stat-card-val">${avgSent}</div></div>
+                <div class="stat-card"><div class="stat-card-label">AVG RECV</div><div class="stat-card-val">${avgRecv}</div></div>
             </div>`;
-            html += `<h3>HISTORY</h3><table class="history-table"><thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>CMB</th></tr></thead><tbody>`;
+
+            // Section 3: History Table
+            html += `<span class="stat-section-label">RECENT MATCHES (${games})</span>`;
+            html += `<div class="history-wrapper"><table class="history-table">
+                <thead><tr><th>DATE</th><th>PLACE</th><th>APM</th><th>PPS</th><th>SENT</th><th>COMBO</th></tr></thead>
+                <tbody>`;
+            
             [...d.history].reverse().forEach(h => {
                 const date = new Date(h.date).toLocaleDateString();
-                html += `<tr><td>${date}</td><td style="color:${h.place===1?'#ffcc00':'#fff'}">${h.place}</td><td>${h.apm}</td><td>${h.pps}</td><td>${h.sent}</td><td>${h.maxCombo||0}</td></tr>`;
+                const placeColor = h.place === 1 ? '#ffcc00' : (h.place === 2 ? '#c0c0c0' : (h.place === 3 ? '#cd7f32' : '#fff'));
+                html += `<tr>
+                    <td>${date}</td>
+                    <td style="color:${placeColor}; font-weight:bold;">#${h.place}</td>
+                    <td>${h.apm}</td>
+                    <td>${h.pps}</td>
+                    <td>${h.sent}</td>
+                    <td>${h.maxCombo||0}</td>
+                </tr>`;
             });
-            html += `</tbody></table>`;
+            html += `</tbody></table></div>`;
+            
             div.innerHTML = html;
         }
 
