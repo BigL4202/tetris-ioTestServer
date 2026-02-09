@@ -5,20 +5,24 @@ const io = require('socket.io')(http);
 const path = require('path');
 const fs = require('fs');
 
+// Serve static files from 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- PERSISTENCE ---
+// --- PERSISTENCE (data.json) ---
 const DATA_FILE = 'data.json';
 let users = {}; 
 
-// Load stats
+// Load stats on startup
 if (fs.existsSync(DATA_FILE)) {
-    try { users = JSON.parse(fs.readFileSync(DATA_FILE)); } 
-    catch (e) { console.log("Error loading stats:", e); }
+    try {
+        users = JSON.parse(fs.readFileSync(DATA_FILE));
+    } catch (e) {
+        console.log("Error loading stats:", e);
+    }
 }
 
 function saveData() {
@@ -26,13 +30,14 @@ function saveData() {
 }
 
 // --- GLOBAL STATE ---
-let players = {}; 
-let duels = {};   
+let players = {}; // { socketId: { username, room, state } }
+let duels = {};   // { duelId: { p1, p2, scores: {id:0}, round: 1, active: true } }
 let challenges = {}; // { challengerId: { targetId, timestamp } }
 
 io.on('connection', (socket) => {
     console.log('Connected:', socket.id);
     
+    // Default Init
     players[socket.id] = { 
         id: socket.id, 
         username: `Guest${socket.id.substr(0,4)}`, 
@@ -41,18 +46,19 @@ io.on('connection', (socket) => {
     };
     socket.join('lobby');
 
-    // --- LOGIN ---
+    // --- LOGIN / REGISTER ---
     socket.on('login_attempt', (data) => {
         const { username, password } = data;
         
         if (!users[username]) {
+            // New Registration with ALL stats tracked
             users[username] = { 
                 password, 
                 wins: 0, 
                 gamesPlayed: 0,
-                bestAPM: 0,
-                totalAPM: 0, // For Avg APM
-                maxCombo: 0,
+                bestAPM: 0, 
+                totalAPM: 0,   // Used for Avg APM
+                maxCombo: 0, 
                 totalSent: 0,
                 totalRecv: 0,
                 duelHistory: [] 
@@ -61,16 +67,18 @@ io.on('connection', (socket) => {
         } else if (users[username].password !== password) {
             return socket.emit('login_response', { success: false, msg: 'Invalid Password' });
         }
-
-        // Data Migration for older accounts
-        const u = users[username];
-        if(u.totalAPM === undefined) u.totalAPM = 0;
-        if(u.gamesPlayed === undefined) u.gamesPlayed = 0;
-        if(u.totalRecv === undefined) u.totalRecv = 0;
         
+        // Data Migration (Backfill old accounts)
+        const u = users[username];
+        if(u.gamesPlayed === undefined) u.gamesPlayed = 0;
+        if(u.totalAPM === undefined) u.totalAPM = 0;
+        if(u.totalSent === undefined) u.totalSent = 0;
+        if(u.totalRecv === undefined) u.totalRecv = 0;
+        if(u.maxCombo === undefined) u.maxCombo = 0;
+
         players[socket.id].username = username;
         
-        // Calculate Avg APM for immediate response
+        // Calculate Avg APM for immediate UI update
         const avgAPM = u.gamesPlayed > 0 ? Math.floor(u.totalAPM / u.gamesPlayed) : 0;
 
         socket.emit('login_response', { 
@@ -85,26 +93,31 @@ io.on('connection', (socket) => {
         broadcastLeaderboards();
     });
 
-    // --- MODES ---
+    // --- STANDARD MODES ---
     socket.on('join_ffa', () => {
         const p = players[socket.id];
         p.room = 'ffa';
         p.state = 'playing';
         socket.leave('lobby');
         socket.join('ffa');
+        
+        // Broadcast join to others in FFA
         socket.to('ffa').emit('receive_chat', { user: '[SYSTEM]', text: `${p.username} joined.` });
         
+        // Start match immediately
         socket.emit('match_start', { 
             mode: 'ffa', 
             seed: Math.random() * 10000, 
             players: getRoomPlayers('ffa') 
         });
+        
         io.emit('player_list_update', getPublicList());
     });
 
     socket.on('leave_lobby', () => {
         const p = players[socket.id];
         if(!p) return;
+
         if (p.room.startsWith('duel_')) {
             handleDuelDisconnect(socket.id);
         } else {
@@ -116,46 +129,59 @@ io.on('connection', (socket) => {
         io.emit('player_list_update', getPublicList());
     });
 
-    // --- DUEL SYSTEM ---
+    // --- DUEL SYSTEM (UPDATED) ---
+
+    // 1. Challenge Request
     socket.on('duel_challenge', (targetId) => {
-        // 1 Request Limit
-        if(challenges[socket.id]) return socket.emit('receive_chat', { user: '[SYSTEM]', text: 'You already have a pending challenge.' });
+        // Limit: 1 active challenge at a time
+        if (challenges[socket.id]) {
+            return socket.emit('receive_chat', { user: '[SYSTEM]', text: 'You already have a pending challenge.' });
+        }
 
         const sender = players[socket.id];
         const target = players[targetId];
         
         if (target && target.id !== socket.id) {
+            // Register challenge
             challenges[socket.id] = { targetId: targetId, timestamp: Date.now() };
             
-            // 1 Minute Expiry
+            // Auto-expire after 60 seconds
             setTimeout(() => {
-                if(challenges[socket.id]) {
+                if (challenges[socket.id]) {
                     delete challenges[socket.id];
                     socket.emit('receive_chat', { user: '[SYSTEM]', text: `Challenge to ${target.username} expired.` });
                 }
             }, 60000);
 
-            io.to(targetId).emit('receive_challenge', { fromId: socket.id, fromName: sender.username });
+            // Send invite to target
+            io.to(targetId).emit('receive_challenge', { 
+                fromId: socket.id, 
+                fromName: sender.username 
+            });
             socket.emit('receive_chat', { user: '[SYSTEM]', text: `Challenge sent to ${target.username}.` });
         }
     });
 
+    // 2. Accept Challenge
     socket.on('duel_accept', (challengerId) => {
         const p1 = players[challengerId]; // Challenger
-        const p2 = players[socket.id];    // Me
+        const p2 = players[socket.id];    // Acceptor
 
         if (!p1 || !challenges[challengerId] || challenges[challengerId].targetId !== socket.id) {
-            return socket.emit('receive_chat', { user: '[SYSTEM]', text: 'Challenge invalid or expired.' });
+            return socket.emit('receive_chat', { user: '[SYSTEM]', text: 'Challenge expired or invalid.' });
         }
-        delete challenges[challengerId]; 
+        
+        // Clear request
+        delete challenges[challengerId];
 
-        // Announce Disconnect if in FFA
+        // LOGIC: If players are in FFA, announce disconnect
         [p1, p2].forEach(p => {
-            if(p.room === 'ffa') {
+            if (p.room === 'ffa') {
                 socket.to('ffa').emit('elimination', { username: p.username, killer: "DISCONNECT" });
             }
         });
 
+        // Create Duel Room
         const duelId = `duel_${Date.now()}`;
         duels[duelId] = {
             id: duelId,
@@ -166,6 +192,7 @@ io.on('connection', (socket) => {
             active: true
         };
 
+        // Move players (Force Switch)
         [p1, p2].forEach(p => {
             const s = io.sockets.sockets.get(p.id);
             if(s) {
@@ -178,15 +205,18 @@ io.on('connection', (socket) => {
 
         io.emit('player_list_update', getPublicList());
         io.to(duelId).emit('receive_chat', { user: '[SYSTEM]', text: `⚔️ DUEL STARTED` });
+        
         startDuelRound(duelId);
     });
 
     function startDuelRound(duelId) {
         const duel = duels[duelId];
         if (!duel || !duel.active) return;
+
         const p1Name = players[duel.p1].username;
         const p2Name = players[duel.p2].username;
 
+        // Update Scoreboard UI
         io.to(duelId).emit('duel_round_init', {
             s1: duel.scores[duel.p1],
             s2: duel.scores[duel.p2],
@@ -194,6 +224,7 @@ io.on('connection', (socket) => {
             n2: p2Name
         });
 
+        // Start Game Engine
         io.to(duelId).emit('match_start', {
             mode: 'duel',
             seed: Math.random() * 10000,
@@ -201,59 +232,76 @@ io.on('connection', (socket) => {
         });
     }
 
-    socket.on('duel_report_loss', (finalStats) => {
+    // 3. Report Loss (Round Over)
+    socket.on('duel_report_loss', (stats) => {
         const p = players[socket.id];
         if (!p || !p.room.startsWith('duel_')) return;
-        
-        // Update Stats on Loss (Close enough for simple logic)
-        updateUserStats(p.username, finalStats, false);
+
+        // Update user stats (Loss)
+        updateUserStats(p.username, stats, false);
 
         const duel = duels[p.room];
         if (!duel || !duel.active) return;
 
+        // Winner is the other person
         const winnerId = (duel.p1 === socket.id) ? duel.p2 : duel.p1;
-        // Ideally update winner stats too, but client sends loss report. 
-        // We will increment winner's win count in recordDuelHistory.
-
+        
+        // Increment Score
         duel.scores[winnerId]++;
         duel.round++;
 
         const sWin = duel.scores[winnerId];
         const sLose = duel.scores[socket.id];
-        
+        const winnerName = players[winnerId].username;
+
         io.to(duel.id).emit('receive_chat', { user: '[DUEL]', text: `${p.username} topped out.` });
 
+        // CHECK WIN: First to 6, Win by 2
         if (sWin >= 6 && (sWin - sLose) >= 2) {
-            io.to(duel.id).emit('receive_chat', { user: '[DUEL]', text: `🏆 ${players[winnerId].username} WINS THE SET!` });
+            io.to(duel.id).emit('receive_chat', { user: '[DUEL]', text: `🏆 ${winnerName} WINS THE SET!` });
+            
+            // Record History
             recordDuelHistory(duel.p1, duel.p2, duel.scores[duel.p1], duel.scores[duel.p2], (winnerId === duel.p1));
-            io.to(duel.id).emit('duel_set_over', { winner: players[winnerId].username, score: `${sWin}-${sLose}` });
+            
+            io.to(duel.id).emit('duel_set_over', { 
+                winner: winnerName, 
+                score: `${duel.scores[duel.p1]} - ${duel.scores[duel.p2]}` 
+            });
+            
             endDuel(duel.id);
         } else {
+            // Next round
             setTimeout(() => startDuelRound(duel.id), 3000);
         }
     });
-    
+
+    // Manual APM submit (for APM Test mode)
+    socket.on('submit_stats_manual', (stats) => {
+        if(players[socket.id]) {
+            updateUserStats(players[socket.id].username, stats, false); // Won doesn't matter for pure stats
+        }
+    });
+
+    // FFA Death
     socket.on('player_died', (stats) => {
         if(players[socket.id]) {
             updateUserStats(players[socket.id].username, stats, false);
             socket.to(players[socket.id].room).emit('elimination', { username: players[socket.id].username, killer: "GRAVITY" });
         }
     });
-    
-    // Manual APM submit (Zen/Test)
-    socket.on('submit_stats_manual', (stats) => {
-        if(players[socket.id]) updateUserStats(players[socket.id].username, stats, false);
-    });
 
     function updateUserStats(username, stats, won) {
         if(users[username] && stats) {
             const u = users[username];
             u.gamesPlayed++;
+            
             if(stats.sent) u.totalSent += stats.sent;
             if(stats.recv) u.totalRecv += stats.recv;
             if(stats.apm) u.totalAPM += stats.apm;
+            
             if(stats.apm > u.bestAPM) u.bestAPM = stats.apm;
             if(stats.maxCombo > u.maxCombo) u.maxCombo = stats.maxCombo;
+            
             saveData();
             broadcastLeaderboards();
         }
@@ -263,6 +311,7 @@ io.on('connection', (socket) => {
         const u1 = users[players[id1].username];
         const u2 = users[players[id2].username];
         const date = new Date().toISOString();
+
         if(u1) {
             u1.duelHistory.push({ result: p1Won?'WIN':'LOSS', opponent: players[id2].username, score: `${s1}-${s2}`, date });
             if(p1Won) u1.wins++;
@@ -279,11 +328,14 @@ io.on('connection', (socket) => {
         const duel = duels[duelId];
         if(!duel) return;
         duel.active = false;
+        
         [duel.p1, duel.p2].forEach(pid => {
             const s = io.sockets.sockets.get(pid);
             if(s) {
-                s.leave(duelId); s.join('lobby');
-                players[pid].room = 'lobby'; players[pid].state = 'idle';
+                s.leave(duelId);
+                s.join('lobby');
+                players[pid].room = 'lobby';
+                players[pid].state = 'idle';
             }
         });
         delete duels[duelId];
@@ -294,10 +346,12 @@ io.on('connection', (socket) => {
         const p = players[socketId];
         if (!p || !p.room.startsWith('duel_')) return;
         const duel = duels[p.room];
+        
         if (duel && duel.active) {
             const winnerId = (duel.p1 === socketId) ? duel.p2 : duel.p1;
             io.to(winnerId).emit('receive_chat', { user: '[SYSTEM]', text: "Opponent disconnected. You win!" });
             io.to(winnerId).emit('duel_set_over', { winner: players[winnerId].username, score: "FF" });
+            
             recordDuelHistory(duel.p1, duel.p2, "FF", "FF", (winnerId === duel.p1));
             endDuel(duel.id);
         }
@@ -305,24 +359,41 @@ io.on('connection', (socket) => {
 
     function broadcastLeaderboards() {
         const allUsers = Object.entries(users).map(([name, data]) => ({ name, ...data }));
-        // Wins
+        
+        // Sort by Wins
         const byWins = [...allUsers].sort((a,b) => b.wins - a.wins).slice(0, 10);
-        // Combo
+        
+        // Sort by Max Combo
         const byCombo = [...allUsers].sort((a,b) => b.maxCombo - a.maxCombo).slice(0, 10);
         
         io.emit('leaderboard_update', { wins: byWins, combo: byCombo });
     }
 
     // --- RELAYS ---
-    socket.on('update_board', (grid) => { if(players[socket.id]) socket.to(players[socket.id].room).emit('enemy_board_update', { id: socket.id, grid }); });
-    socket.on('send_garbage', (data) => { if(players[socket.id]) socket.to(players[socket.id].room).emit('receive_garbage', data.amount); });
-    socket.on('send_chat', (msg) => { io.emit('receive_chat', { user: players[socket.id].username, text: msg }); });
-    socket.on('request_all_stats', () => { socket.emit('receive_all_stats', users); });
+    socket.on('update_board', (grid) => {
+        if(players[socket.id]) {
+            socket.to(players[socket.id].room).emit('enemy_board_update', { id: socket.id, grid });
+        }
+    });
+    
+    socket.on('send_garbage', (data) => {
+        if(players[socket.id]) {
+            socket.to(players[socket.id].room).emit('receive_garbage', data.amount);
+        }
+    });
+
+    socket.on('send_chat', (msg) => {
+        io.emit('receive_chat', { user: players[socket.id].username, text: msg });
+    });
+
+    socket.on('request_all_stats', () => {
+        socket.emit('receive_all_stats', users);
+    });
 
     socket.on('disconnect', () => {
         handleDuelDisconnect(socket.id);
         delete players[socket.id];
-        if(challenges[socket.id]) delete challenges[socket.id];
+        if(challenges[socket.id]) delete challenges[socket.id]; // Remove pending
         io.emit('player_list_update', getPublicList());
         console.log('Disconnected:', socket.id);
     });
