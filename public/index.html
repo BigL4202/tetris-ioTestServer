@@ -5,231 +5,704 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --accent: #00ffcc; --glow: rgba(0, 255, 204, 0.2); }
-        body { background-color: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        
-        /* Effects */
-        .user-john { color: #7851a9 !important; font-family: 'Brush Script MT', cursive; text-shadow: 0 0 5px gold; animation: goldPulse 2s infinite alternate; }
-        @keyframes goldPulse { 0% { text-shadow: 0 0 5px gold; } 100% { text-shadow: 0 0 20px gold; } }
-        .user-bamba { font-family: 'Courier New', monospace; font-weight: 900; color: #00ffff; text-shadow: 2px 2px 0px #ffff00; display: inline-block; animation: electricGlitch 0.2s infinite; }
-        @keyframes electricGlitch { 0% { transform: translate(0,0); text-shadow: 2px 2px 0 #ff0; color: #0ff; } 50% { transform: translate(2px,-1px); text-shadow: 0 0 10px #fff; color: #fff; } 100% { transform: translate(0,0); } }
+        /* --- CSS VARIABLES --- */
+        :root {
+            --accent: #00ffcc;               
+            --glow: rgba(0, 255, 204, 0.2);  
+            --glow-strong: rgba(0, 255, 204, 0.4);
+        }
 
-        /* UI Containers */
+        /* --- GLOBAL --- */
+        body { 
+            background-color: #050505;
+            background-image: 
+                radial-gradient(circle at center, transparent 0%, #000 90%), 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px; 
+            background-attachment: fixed;
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; margin: 0; overflow: hidden; 
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* --- MENUS --- */
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1200px; transform: scale(0.95); }
+        
+        .screen { 
+            display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1200px; 
+            transition: transform 0.3s ease; 
+            transform: scale(0.95); 
+        }
         .active { display: flex; }
-        .btn { padding: 15px 40px; font-size: 16px; cursor: pointer; border: none; font-weight: 800; border-radius: 4px; margin: 8px; width: 300px; text-transform: uppercase; background: #333; color: #fff; transition: 0.2s; }
-        .btn:hover { transform: scale(1.02); filter: brightness(1.2); }
+        
+        h1 { font-size: 60px; margin-bottom: 30px; letter-spacing: 4px; text-align: center; font-weight: 900; text-transform: uppercase; }
+        h1 span { 
+            background: linear-gradient(135deg, var(--accent), #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px var(--glow); animation: titlePulse 3s infinite ease-in-out;
+        }
+        @keyframes titlePulse {
+            0%, 100% { filter: drop-shadow(0 0 10px var(--glow)); }
+            50% { filter: drop-shadow(0 0 25px var(--accent)); }
+        }
+
+        /* --- DUEL SPECIFIC STYLES --- */
+        #duel-overlay {
+            position: absolute; top: 10px; z-index: 50;
+            background: rgba(0,0,0,0.8); border: 1px solid var(--accent);
+            padding: 15px 40px; border-radius: 8px; text-align: center;
+            display: none; box-shadow: 0 0 20px var(--glow);
+        }
+        .score-display { font-size: 40px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--accent); letter-spacing: 2px; }
+        .duel-names { font-size: 14px; color: #aaa; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .invite-card { background: rgba(0, 255, 204, 0.1); border: 1px solid var(--accent); padding: 10px; margin: 5px 0; animation: flashInvite 1s infinite alternate; }
+        @keyframes flashInvite { 0% { box-shadow: 0 0 5px var(--glow); } 100% { box-shadow: 0 0 15px var(--accent); } }
+
+        /* --- CUSTOM USERNAME EFFECTS --- */
+        .user-john { color: #7851a9 !important; font-family: 'Brush Script MT', cursive; font-size: 1.2em; text-shadow: 0 0 5px gold; }
+        .user-bamba { font-family: 'Courier New', monospace; font-weight: 900; color: #00ffff; text-shadow: 2px 2px 0px #ffff00; display: inline-block; animation: electricGlitch 0.2s infinite; }
+        @keyframes electricGlitch { 0% { transform: translate(0, 0); } 25% { transform: translate(-2px, 1px); } 50% { transform: translate(2px, -1px); } 75% { transform: translate(0, 2px); } 100% { transform: translate(0, 0); } }
+
+        .tech-panel { background: rgba(10, 10, 10, 0.8); border: 1px solid var(--accent); box-shadow: 0 0 20px var(--glow); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; align-items: center; backdrop-filter: blur(10px); }
+        .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
+        .input-std:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--glow); outline: none; background: #000; }
+        
+        .btn { padding: 15px 40px; font-size: 16px; cursor: pointer; border: none; font-weight: 800; border-radius: 4px; margin: 8px; width: 300px; text-transform: uppercase; transition: all 0.2s ease-in-out; box-shadow: 0 4px 15px rgba(0,0,0,0.5); letter-spacing: 1px; position: relative; overflow: hidden; }
+        .btn:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.2); letter-spacing: 3px; box-shadow: 0 0 20px var(--glow); }
+        
         .btn-green { background: #00ffcc; color: #000; }
+        .btn-zen { background: #a29bfe; color: #000; }
+        .btn-apm { background: #ff5555; color: #fff; }
+        .btn-ffa { background: #ff9900; color: #000; }
+        .btn-blue { background: #00a8ff; color: #fff; } 
+        .btn-pink { background: #ff00de; color: #fff; }
+        .btn-duel { background: var(--accent); color: #000; padding: 2px 8px; font-size: 10px; width: auto; margin: 0; }
+
+        #main-split { display: flex; flex-direction: row; gap: 30px; align-items: flex-start; margin-top: 10px; }
+        .menu-col { width: 340px; display: flex; flex-direction: column; align-items: center; }
+        .user-info { margin-bottom: 20px; font-size: 16px; color: #ccc; text-align: center; width: 100%; line-height: 1.6; border-bottom: 1px solid #333; padding-bottom: 15px; }
         
-        /* Game Grid */
-        #game-ui { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; transform: scale(0.9); }
-        .game-columns { display: flex; align-items: flex-start; gap: 15px; }
-        canvas { display: block; background: #000; border: 1px solid #333; }
-        .main-board-wrap { border: 2px solid var(--accent); box-shadow: 0 0 20px var(--glow); position: relative; }
+        .lb-list { width: 100%; font-family: 'Segoe UI', sans-serif; font-size: 13px; color: #fff; height: 300px; overflow-y: auto; }
+        .lb-item { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #1a1a1a; transition: background 0.2s; align-items: center; }
+        .lb-item:hover { background: rgba(255,255,255,0.05); }
+
+        #stats-layout { display: flex; width: 900px; height: 550px; gap: 20px; }
+        #stats-list { width: 250px; background: #050505; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--glow); border-radius: 4px; overflow-y: auto; padding: 10px; }
+        #stats-detail { flex: 1; background: #050505; border: 1px solid var(--accent); box-shadow: 0 0 15px var(--glow); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
         
-        #ffa-grid { display: grid; grid-template-rows: repeat(2, auto); grid-auto-flow: column; gap: 15px; }
-        .mini-card { display: flex; flex-direction: column; align-items: center; background: #000; border: 1px solid #333; padding: 5px; }
+        .tab-bar { display: flex; border-bottom: 1px solid #333; margin-bottom: 15px; width: 100%; }
+        .tab-btn { flex: 1; background: none; border: none; padding: 10px; color: #666; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        /* --- GAME GRID --- */
+        .game-area { display: flex; flex-direction: row; justify-content: center; align-items: flex-start; gap: 40px; transform: scale(0.9); transition: 0.5s; }
+        canvas { display: block; background: #000; border: 2px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .my-board { border-color: var(--accent); transform: scale(1.05); }
+        .opp-board { border-color: #ff5555; }
         
         .hidden { display: none !important; }
         
-        /* Chat */
         #chat-container { position: fixed; bottom: 0; right: 0; width: 320px; z-index: 200; display: flex; flex-direction: column; }
         #chat-history { height: 200px; background: rgba(0,0,0,0.9); overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; }
-        #chat-input { padding: 10px; border: none; }
+        #chat-input { padding: 10px; border: none; outline: none; }
+        #chat-open-btn { position: fixed; bottom: 10px; right: 10px; z-index: 190; padding: 10px 20px; background: #000; color: var(--accent); border: 1px solid var(--accent); cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="menu-container">
-        <div id="scr-login" class="screen active">
-            <h1>PROJECT <span>A</span></h1>
-            <input id="username" class="input-std" placeholder="USERNAME" style="padding:10px; margin:10px;">
-            <input id="password" type="password" class="input-std" placeholder="PASSWORD" style="padding:10px; margin:10px;">
-            <button class="btn btn-green" onclick="doLogin()">LOGIN</button>
-        </div>
-        <div id="scr-main" class="screen">
-            <h1>LOBBY</h1>
-            <div id="user-display" style="color:#fff; margin-bottom:20px; font-size:20px;"></div>
-            <button class="btn btn-green" onclick="joinGame()">JOIN FFA</button>
-        </div>
-        <div id="scr-wait" class="screen"><h2>WAITING FOR PLAYERS...</h2></div>
+    <button id="home-btn" class="hidden" onclick="goHome()" style="position:fixed; top:20px; left:20px; z-index:2000; padding:10px 25px; background:#ff0033; color:#fff; border:none; font-weight:900; cursor:pointer;">HOME</button>
+
+    <div id="duel-overlay">
+        <div style="font-size:12px; color:#888; letter-spacing:1px; margin-bottom:5px;">FIRST TO 6 &bull; WIN BY 2</div>
+        <div id="duel-score" class="score-display">0 - 0</div>
+        <div id="duel-names" class="duel-names">YOU vs OPPONENT</div>
     </div>
 
-    <div id="game-ui" class="hidden">
-        <div id="p1-root">
-            <div class="game-columns">
-                <div class="col-left">
-                    <canvas id="p1-h" width="100" height="100"></canvas>
-                    <div style="color:#fff; margin-top:10px;">SENT: <span id="s-sent">0</span></div>
+    <div id="menu-container">
+        <div id="scr-login" class="screen active" style="width:auto;">
+            <h1>PROJECT <span>A</span></h1>
+            <input type="text" id="username" class="input-std" placeholder="USERNAME" maxlength="12">
+            <input type="password" id="password" class="input-std" placeholder="PASSWORD">
+            <button class="btn btn-green" onclick="attemptLogin()">LOGIN / REGISTER</button>
+        </div>
+
+        <div id="scr-main" class="screen">
+            <h1>PROJECT <span>A</span></h1>
+            <div id="main-split">
+                <div class="menu-col tech-panel">
+                    <div style="color:var(--accent); font-weight:bold; margin-bottom:10px;">ONLINE PLAYERS</div>
+                    <div id="player-list" class="lb-list"></div>
                 </div>
-                <div class="main-board-wrap">
-                    <canvas id="p1" width="200" height="400"></canvas>
-                </div>
-                <div class="col-right">
-                    <canvas id="p1-n" width="100" height="300"></canvas>
+
+                <div class="menu-col tech-panel">
+                    <div class="user-info">
+                        Welcome, <span id="display-user">Guest</span><br>
+                        Wins: <span id="display-wins">0</span> | APM: <span id="display-apm">0</span>
+                    </div>
+                    <button class="btn btn-zen" onclick="startZen()">ZEN MODE</button>
+                    <button class="btn btn-apm" onclick="startAPMTest()">APM TEST</button>
+                    <button class="btn btn-ffa" onclick="joinFFA()">ONLINE FFA</button>
+                    <button class="btn btn-blue" onclick="openStats()">STATS / HISTORY</button>
+                    <button class="btn" style="background:#222; color:#888; margin-top:20px;" onclick="logOut()">LOGOUT</button>
                 </div>
             </div>
         </div>
-        <div id="ffa-grid"></div>
+
+        <div id="scr-stats" class="screen">
+            <h2 style="color: var(--accent);">PLAYER STATISTICS</h2>
+            <div id="stats-layout">
+                <div id="stats-list"></div>
+                <div id="stats-detail">
+                    <div class="tab-bar">
+                        <button class="tab-btn active" onclick="showTab('general')">GENERAL</button>
+                        <button class="tab-btn" onclick="showTab('duel')">DUEL HISTORY</button>
+                    </div>
+                    <div id="view-general" style="flex:1; overflow-y:auto;">
+                        <p style="text-align:center; margin-top:50px;">Select a player to view general stats.</p>
+                    </div>
+                    <div id="view-duel" class="hidden" style="flex:1; overflow-y:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:12px; font-family:monospace;">
+                            <thead><tr><th style="text-align:left; padding:5px; color:#888;">RESULT</th><th style="text-align:left;">OPPONENT</th><th>SCORE</th><th>DATE</th></tr></thead>
+                            <tbody id="duel-history-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="goHome()" style="margin-top:20px; background:#222;">BACK</button>
+        </div>
+
+        <div id="scr-wait" class="screen">
+            <h2 id="wait-msg">JOINING...</h2>
+            <button class="btn" style="background:#333;" onclick="goHome()">CANCEL</button>
+        </div>
     </div>
 
-    <div id="chat-container">
+    <button id="chat-open-btn" onclick="toggleChat()">CHAT <span id="chat-badge" class="hidden" style="background:red; border-radius:50%; px:5px;">!</span></button>
+    <div id="chat-container" class="hidden">
+        <div id="chat-header" style="background:#222; padding:5px; text-align:right;"><button onclick="toggleChat()">X</button></div>
         <div id="chat-history"></div>
-        <input id="chat-input" placeholder="Chat..." onkeydown="if(event.key==='Enter')sendChat()">
+        <input type="text" id="chat-input" placeholder="Type here..." onkeydown="sendChat(event)">
     </div>
 
-    <script>
-        const socket = io();
-        const COLORS = [null, '#31C7EF','#F7D308','#FF69B4','#EF2029','#42B642','#9D00FF','#EF7921', '#555'];
-        let myUser = "";
-
-        // --- AUTH ---
-        function doLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            socket.emit('login_attempt', {username:u, password:p});
-        }
+    <div id="game-ui" class="game-area hidden">
+        <div id="p1-root">
+            <div style="display:flex; justify-content:space-between; width:100px; margin:0 auto; font-size:10px; color:var(--accent); font-weight:bold;">
+                <span>APM: <span id="s-apm">0</span></span>
+                <span>PPS: <span id="s-pps">0</span></span>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="border:1px solid #333; padding:5px;"><div style="font-size:10px; text-align:center;">HOLD</div><canvas id="p1-h" width="100" height="100"></canvas></div>
+                    <div style="text-align:center; font-size:20px; font-weight:bold; color:#ff0055;" id="s-sent">0</div>
+                </div>
+                <div>
+                    <div style="width:10px; height:600px; background:#111; border:1px solid #333; position:absolute; left:-15px;"><div id="p1-g" style="background:red; width:100%; position:absolute; bottom:0;"></div></div>
+                    <canvas id="p1" width="240" height="600" class="my-board"></canvas>
+                </div>
+                <div style="border:1px solid #333; padding:5px; height:400px;"><div style="font-size:10px; text-align:center;">NEXT</div><canvas id="p1-n" width="100" height="400"></canvas></div>
+            </div>
+        </div>
         
-        socket.on('login_response', d => {
-            if(d.success) {
-                myUser = d.username;
-                document.getElementById('user-display').innerHTML = formatUser(myUser);
-                nav('scr-main');
-            } else alert(d.msg);
-        });
+        <div id="ffa-grid" style="display:flex; gap:10px;"></div>
+    </div>
+    <script>
+    // --- CONSTANTS ---
+    const COLS = 10; const ROWS = 20; const B_SIZE = 30;
+    const PIECES = [
+        [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]], 
+        [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]]
+    ];
+    const COLORS = ['#31C7EF', '#F7D308', '#FF69B4', '#EF2029', '#42B642', '#9D00FF', '#EF7921'];
+    
+    // --- STATE ---
+    let socket = null;
+    let gameMode = 'menu'; // 'zen', 'apm', 'ffa', 'duel'
+    let gameActive = false;
+    let isSpectator = false;
+    let usersCache = {};
+    
+    // Duel State
+    let inDuel = false;
+    let duelOpponent = null;
 
-        // --- GAME JOINING ---
-        function joinGame() {
-            socket.emit('join_ffa');
-            nav('scr-wait');
+    // --- SETUP ---
+    window.onload = function() {
+        if(localStorage.getItem('savedUser')) {
+            document.getElementById('username').value = localStorage.getItem('savedUser');
+            if(localStorage.getItem('savedPass')) document.getElementById('password').value = localStorage.getItem('savedPass');
+            attemptLogin(); 
         }
+    };
 
-        socket.on('start_countdown', n => {
-            document.querySelector('#scr-wait h2').innerText = "STARTING IN " + n;
+    function connect() {
+        if(socket) return;
+        socket = io();
+        
+        socket.on('login_response', data => {
+            if(data.success) {
+                document.getElementById('display-user').innerHTML = formatUser(data.username);
+                document.getElementById('display-wins').innerText = data.wins;
+                document.getElementById('display-apm').innerText = data.bestAPM;
+                navTo('scr-main');
+                document.getElementById('chat-container').classList.remove('hidden');
+            } else alert(data.msg);
         });
 
-        // --- RENDERER (Server Authority) ---
-        socket.on('gamestate', (players) => {
-            nav('hidden'); // Hide menus
-            document.getElementById('game-ui').classList.remove('hidden');
-            
-            const myState = players.find(p => p.username === myUser);
-            const others = players.filter(p => p.username !== myUser);
-
-            // DRAW SELF
-            if (myState) {
-                drawBoard(document.getElementById('p1'), myState);
-                drawQueue(document.getElementById('p1-n'), myState.next);
-                drawHold(document.getElementById('p1-h'), myState.hold);
-                document.getElementById('s-sent').innerText = myState.stats.sent;
-            }
-
-            // DRAW ENEMIES
-            const grid = document.getElementById('ffa-grid');
-            // Sync DOM elements
-            let cards = Array.from(grid.children);
-            if (cards.length !== others.length) {
-                grid.innerHTML = '';
-                others.forEach(p => {
-                    const d = document.createElement('div');
-                    d.className = 'mini-card';
-                    d.innerHTML = `<span>${formatUser(p.username)}</span><canvas id="cvs_${p.id}" width="100" height="200"></canvas>`;
-                    grid.appendChild(d);
-                });
-            }
-            
-            // Draw Enemy Boards
-            others.forEach(p => {
-                const cvs = document.getElementById(`cvs_${p.id}`);
-                if(cvs) drawBoard(cvs, p, 0.5); // 0.5 scale for mini
+        // --- PLAYER LIST & CHALLENGES ---
+        socket.on('player_list_update', list => {
+            const el = document.getElementById('player-list');
+            el.innerHTML = '';
+            list.forEach(p => {
+                const isMe = p.id === socket.id;
+                const btn = (!isMe && p.state === 'idle') ? 
+                    `<button class="btn btn-duel" onclick="socket.emit('duel_challenge', '${p.id}')">DUEL</button>` : '';
+                
+                el.innerHTML += `<div class="lb-item">
+                    <span>${formatUser(p.name)} <span style="font-size:10px; color:#666;">(${p.state})</span></span>
+                    ${btn}
+                </div>`;
             });
         });
 
-        // --- DRAWING HELPERS ---
-        function drawBoard(cvs, state, scale=1) {
-            const ctx = cvs.getContext('2d');
-            const W = cvs.width, H = cvs.height;
-            const BS = 20 * scale; // Block Size
-            
-            ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
-            
-            if (!state.alive) {
-                ctx.fillStyle = '#300'; ctx.fillRect(0,0,W,H);
-            }
+        socket.on('receive_challenge', data => {
+            const chat = document.getElementById('chat-history');
+            const d = document.createElement('div');
+            d.className = 'invite-card';
+            d.innerHTML = `<strong>⚔️ 1v1 REQUEST</strong><br>From: ${data.fromName}<br>
+                <button class="btn btn-duel" onclick="socket.emit('duel_accept', '${data.fromId}'); this.parentElement.remove();">ACCEPT</button>`;
+            chat.appendChild(d);
+            chat.scrollTop = chat.scrollHeight;
+        });
 
-            // Draw Grid (Buffer hidden by slicing index 20)
-            const visibleGrid = state.grid.slice(20); 
-            visibleGrid.forEach((row, y) => {
-                row.forEach((val, x) => {
-                    if (val > 0) {
-                        ctx.fillStyle = COLORS[val];
-                        ctx.fillRect(x*BS, y*BS, BS, BS);
+        // --- DUEL LOGIC ---
+        socket.on('duel_round_init', data => {
+            document.getElementById('duel-overlay').style.display = 'block';
+            document.getElementById('duel-score').innerText = `${data.s1} - ${data.s2}`;
+            document.getElementById('duel-names').innerText = `${data.n1} vs ${data.n2}`;
+            
+            // Setup Single Opponent View
+            const grid = document.getElementById('ffa-grid');
+            grid.innerHTML = `<div>
+                <div style="text-align:center; color:#ff5555; margin-bottom:5px;">OPPONENT</div>
+                <canvas id="oppCanvas" width="240" height="600" class="opp-board"></canvas>
+            </div>`;
+        });
+
+        socket.on('duel_set_over', data => {
+            alert(`SET OVER!\nWinner: ${data.winner}\nScore: ${data.score}`);
+            goHome();
+        });
+
+        // --- GAME EVENTS ---
+        socket.on('match_start', data => {
+            gameMode = data.mode;
+            document.getElementById('menu-container').style.display = 'none';
+            document.getElementById('game-ui').classList.remove('hidden');
+            document.getElementById('home-btn').classList.remove('hidden');
+            
+            if(gameMode === 'ffa') {
+                document.getElementById('duel-overlay').style.display = 'none';
+                const grid = document.getElementById('ffa-grid');
+                grid.innerHTML = '';
+                data.players.forEach(p => {
+                    if(p.id !== socket.id) {
+                        grid.innerHTML += `<div style="transform:scale(0.7);">
+                            <div style="text-align:center; font-size:10px;">${p.username}</div>
+                            <canvas id="cvs_${p.id}" width="240" height="600"></canvas>
+                        </div>`;
                     }
                 });
-            });
-
-            // Draw Active Piece
-            if (state.active && state.alive) {
-                const { matrix, pos, id } = state.active;
-                const visibleY = pos.y - 20; // Adjust for hidden buffer
-                ctx.fillStyle = COLORS[id+1];
-                matrix.forEach((row, y) => {
-                    row.forEach((v, x) => {
-                        if (v && (visibleY + y) >= 0) {
-                            ctx.fillRect((pos.x + x)*BS, (visibleY + y)*BS, BS, BS);
-                        }
-                    });
-                });
             }
-        }
-
-        function drawQueue(cvs, queue) {
-            const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
-            queue.forEach((id, i) => {
-                ctx.fillStyle = COLORS[id+1];
-                ctx.fillRect(30, i*50 + 10, 30, 30); // Simplified preview
-            });
-        }
-
-        function drawHold(cvs, id) {
-            const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
-            if(id !== null) {
-                ctx.fillStyle = COLORS[id+1];
-                ctx.fillRect(25, 25, 50, 50);
-            }
-        }
-
-        // --- INPUTS (Send to Server) ---
-        window.addEventListener('keydown', e => {
-            const map = { 'ArrowLeft':'left', 'ArrowRight':'right', 'ArrowUp':'rotate', 'ArrowDown':'soft', ' ':'hard', 'Shift':'hold' };
-            if (map[e.key]) socket.emit('input', map[e.key]);
+            
+            p1.initRNG(data.seed);
+            p1.reset();
+            gameActive = true;
+            loop();
         });
 
-        // --- UTILS ---
-        function nav(id) {
-            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-            const el = document.getElementById(id);
-            if(el) el.style.display = 'flex';
-        }
+        socket.on('enemy_board_update', d => {
+            let cvs = (gameMode === 'duel') ? document.getElementById('oppCanvas') : document.getElementById(`cvs_${d.id}`);
+            if(cvs) drawGrid(cvs.getContext('2d'), d.grid);
+        });
 
-        function formatUser(name) {
-            if(name === 'John') return '<span class="user-john">John</span>';
-            if(name === 'La Bamba🃏') return '<span class="user-bamba">La Bamba🃏</span>';
-            return name;
-        }
-
-        function sendChat() {
-            const i = document.getElementById('chat-input');
-            socket.emit('send_chat', i.value);
-            i.value = '';
-        }
+        socket.on('receive_garbage', amt => { p1.receiveGarbage(amt); });
+        
+        socket.on('receive_all_stats', data => {
+            usersCache = data;
+            const list = document.getElementById('stats-list');
+            list.innerHTML = '';
+            Object.keys(data).forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'lb-item';
+                div.style.cursor = 'pointer';
+                div.innerHTML = formatUser(u);
+                div.onclick = () => loadUserStats(u);
+                list.appendChild(div);
+            });
+        });
+        
+        // Chat
         socket.on('receive_chat', d => {
             const h = document.getElementById('chat-history');
-            h.innerHTML += `<div><b>${formatUser(d.user)}:</b> ${d.text}</div>`;
+            h.innerHTML += `<div><strong>${d.user}:</strong> ${d.text}</div>`;
             h.scrollTop = h.scrollHeight;
         });
-    </script>
+        socket.on('chat_system', msg => {
+            const h = document.getElementById('chat-history');
+            h.innerHTML += `<div style="color:#ffcc00; font-style:italic;">${msg}</div>`;
+            h.scrollTop = h.scrollHeight;
+        });
+    }
+
+    // --- UI FUNCTIONS ---
+    function attemptLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        if(u && p) {
+            connect();
+            localStorage.setItem('savedUser', u);
+            localStorage.setItem('savedPass', p);
+            socket.emit('login_attempt', { username: u, password: p });
+        }
+    }
+
+    function navTo(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function goHome() {
+        if(socket) socket.emit('leave_lobby');
+        gameActive = false;
+        gameMode = 'menu';
+        document.getElementById('game-ui').classList.add('hidden');
+        document.getElementById('menu-container').style.display = 'flex';
+        document.getElementById('duel-overlay').style.display = 'none';
+        document.getElementById('home-btn').classList.add('hidden');
+        navTo('scr-main');
+    }
+
+    function startZen() {
+        gameMode = 'zen';
+        setupGameUI();
+        p1.initRNG(Math.random()*1000); p1.reset();
+        gameActive = true; loop();
+    }
+    
+    function startAPMTest() {
+        gameMode = 'apm';
+        setupGameUI();
+        p1.initRNG(Math.random()*1000); p1.reset();
+        gameActive = true; loop();
+        setTimeout(() => {
+            alert("APM TEST DONE: " + p1.apm);
+            if(socket) socket.emit('submit_apm', p1.apm);
+            goHome();
+        }, 60000);
+    }
+    
+    function joinFFA() {
+        gameMode = 'ffa';
+        socket.emit('join_ffa');
+        navTo('scr-wait');
+    }
+
+    function setupGameUI() {
+        document.getElementById('menu-container').style.display = 'none';
+        document.getElementById('game-ui').classList.remove('hidden');
+        document.getElementById('home-btn').classList.remove('hidden');
+        document.getElementById('ffa-grid').innerHTML = ''; // Clear opponents
+    }
+
+    function formatUser(n) {
+        if(n === 'John') return '<span class="user-john">John</span>';
+        if(n === 'La Bamba') return '<span class="user-bamba">La Bamba</span>';
+        return n;
+    }
+
+    // --- STATS TABS ---
+    function openStats() { socket.emit('request_all_stats'); navTo('scr-stats'); }
+    
+    function showTab(t) {
+        document.getElementById('view-general').classList.add('hidden');
+        document.getElementById('view-duel').classList.add('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-'+t).classList.remove('hidden');
+        event.target.classList.add('active');
+    }
+
+    function loadUserStats(u) {
+        const d = usersCache[u];
+        const gen = document.getElementById('view-general');
+        gen.innerHTML = `<h2 style="color:var(--accent);">${formatUser(u)}</h2>
+            <p>Wins: ${d.wins}</p><p>Best APM: ${d.bestAPM}</p>`;
+        
+        const hist = document.getElementById('duel-history-body');
+        hist.innerHTML = '';
+        if(d.duelHistory) {
+            d.duelHistory.slice().reverse().forEach(h => {
+                const col = h.result === 'WIN' ? '#00ffcc' : '#ff5555';
+                hist.innerHTML += `<tr>
+                    <td style="color:${col}; font-weight:bold;">${h.result}</td>
+                    <td>${h.opponent}</td>
+                    <td>${h.score}</td>
+                    <td>${new Date(h.date).toLocaleDateString()}</td>
+                </tr>`;
+            });
+        }
+    }
+
+    function toggleChat() {
+        const c = document.getElementById('chat-container');
+        if(c.classList.contains('hidden')) c.classList.remove('hidden'); else c.classList.add('hidden');
+    }
+    function sendChat(e) {
+        if(e.key === 'Enter' && e.target.value) {
+            socket.emit('send_chat', e.target.value);
+            e.target.value = '';
+        }
+    }
+
+    // --- GAME ENGINE ---
+    class Player {
+        constructor() {
+            this.ctx = document.getElementById('p1').getContext('2d');
+            this.hCtx = document.getElementById('p1-h').getContext('2d');
+            this.nCtx = document.getElementById('p1-n').getContext('2d');
+            this.grid = Array.from({length:20},()=>Array(10).fill(0));
+            this.bag = []; this.queue = []; this.holdId = null;
+            this.active = null; this.score = 0; this.apm = 0;
+            this.linesSent = 0; this.startTime = 0;
+            this.rng = { next: () => Math.random() };
+            this.pendingGarbage = 0;
+        }
+        
+        initRNG(s) { this.rng = { val: s, next: function(){ this.val = (this.val * 9301 + 49297) % 233280; return this.val/233280; } }; }
+        
+        reset() {
+            this.grid.forEach(r => r.fill(0));
+            this.bag = []; this.queue = []; this.holdId = null;
+            this.pendingGarbage = 0; this.linesSent = 0;
+            this.startTime = Date.now();
+            for(let i=0; i<5; i++) this.queue.push(this.pull());
+            this.spawn();
+        }
+        
+        pull() {
+            if(!this.bag.length) {
+                this.bag = [0,1,2,3,4,5,6];
+                for(let i=6; i>0; i--) { const j=Math.floor(this.rng.next()*(i+1)); [this.bag[i],this.bag[j]]=[this.bag[j],this.bag[i]]; }
+            }
+            return this.bag.pop();
+        }
+        
+        spawn() {
+            const id = this.queue.shift();
+            this.queue.push(this.pull());
+            this.active = { id, matrix: PIECES[id], x: 3, y: -2, color: COLORS[id] };
+            if(this.collide()) {
+                this.onDeath();
+            }
+            this.drawNext();
+        }
+
+        collide(x=this.active.x, y=this.active.y, m=this.active.matrix) {
+            for(let r=0; r<m.length; r++) {
+                for(let c=0; c<m[r].length; c++) {
+                    if(m[r][c]) {
+                        let gx = x + c, gy = y + r;
+                        if(gx<0 || gx>=COLS || gy>=ROWS) return true;
+                        if(gy>=0 && this.grid[gy][gx]) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        move(dir) {
+            if(!this.active) return;
+            this.active.x += dir;
+            if(this.collide()) this.active.x -= dir;
+            this.updateBoard();
+        }
+        
+        rotate() {
+            if(!this.active) return;
+            const oldM = this.active.matrix;
+            const newM = oldM[0].map((_,i) => oldM.map(r => r[i]).reverse());
+            this.active.matrix = newM;
+            if(this.collide()) {
+                // Simple Wall Kick
+                if(!this.collide(this.active.x+1)) this.active.x++;
+                else if(!this.collide(this.active.x-1)) this.active.x--;
+                else this.active.matrix = oldM; // Fail
+            }
+            this.updateBoard();
+        }
+        
+        drop() {
+            if(!this.active) return;
+            this.active.y++;
+            if(this.collide()) {
+                this.active.y--;
+                this.lock();
+            }
+            this.updateBoard();
+        }
+        
+        hardDrop() {
+            if(!this.active) return;
+            while(!this.collide()) this.active.y++;
+            this.active.y--;
+            this.lock();
+        }
+        
+        lock() {
+            this.active.matrix.forEach((r,y) => r.forEach((v,x) => {
+                if(v && this.active.y+y >= 0) this.grid[this.active.y+y][this.active.x+x] = this.active.color;
+            }));
+            
+            // Clear Lines
+            let lines = 0;
+            for(let y=ROWS-1; y>=0; y--) {
+                if(this.grid[y].every(c => c!==0)) {
+                    this.grid.splice(y, 1);
+                    this.grid.unshift(Array(COLS).fill(0));
+                    lines++; y++;
+                }
+            }
+            
+            if(lines > 0) {
+                let sent = (lines === 4) ? 4 : lines - 1;
+                if(this.pendingGarbage > 0) {
+                    let diff = Math.min(this.pendingGarbage, sent);
+                    this.pendingGarbage -= diff;
+                    sent -= diff;
+                }
+                if(sent > 0) {
+                    this.linesSent += sent;
+                    if(gameMode !== 'zen' && gameMode !== 'apm') socket.emit('send_garbage', { amount: sent });
+                }
+            } else if (this.pendingGarbage > 0) {
+                // Receive Garbage
+                let amt = Math.min(this.pendingGarbage, 5);
+                this.pendingGarbage -= amt;
+                for(let k=0; k<amt; k++) {
+                    const hole = Math.floor(Math.random()*COLS);
+                    const row = Array(COLS).fill('#555');
+                    row[hole] = 0;
+                    this.grid.shift();
+                    this.grid.push(row);
+                }
+            }
+            
+            this.updateStats();
+            this.spawn();
+            document.getElementById('p1-g').style.height = (this.pendingGarbage*20)+'px';
+        }
+        
+        receiveGarbage(n) {
+            this.pendingGarbage += n;
+            document.getElementById('p1-g').style.height = (this.pendingGarbage*20)+'px';
+        }
+
+        onDeath() {
+            if(gameMode === 'duel') {
+                socket.emit('duel_report_loss');
+                this.grid.forEach(r=>r.fill(0)); // Wait for reset
+            } else if (gameMode === 'ffa') {
+                socket.emit('leave_lobby'); 
+                alert("You died.");
+                goHome();
+            } else {
+                this.reset();
+            }
+        }
+        
+        updateBoard() {
+            if((gameMode === 'ffa' || gameMode === 'duel') && socket) {
+                // Send visual grid including active piece
+                const vis = JSON.parse(JSON.stringify(this.grid));
+                this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{
+                    if(v && this.active.y+y>=0) vis[this.active.y+y][this.active.x+x] = this.active.color;
+                }));
+                socket.emit('update_board', vis);
+            }
+        }
+
+        updateStats() {
+            const mins = (Date.now() - this.startTime) / 60000;
+            this.apm = Math.floor(this.linesSent / mins) || 0;
+            document.getElementById('s-apm').innerText = this.apm;
+            document.getElementById('s-sent').innerText = this.linesSent;
+        }
+
+        draw() {
+            const ctx = this.ctx;
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,240,600);
+            
+            // Grid
+            this.grid.forEach((r,y) => r.forEach((v,x) => {
+                if(v) { ctx.fillStyle = v; ctx.fillRect(x*24, y*30, 23, 29); }
+            }));
+            
+            // Active
+            if(this.active) {
+                ctx.fillStyle = this.active.color;
+                this.active.matrix.forEach((r,y) => r.forEach((v,x) => {
+                    if(v) ctx.fillRect((this.active.x+x)*24, (this.active.y+y)*30, 23, 29);
+                }));
+            }
+        }
+
+        drawNext() {
+            const ctx = this.nCtx;
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,100,400);
+            this.queue.slice(0,4).forEach((id, i) => {
+                ctx.fillStyle = COLORS[id];
+                PIECES[id].forEach((r,y) => r.forEach((v,x) => {
+                    if(v) ctx.fillRect(10+x*20, i*80+y*20, 19, 19);
+                }));
+            });
+        }
+    }
+    
+    // --- LOOP ---
+    const p1 = new Player();
+    
+    document.addEventListener('keydown', e => {
+        if(!gameActive) return;
+        if(e.key === 'ArrowLeft') p1.move(-1);
+        if(e.key === 'ArrowRight') p1.move(1);
+        if(e.key === 'ArrowUp') p1.rotate();
+        if(e.key === 'ArrowDown') p1.drop();
+        if(e.key === ' ') p1.hardDrop();
+    });
+
+    let lastTime = 0;
+    function loop(t=0) {
+        const dt = t - lastTime;
+        if(dt > 500) { // Gravity
+            p1.drop();
+            lastTime = t;
+        }
+        p1.draw();
+        if(gameActive) requestAnimationFrame(loop);
+    }
+
+    function drawGrid(ctx, grid) {
+        ctx.fillStyle = '#000'; ctx.fillRect(0,0,240,600);
+        grid.forEach((r,y) => r.forEach((v,x) => {
+            if(v) { ctx.fillStyle = v; ctx.fillRect(x*24, y*30, 23, 29); }
+        }));
+    }
+</script>
 </body>
 </html>
