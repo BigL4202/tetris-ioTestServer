@@ -5,11 +5,13 @@ const io = require('socket.io')(http);
 const path = require('path');
 const fs = require('fs');
 
-// Serve static files
-app.use(express.static(__dirname));
+// --- PATH CORRECTION ---
+// This tells the server to look for files inside the "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    // This explicitly serves index.html from the "public" folder
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // --- PERSISTENCE (data.json) ---
