@@ -453,7 +453,7 @@ function showClassInfo(k){
     document.getElementById('ci-pros').innerHTML=d.pros.map(p=>'<div style="margin:2px 0;">\u2713 '+p+'</div>').join('');
     document.getElementById('ci-cons').innerHTML=d.cons.map(c=>'<div style="margin:2px 0;">\u2717 '+c+'</div>').join('');
 }
-function confirmClass(){if(!selectedClass)return alert('Select a class first.');if(!socket)connect();socket.emit('join_mutator_queue',{className:selectedClass});navTo('scr-multi');}
+function confirmClass(){if(!selectedClass)return alert('Select a class first.');if(!socket)connect();socket.emit('join_mutator_queue',{className:selectedClass});gameMode='mutator';setTheme('#ff0055');setupGameUI();document.getElementById('ffa-grid').innerHTML='';document.getElementById('overlay-cnt').classList.remove('hidden');document.getElementById('cnt-txt').innerText='Waiting for players...';inputLocked=true;}
 
 function toggleChat(){const c=document.getElementById('chat-container'),b=document.getElementById('chat-open-btn'),bg=document.getElementById('chat-badge');if(c.classList.contains('hidden')){c.classList.remove('hidden');b.style.display='none';isChatOpen=true;unreadChatCount=0;bg.innerText='0';bg.classList.add('hidden');}else{c.classList.add('hidden');b.style.display='block';isChatOpen=false;}}
 function togglePlayers(){const p=document.getElementById('players-panel');if(isPlayersOpen){p.style.display='none';isPlayersOpen=false;}else{p.style.display='flex';isPlayersOpen=true;refreshPlayerList();}}
@@ -480,7 +480,7 @@ function showPlayerActions(p){
 function sendDuelChallenge(tid){if(socket)socket.emit('duel_challenge',tid);togglePlayers();}
 function sendTeamInvite(tid){if(socket)socket.emit('team_invite',tid);togglePlayers();}
 
-function joinFFA(){if(!socket)connect();socket.emit('join_ffa');}
+function joinFFA(){if(!socket)connect();socket.emit('join_ffa');gameMode='ffa';setTheme('#ff9900');setupGameUI();document.getElementById('ffa-grid').innerHTML='';document.getElementById('overlay-cnt').classList.remove('hidden');document.getElementById('cnt-txt').innerText='Waiting for players...';inputLocked=true;}
 function joinQueue(mode){if(!socket)connect();if(queueMode){alert('Already in queue!');return;}socket.emit('join_queue',mode);}
 function leaveQueue(){if(socket)socket.emit('leave_queue');clearQueueUI();}
 function clearQueueUI(){queueMode=null;queueTeammate=null;clearInterval(queueTimerInterval);document.getElementById('queue-banner').style.display='none';}
@@ -647,11 +647,15 @@ function refreshAdminList(){
     onlinePlayersList.forEach(p=>{
         const row=document.createElement('div');row.className='admin-player-row';
         row.innerHTML=`<span>${p.username} <span class="status-tag status-${p.status}">${p.status}</span></span>
-        <div><button class="admin-btn" style="width:auto;padding:4px 8px;font-size:10px;" onclick="adminTimeout('${p.id}','${p.username}')">TIMEOUT</button></div>`;
+        <div style="display:flex;gap:4px;align-items:center;">
+        <select id="to-min-${p.id}" style="width:55px;background:#111;color:#fff;border:1px solid #555;font-size:10px;padding:2px;border-radius:2px;">
+        <option value="1">1m</option><option value="5" selected>5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option><option value="1440">24h</option>
+        </select>
+        <button class="admin-btn danger" style="width:auto;padding:4px 8px;font-size:10px;" onclick="adminTimeout('${p.id}','${p.username}')">TIMEOUT</button></div>`;
         list.appendChild(row);
     });
 }
-function adminTimeout(pid,name){if(!confirm('Timeout '+name+'?'))return;if(socket)socket.emit('admin_timeout',{targetId:pid});}
+function adminTimeout(pid,name){const sel=document.getElementById('to-min-'+pid);const mins=sel?sel.value:'5';if(!confirm('Timeout '+name+' for '+mins+' minutes?'))return;if(socket)socket.emit('admin_timeout',{targetId:pid,minutes:mins});}
 function adminRestartFFA(){if(!confirm('Restart FFA lobby?'))return;if(socket)socket.emit('admin_restart_ffa');}
 function adminRestartMutator(){if(!confirm('Restart Mutator lobby?'))return;if(socket)socket.emit('admin_restart_mutator');}
 function adminRestartServer(){if(!confirm('RESTART SERVER? All players will be disconnected!'))return;if(socket)socket.emit('admin_restart_server');}
@@ -669,8 +673,11 @@ function connect(){
     socket.on('player_list_update',list=>{onlinePlayersList=list;if(isPlayersOpen)refreshPlayerList();if(adminOpen)refreshAdminList();});
 
     // FFA/Mutator
-    socket.on('start_countdown',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2')return;
-        if(gameMode!=='mutator'){gameMode='ffa';setTheme('#ff9900');}setupGameUI();document.getElementById('overlay-results').classList.add('hidden');
+    socket.on('lobby_update',d=>{if((gameMode==='ffa'||gameMode==='mutator')&&!gameActive){document.getElementById('cnt-txt').innerText='Waiting for players... ('+d.count+'/2)';}});
+    socket.on('ffa_joined',d=>{if(gameMode==='ffa'&&!gameActive){document.getElementById('cnt-txt').innerText='Waiting for players... ('+d.count+'/2)';}});
+    socket.on('mm_joined',d=>{if(gameMode==='mutator'&&!gameActive){document.getElementById('cnt-txt').innerText='Waiting for players... ('+d.count+'/2)';}});
+    socket.on('start_countdown',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2'||gameMode==='menu')return;
+        setupGameUI();document.getElementById('overlay-results').classList.add('hidden');
         const ov=document.getElementById('overlay-cnt'),tx=document.getElementById('cnt-txt');ov.classList.remove('hidden');inputLocked=true;
         const iv=setInterval(()=>{const tl=Math.ceil((d.targetTime-Date.now())/1000);if(tl>0)tx.innerText=tl;else{clearInterval(iv);ov.classList.add('hidden');}},100);});
     socket.on('match_start',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2')return;
@@ -740,9 +747,9 @@ class Player{
             // Apply class mechanics
             if(gameMode==='mutator'&&activeClass){atk=handleClassSweep(lines,atk);}
             if(atk>0)this.showText(this.popSent,`+${atk}`);if(this.pendingG>0){let c=Math.min(this.pendingG,atk);this.pendingG-=c;atk-=c;}this.linesSentTotal+=atk;if(atk>0&&(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')){if(socket&&!isSpectator)socket.emit('send_garbage',{mode:gameMode,amount:atk});}
-        }else{this.combo=-1;while(this.pendingG>0){this.pendingG--;const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;this.grid.shift();this.grid.push(r);}}
-        this.gBar.style.height=(this.pendingG*30)+'px';this.updateStats();return lines;}
-    receiveGarbage(n){this.pendingG=Math.min(this.pendingG+n,10);this.linesRecvTotal+=n;this.gBar.style.height=(this.pendingG*30)+'px';this.updateStats();}
+        }else{this.combo=-1;let toPlace=Math.min(this.pendingG,10);this.pendingG-=toPlace;while(toPlace>0){toPlace--;const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;this.grid.shift();this.grid.push(r);}}
+        this.gBar.style.height=Math.min(this.pendingG*30,300)+'px';this.updateStats();return lines;}
+    receiveGarbage(n){this.pendingG+=n;this.linesRecvTotal+=n;this.gBar.style.height=Math.min(this.pendingG*30,300)+'px';this.updateStats();}
     updateStats(){const sec=(Date.now()-this.startTime)/1000;this.elSent.innerText=this.linesSentTotal;this.elRecv.innerText=this.linesRecvTotal;this.elPPS.innerText=(sec>0?(this.piecesPlaced/sec).toFixed(2):"0.00");this.elAPM.innerText=(sec>0?Math.floor((this.linesSentTotal/sec)*60):0);let ds=sec;if(gameMode==='apm_test')ds=60-sec;if(ds<0)ds=0;this.elTime.innerText=`${Math.floor(ds/60).toString().padStart(2,'0')}:${Math.floor(ds%60).toString().padStart(2,'0')}`;}
     drawSide(ctx,ids){ctx.fillStyle='#000';ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);ids.forEach((id,i)=>{if(id!==null){ctx.fillStyle=COLORS[id];const shape=PIECES[id];const pw=shape[0].length*20,ph=shape.length*20;const ox=(ctx.canvas.width-pw)/2,oy=i*80+(80-ph)/2;shape.forEach((row,y)=>{row.forEach((v,x)=>{if(v)ctx.fillRect(ox+x*20,oy+y*20,19,19);});});}});}
     sendBoard(){if(socket&&!isSpectator){const d=JSON.parse(JSON.stringify(this.grid));this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v&&d[y+this.active.pos.y]){d[y+this.active.pos.y][x+this.active.pos.x]=this.active.color;}}));socket.emit('update_board',{grid:d,boardHeight:this.getBoardHeight()});}}
