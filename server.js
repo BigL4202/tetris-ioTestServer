@@ -208,7 +208,7 @@ setInterval(() => {
         if (allGone) { g.active = false; delete twovtwos[gId]; }
     }
     // FFA stability: force reset if stuck
-    [{ lobby: ffaLobby, room: 'lobby_ffa' }, { lobby: mutatorLobby, room: 'lobby_mutator' }].forEach(({ lobby, room }) => {
+    [{ lobby: ffaLobby, room: 'lobby_ffa' }, { lobby: mmLobby, room: 'lobby_mm' }].forEach(({ lobby, room }) => {
         if (lobby.state === 'playing') {
             const connAlive = lobby.players.filter(p => p.alive && io.sockets.sockets.get(p.id));
             if (connAlive.length === 0) { lobby.state='waiting'; lobby.matchStats=[]; clearTimeout(lobby.timer); lobby.players=[]; io.to(room).emit('lobby_reset'); }
@@ -287,21 +287,23 @@ io.on('connection', (socket) => {
     });
 
     // === DIRECT JOIN MUTATOR MADNESS ===
-    socket.on('join_mm', (classId) => {
-        if(!socket.username) return;
-        socket.mmClass = classId || 'high_roller';
-        socket.join('lobby_mm');
-        if(!mmLobby.players.find(p=>p.id===socket.id)){
-            mmLobby.players.push({ id:socket.id, username:socket.username, alive:true, damageLog:[], lastActivity:Date.now(), linesSent:0, boardHeight:0, mmClass:classId });
+    socket.on('join_mm', (classId) => { joinMutator(socket, classId); });
+    socket.on('join_mutator_queue', (data) => { joinMutator(socket, data.className || data); });
+    function joinMutator(sock, classId) {
+        if(!sock.username) return;
+        sock.mmClass = classId || 'high_roller';
+        sock.join('lobby_mm');
+        if(!mmLobby.players.find(p=>p.id===sock.id)){
+            mmLobby.players.push({ id:sock.id, username:sock.username, alive:true, damageLog:[], lastActivity:Date.now(), linesSent:0, boardHeight:0, mmClass:classId });
         }
-        if(onlinePlayers[socket.id]){onlinePlayers[socket.id].status='mm';} bp();
-        socket.emit('mm_joined', { count: mmLobby.players.length, state: mmLobby.state });
+        if(onlinePlayers[sock.id]){onlinePlayers[sock.id].status='mutator';} bp();
+        sock.emit('mm_joined', { count: mmLobby.players.length, state: mmLobby.state });
         io.to('lobby_mm').emit('lobby_update', { count: mmLobby.players.length });
-        if(mmLobby.state === 'waiting') tryStartLobby(mmLobby, 'lobby_mm', 'mm');
+        if(mmLobby.state === 'waiting') tryStartLobby(mmLobby, 'lobby_mm', 'mutator');
         else if(mmLobby.state === 'playing') {
-            socket.emit('mm_spectate', { seed: mmLobby.seed, players: mmLobby.players.map(p=>({id:p.id,username:p.username,mmClass:p.mmClass})) });
+            sock.emit('ffa_spectate', { seed: mmLobby.seed, players: mmLobby.players.map(p=>({id:p.id,username:p.username,className:p.mmClass})) });
         }
-    });
+    }
 
     // === DUEL QUEUE ===
     socket.on('join_queue', mode => {
@@ -445,7 +447,7 @@ io.on('connection', (socket) => {
         if(data.mode==='duel'){const d=findDuel(socket.id);if(d&&d.active){const op=d.p1Id===socket.id?d.p2Id:d.p1Id;io.to(op).emit('receive_garbage',data.amount);}return;}
         if(data.mode==='2v2'){const g=find2v2(socket.id);if(g&&g.active){distribute2v2Garbage(socket.id,data.amount,g);}return;}
         if(data.mode==='ffa'){distributeGarbage(socket.id,data.amount,ffaLobby,'lobby_ffa','ffa');return;}
-        if(data.mode==='mm'){
+        if(data.mode==='mm'||data.mode==='mutator'){
             // Mutator targeted garbage
             if(data.target==='leader') sendToLeader(socket.id,data.amount,mmLobby);
             else if(data.target==='highest_board') sendToHighestBoard(socket.id,data.amount,mmLobby);
@@ -511,8 +513,8 @@ io.on('connection', (socket) => {
     });
     socket.on('admin_restart_mutator', () => {
         if(socket.username !== 'John') return;
-        mutatorLobby.players.forEach(p => { const s=io.sockets.sockets.get(p.id); if(s){s.leave('lobby_mutator');s.emit('force_disconnect','Mutator lobby restarted by admin.');} if(onlinePlayers[p.id]) onlinePlayers[p.id].status='idle'; });
-        mutatorLobby.players=[]; forceLobbyReset(mutatorLobby, 'lobby_mutator'); bp();
+        mmLobby.players.forEach(p => { const s=io.sockets.sockets.get(p.id); if(s){s.leave('lobby_mm');s.emit('force_disconnect','Mutator lobby restarted by admin.');} if(onlinePlayers[p.id]) onlinePlayers[p.id].status='idle'; });
+        mmLobby.players=[]; forceLobbyReset(mmLobby, 'lobby_mm'); bp();
         socket.emit('receive_chat',{user:'[SYSTEM]',text:'Mutator lobby restarted.'});
     });
     socket.on('admin_restart_server', () => {
@@ -584,7 +586,7 @@ function tryStartLobby(lobby,room,mode){
         io.to(room).emit('start_countdown',{targetTime:Date.now()+3000});
         lobby.timer=setTimeout(()=>{
             lobby.state='playing';lobby.startTime=Date.now();
-            const pList = lobby.players.map(p=>({id:p.id,username:p.username,mmClass:p.mmClass||null}));
+            const pList = lobby.players.map(p=>({id:p.id,username:p.username,className:p.mmClass||null}));
             io.to(room).emit('match_start',{mode,seed:lobby.seed,players:pList});
         },3000);
     }
