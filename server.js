@@ -42,6 +42,7 @@ let duels = {};
 let twovtwos = {};
 let teamInvites = {};
 let duelChallenges = {}; // challengerId -> {targetId, targetName, senderName, timer}
+let timedOutPlayers = {}; // username -> expiry timestamp
 
 // Garbage accumulation tracking: sid -> fractional garbage pending
 let garbageAccum = {};
@@ -69,9 +70,10 @@ function distributeGarbage(senderId, amount, lobby, lobbyRoom, mode) {
         garbageAccum[t.id] += rounded;
         const whole = Math.floor(garbageAccum[t.id]);
         if (whole >= 1) {
-            garbageAccum[t.id] -= whole;
+            const toSend = Math.min(whole, 10);
+            garbageAccum[t.id] -= toSend;
             garbageAccum[t.id] = Math.round(garbageAccum[t.id] * 100) / 100;
-            io.to(t.id).emit('receive_garbage', whole);
+            io.to(t.id).emit('receive_garbage', toSend);
         }
     });
 }
@@ -88,8 +90,10 @@ function distribute2v2Garbage(senderId, amount, game) {
         garbageAccum[t.id] += rounded;
         const whole = Math.floor(garbageAccum[t.id]);
         if (whole >= 1) {
-            garbageAccum[t.id] -= whole;
-            io.to(t.id).emit('receive_garbage', whole);
+            const toSend = Math.min(whole, 10);
+            garbageAccum[t.id] -= toSend;
+            garbageAccum[t.id] = Math.round(garbageAccum[t.id] * 100) / 100;
+            io.to(t.id).emit('receive_garbage', toSend);
         }
     });
 }
@@ -101,7 +105,12 @@ function sendToLeader(senderId, amount, lobby) {
     lobby.players.filter(p => p.alive && p.id !== senderId).forEach(p => {
         if ((p.linesSent || 0) > maxSent) { maxSent = p.linesSent || 0; leader = p; }
     });
-    if (leader) io.to(leader.id).emit('receive_garbage', amount);
+    if (leader) {
+        if (!garbageAccum[leader.id]) garbageAccum[leader.id] = 0;
+        garbageAccum[leader.id] += amount;
+        const whole = Math.floor(garbageAccum[leader.id]);
+        if (whole >= 1) { const toSend = Math.min(whole, 10); garbageAccum[leader.id] -= toSend; io.to(leader.id).emit('receive_garbage', toSend); }
+    }
 }
 
 function sendToHighestBoard(senderId, amount, lobby) {
@@ -109,7 +118,12 @@ function sendToHighestBoard(senderId, amount, lobby) {
     lobby.players.filter(p => p.alive && p.id !== senderId).forEach(p => {
         if ((p.boardHeight || 0) > maxH) { maxH = p.boardHeight || 0; target = p; }
     });
-    if (target) io.to(target.id).emit('receive_garbage', amount);
+    if (target) {
+        if (!garbageAccum[target.id]) garbageAccum[target.id] = 0;
+        garbageAccum[target.id] += amount;
+        const whole = Math.floor(garbageAccum[target.id]);
+        if (whole >= 1) { const toSend = Math.min(whole, 10); garbageAccum[target.id] -= toSend; io.to(target.id).emit('receive_garbage', toSend); }
+    }
 }
 
 // === LEAVE GAME (with proper cleanup) ===
@@ -221,6 +235,21 @@ setInterval(() => {
     });
 }, 1000);
 
+// Flush accumulated garbage overflow every 500ms
+setInterval(() => {
+    for (const [sid, accum] of Object.entries(garbageAccum)) {
+        const whole = Math.floor(accum);
+        if (whole >= 1) {
+            const toSend = Math.min(whole, 10);
+            garbageAccum[sid] -= toSend;
+            garbageAccum[sid] = Math.round(garbageAccum[sid] * 100) / 100;
+            const s = io.sockets.sockets.get(sid);
+            if (s) io.to(sid).emit('receive_garbage', toSend);
+            else delete garbageAccum[sid];
+        }
+    }
+}, 500);
+
 function startDuel(p1Id, p1Name, p2Id, p2Name) {
     const duelId = 'duel_' + Date.now() + '_' + Math.random().toString(36).substr(2,4);
     const seed = Math.floor(Math.random()*1000000);
@@ -259,6 +288,14 @@ io.on('connection', (socket) => {
         const user = data.username.trim().substring(0,12);
         const pass = data.password.trim();
         if(!user||!pass) return socket.emit('login_response',{success:false,msg:"Enter user & pass."});
+        // Check timeout
+        if(timedOutPlayers[user]) {
+            const remaining = timedOutPlayers[user] - Date.now();
+            if(remaining > 0) {
+                const mins = Math.ceil(remaining / 60000);
+                return socket.emit('login_response',{success:false,msg:"You are timed out. " + mins + " minute(s) remaining."});
+            } else { delete timedOutPlayers[user]; }
+        }
         if(!accounts[user]){accounts[user]={password:pass,wins:0,bestAPM:0,bestCombo:0,history:[]};saveAccounts();}
         else if(accounts[user].password!==pass) return socket.emit('login_response',{success:false,msg:"Incorrect Password!"});
         socket.username = user;
@@ -502,8 +539,15 @@ io.on('connection', (socket) => {
     socket.on('admin_timeout', data => {
         if(socket.username !== 'John') return;
         const tid = data.targetId;
+        const minutes = parseInt(data.minutes) || 5;
         const ts = io.sockets.sockets.get(tid);
-        if(ts) { ts.emit('force_disconnect', 'You have been timed out by an admin.'); ts.disconnect(true); }
+        const targetName = ts ? ts.username : null;
+        if(targetName) {
+            timedOutPlayers[targetName] = Date.now() + minutes * 60 * 1000;
+            ts.emit('force_disconnect', 'You have been timed out for ' + minutes + ' minutes by an admin.');
+            ts.disconnect(true);
+            io.emit('receive_chat', { user:'[SYSTEM]', text: targetName + ' has been timed out for ' + minutes + ' minutes.' });
+        }
     });
     socket.on('admin_restart_ffa', () => {
         if(socket.username !== 'John') return;
