@@ -155,8 +155,8 @@
         .class-card.locked { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
         .class-card .cc-icon { font-size: 28px; display: block; margin-bottom: 6px; }
 
-        /* In-game class UI - positioned left of board, much bigger */
-        #class-hud { position: fixed; top: 50%; right: calc(50% + 180px); transform: translateY(-50%); z-index: 180; display: none; flex-direction: column; gap: 12px; font-family: monospace; background: rgba(0,0,0,0.85); border: 2px solid var(--accent); border-radius: 10px; padding: 20px; min-width: 200px; box-shadow: 0 0 25px var(--glow); }
+        /* In-game class UI - flex item left of board */
+        #class-hud { display: none; flex-direction: column; gap: 12px; font-family: monospace; background: rgba(0,0,0,0.85); border: 2px solid var(--accent); border-radius: 10px; padding: 20px; min-width: 200px; max-width: 220px; box-shadow: 0 0 25px var(--glow); align-self: center; }
         .class-hud-label { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; border-bottom: 1px solid #333; padding-bottom: 6px; margin-bottom: 4px; }
         #jackpot-ticker { font-size: 36px; color: #ffcc00; font-weight: 900; text-shadow: 0 0 15px rgba(255,204,0,0.7); text-align: center; }
         #slot-reels { display: flex; gap: 8px; font-size: 40px; font-weight: 900; justify-content: center; }
@@ -311,12 +311,6 @@
     <div id="duel-hud"><div><div class="duel-hud-name" id="duel-hud-p1">P1</div></div><div class="duel-hud-score" id="duel-hud-s1">0</div><div><div class="duel-hud-vs">VS</div><div class="duel-hud-round" id="duel-hud-round">ROUND 1</div></div><div class="duel-hud-score" id="duel-hud-s2">0</div><div><div class="duel-hud-name" id="duel-hud-p2">P2</div></div></div>
     <div id="duel-results"><h1 id="duel-results-title">DUEL OVER</h1><div class="duel-final-score" id="duel-results-score">0 - 0</div><div class="duel-subtext" id="duel-results-sub">Returning to menu...</div></div>
 
-    <div id="class-hud">
-        <div id="hud-highroller" style="display:none;"><div class="class-hud-label">JACKPOT</div><div id="jackpot-ticker">Luck: 0.1%</div><div id="slot-reels"><div class="slot-reel" id="sr0">-</div><div class="slot-reel" id="sr1">-</div><div class="slot-reel" id="sr2">-</div></div></div>
-        <div id="hud-cultist" style="display:none;"><div class="class-hud-label">RUNES (Z to Sacrifice)</div><div id="rune-sigil"><div class="rune" id="rune0"></div><div class="rune" id="rune1"></div><div class="rune" id="rune2"></div></div><div id="cultist-cd-bar"><div id="cultist-cd-fill"></div></div><div id="cultist-cd-text" style="text-align:center;font-size:12px;color:#660000;margin-top:4px;">READY</div></div>
-        <div id="hud-sniper" style="display:none;"><div class="class-hud-label">MAGAZINE</div><div id="magazine"></div><div class="class-hud-label" style="margin-top:10px;">TARGET</div><div id="sniper-target-name" style="color:#ff0055;font-weight:900;font-size:20px;text-align:center;">---</div></div>
-    </div>
-
     <!-- ADMIN PANEL (John only) -->
     <button id="admin-toggle" onclick="toggleAdmin()">⚙ ADMIN</button>
     <div id="admin-panel">
@@ -334,6 +328,11 @@
     </div>
 
     <div id="game-ui" class="game-area hidden">
+        <div id="class-hud">
+            <div id="hud-highroller" style="display:none;"><div class="class-hud-label">JACKPOT</div><div id="jackpot-ticker">Luck: 0.1%</div><div id="slot-reels"><div class="slot-reel" id="sr0">-</div><div class="slot-reel" id="sr1">-</div><div class="slot-reel" id="sr2">-</div></div></div>
+            <div id="hud-cultist" style="display:none;"><div class="class-hud-label">RUNES (Z to Sacrifice)</div><div id="rune-sigil"><div class="rune" id="rune0"></div><div class="rune" id="rune1"></div><div class="rune" id="rune2"></div></div><div id="cultist-cd-bar"><div id="cultist-cd-fill"></div></div><div id="cultist-cd-text" style="text-align:center;font-size:12px;color:#660000;margin-top:4px;">READY</div></div>
+            <div id="hud-sniper" style="display:none;"><div class="class-hud-label">MAGAZINE</div><div id="magazine"></div><div class="class-hud-label" style="margin-top:10px;">TARGET</div><div id="sniper-target-name" style="color:#ff0055;font-weight:900;font-size:20px;text-align:center;">---</div></div>
+        </div>
         <div id="p1-root" class="player-root">
             <div class="stats-header">
                 <div class="stat-box-top"><div class="stat-label">TIME</div><div id="s-time" class="stat-val">00:00</div></div>
@@ -368,10 +367,10 @@ const CLASS_DATA = {
         cons:['Normal garbage output reduced by 50%','RNG dependent - might never hit','Early game is very weak'] },
     cultist: { name:'CULTIST', icon:'\u{1F480}', desc:'Sacrifice your own board to unleash devastating exorcisms.',
         pros:['Exorcism clears ALL garbage and sends it 1.5x multiplied','Burst damage potential is massive','Self-harm grants strategic control'],
-        cons:['Must take 9 lines of self-damage to charge','Receives 1.5x MORE garbage from enemies','Sacrifice ability has 5 second cooldown'] },
+        cons:['Must take 18 lines of self-damage to charge (6 per rune)','Receives 1.5x MORE garbage from enemies','Sacrifice has 15 second cooldown'] },
     combo_sniper: { name:'COMBO SNIPER', icon:'\u{1F3AF}', desc:'Store ammunition from clears and unleash it all in one devastating triple or quad.',
-        pros:['Max 19 lines of targeted damage in one shot','Always targets the player doing best','Ammo stored across clears','Fires on triples AND quads'],
-        cons:['Singles/Doubles send ZERO garbage','Must clear triples/quads to deal damage','Lose bullets on death (transferred to killer)'] },
+        pros:['Max 19 lines of targeted damage in one shot','Always targets the player doing best','Line clears cancel incoming garbage','Fires on triples AND quads'],
+        cons:['Cancelled garbage is NOT sent to enemies','Must clear triples/quads to deal damage','Lose bullets on death (transferred to killer)'] },
     locked1:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
     locked2:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
     locked3:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
@@ -508,15 +507,15 @@ function updateSniperCrosshair(){
 
 function cultistSacrifice(){
     if(!gameActive||isSpectator||activeClass!=='cultist'||cultRunes>=3||cultSacrificeCooldown)return;
-    for(let i=0;i<3;i++){const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;p1.grid.shift();p1.grid.push(r);}
-    p1.linesRecvTotal+=3;p1.gBar.style.height=(p1.pendingG*B_SIZE)+'px';p1.updateStats();
+    for(let i=0;i<6;i++){const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;p1.grid.shift();p1.grid.push(r);}
+    p1.linesRecvTotal+=6;p1.gBar.style.height=(p1.pendingG*B_SIZE)+'px';p1.updateStats();
     cultRunes++;updateRuneUI();
     if(cultRunes>=3)sysMsg('EXORCISM READY! Clear any line to unleash!');
     cultSacrificeCooldown=true;
     const cdFill=document.getElementById('cultist-cd-fill');const cdText=document.getElementById('cultist-cd-text');
     cdFill.style.width='100%';cdText.innerText='COOLDOWN';cdText.style.color='#ff0000';
     let cdStart=Date.now();
-    const cdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/50);cdFill.style.width=pct+'%';
+    const cdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/150);cdFill.style.width=pct+'%';
         if(pct<=0){clearInterval(cdInterval);cultSacrificeCooldown=false;cdFill.style.width='0%';cdText.innerText='READY';cdText.style.color='#00ff88';}},50);
 }
 
@@ -649,9 +648,15 @@ class Player{
         this.canHold=true;this.spawn();}
     sweep(){let lines=0,isPC=true;for(let y=ROWS-1;y>=0;y--){if(this.grid[y].every(v=>v!==0)){this.grid.splice(y,1);this.grid.unshift(Array(COLS).fill(0));lines++;y++;}else if(this.grid[y].some(v=>v!==0)){isPC=false;}}
         if(lines>0){this.combo++;if(this.combo>this.maxCombo)this.maxCombo=this.combo;let atk=0,txt=(lines==1)?"SINGLE":(lines==2)?"DOUBLE":(lines==3)?"TRIPLE":"QUAD";atk=(lines==4)?4:(lines-1);if(isPC){txt="ALL CLEAR";atk+=10;}this.showText(this.popAct,txt);if(lines==4){this.b2b++;if(this.b2b>1){atk+=1;this.showText(this.popB2B,"B2B x"+(this.b2b-1));}}else{this.b2b=0;}if(this.combo>0){atk+=Math.floor((this.combo-1)/2);this.showText(this.popCmbo,this.combo+" COMBO");}
-            // Apply class mechanics
+            // Combo sniper: cancel garbage with base attack, then class handles sending
+            let baseAtk=atk;
             if(gameMode==='mutator'&&activeClass){atk=handleClassSweep(lines,atk);}
-            if(atk>0)this.showText(this.popSent,`+${atk}`);if(this.pendingG>0){let c=Math.min(this.pendingG,atk);this.pendingG-=c;atk-=c;}this.linesSentTotal+=atk;if(atk>0&&(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')){if(socket&&!isSpectator)socket.emit('send_garbage',{mode:gameMode,amount:atk});}
+            if(activeClass==='combo_sniper'&&gameMode==='mutator'){
+                // Cancel pending garbage using base attack power but don't send cancelled lines
+                if(this.pendingG>0){let c=Math.min(this.pendingG,baseAtk);this.pendingG-=c;if(c>0)this.showText(this.popSent,`\u2716${c}`);}
+            } else {
+                if(atk>0)this.showText(this.popSent,`+${atk}`);if(this.pendingG>0){let c=Math.min(this.pendingG,atk);this.pendingG-=c;atk-=c;}this.linesSentTotal+=atk;if(atk>0&&(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')){if(socket&&!isSpectator)socket.emit('send_garbage',{mode:gameMode,amount:atk});}
+            }
         }else{this.combo=-1;let toPlace=Math.min(this.pendingG,10);this.pendingG-=toPlace;while(toPlace>0){toPlace--;const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;this.grid.shift();this.grid.push(r);}}
         this.gBar.style.height=(this.pendingG*B_SIZE)+'px';this.updateStats();return lines;}
     receiveGarbage(n){this.pendingG+=n;this.linesRecvTotal+=n;this.gBar.style.height=(this.pendingG*B_SIZE)+'px';this.updateStats();}
