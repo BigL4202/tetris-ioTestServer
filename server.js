@@ -654,9 +654,12 @@ function finishLobby(wn,lobby,room){
         io.emit('leaderboard_update',getLeaderboards());
         io.to(room).emit('match_summary',res);
         setTimeout(()=>{
+            // Emit lobby_reset to each player BEFORE removing from room
+            lobby.players.forEach(p=>{const s=io.sockets.sockets.get(p.id);if(s)s.emit('lobby_reset');});
             lobby.players.forEach(p=>{if(onlinePlayers[p.id])onlinePlayers[p.id].status='idle';const s=io.sockets.sockets.get(p.id);if(s)s.leave(room);delete garbageAccum[p.id];});
             lobby.players=[];
-            forceLobbyReset(lobby,room);bp();
+            lobby.state='waiting';lobby.matchStats=[];clearTimeout(lobby.timer);
+            bp();
         },5000);
     },500);
 }
