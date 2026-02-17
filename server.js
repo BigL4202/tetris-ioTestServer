@@ -485,15 +485,54 @@ io.on('connection', (socket) => {
         if(data.mode==='2v2'){const g=find2v2(socket.id);if(g&&g.active){distribute2v2Garbage(socket.id,data.amount,g);}return;}
         if(data.mode==='ffa'){distributeGarbage(socket.id,data.amount,ffaLobby,'lobby_ffa','ffa');return;}
         if(data.mode==='mm'||data.mode==='mutator'){
-            // Mutator targeted garbage
-            if(data.target==='leader') sendToLeader(socket.id,data.amount,mmLobby);
-            else if(data.target==='highest_board') sendToHighestBoard(socket.id,data.amount,mmLobby);
-            else distributeGarbage(socket.id,data.amount,mmLobby,'lobby_mm','mm');
+            // Direct target (sniper)
+            if(data.targetId){
+                const target=mmLobby.players.find(p=>p.id===data.targetId&&p.alive);
+                if(target){io.to(target.id).emit('receive_garbage',data.amount);}
+                else{distributeGarbage(socket.id,data.amount,mmLobby,'lobby_mm','mm');}
+            }
+            // Gravity well garbage - send with flag so targets get triple gravity
+            else if(data.gravityWell){
+                const sender=mmLobby.players.find(p=>p.id===socket.id);
+                if(!sender||!sender.alive)return;
+                const targets=mmLobby.players.filter(p=>p.alive&&p.id!==socket.id);
+                if(!targets.length)return;
+                const perPlayer=data.amount/targets.length;
+                const rounded=Math.round(perPlayer*100)/100;
+                targets.forEach(t=>{
+                    if(!garbageAccum[t.id])garbageAccum[t.id]=0;
+                    garbageAccum[t.id]+=rounded;
+                    const whole=Math.floor(garbageAccum[t.id]);
+                    if(whole>=1){const toSend=Math.min(whole,10);garbageAccum[t.id]-=toSend;
+                        io.to(t.id).emit('receive_garbage',{amount:toSend,gravityWell:true});}
+                });
+            }
+            else{distributeGarbage(socket.id,data.amount,mmLobby,'lobby_mm','mm');}
             // Track linesSent
             const mp=mmLobby.players.find(p=>p.id===socket.id);
             if(mp) mp.linesSent=(mp.linesSent||0)+data.amount;
             return;
         }
+    });
+
+    // Sniper: find player with highest board
+    socket.on('request_highest_board', () => {
+        const mp=mmLobby.players.find(p=>p.id===socket.id);
+        if(!mp)return;
+        let target=null,maxH=-1;
+        mmLobby.players.filter(p=>p.alive&&p.id!==socket.id).forEach(p=>{
+            if((p.boardHeight||0)>maxH){maxH=p.boardHeight||0;target=p;}
+        });
+        if(target)socket.emit('sniper_target',{id:target.id,username:target.username});
+    });
+
+    // Gravity Well: Wormhole - force 50% of each opponent's pending garbage onto their board
+    socket.on('wormhole', () => {
+        const mp=mmLobby.players.find(p=>p.id===socket.id);
+        if(!mp||!mp.alive)return;
+        mmLobby.players.filter(p=>p.alive&&p.id!==socket.id).forEach(p=>{
+            io.to(p.id).emit('wormhole_hit');
+        });
     });
 
     // === GO HOME = ELIMINATE ===
