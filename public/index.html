@@ -34,6 +34,8 @@
         @keyframes midasAnim { to { background-position: 200% center; } }
         .user-sparkle { font-family: 'Georgia', serif; color: #fff; animation: sparkleAnim 1.5s infinite alternate; }
         @keyframes sparkleAnim { 0% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 10px #ff00de; } 50% { opacity: 0.8; text-shadow: 0 0 20px #fff, 0 0 30px #00ffff; } 100% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 10px #ff00de; } }
+        .user-barnes { font-family: 'Impact', 'Arial Black', sans-serif; color: #999; letter-spacing: 3px; font-weight: 900; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); animation: barnesSpark 1.5s infinite; position: relative; }
+        @keyframes barnesSpark { 0% { color: #999; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } 15% { color: #fff; text-shadow: 0 0 8px #4488ff, 0 0 20px #2266ff, 0 0 35px rgba(255,255,0,0.5); } 30% { color: #bbb; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } 55% { color: #fff; text-shadow: 0 0 12px #66aaff, 0 0 25px #3377ff, 0 0 40px rgba(255,255,0,0.6); } 70% { color: #aaa; text-shadow: 0 0 15px rgba(255,255,0,0.5); } 100% { color: #999; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } }
 
         .tech-panel { background: rgba(10,10,10,0.8); border: 1px solid var(--accent); box-shadow: 0 0 20px var(--glow); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; align-items: center; backdrop-filter: blur(10px); }
         .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
@@ -163,12 +165,7 @@
         .slot-reel { width: 60px; height: 60px; background: #111; border: 3px solid #ffcc00; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; transition: all 0.3s; font-size: 36px; }
         .slot-reel.win { background: #ffcc00; color: #000; box-shadow: 0 0 20px #ffcc00; animation: slotWin 0.5s infinite alternate; }
         @keyframes slotWin { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
-        #rune-sigil { display: flex; gap: 16px; justify-content: center; }
-        .rune { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #440000; background: #1a0000; transition: all 0.3s; }
-        .rune.lit { border-color: #ff0000; background: #660000; box-shadow: 0 0 20px rgba(255,0,0,0.6); }
-        .rune.ready { border-color: #ff0000; background: #ff0000; box-shadow: 0 0 30px #ff0000; animation: runePulse 0.5s infinite alternate; }
-        @keyframes runePulse { 0% { box-shadow: 0 0 15px #ff0000; } 100% { box-shadow: 0 0 40px #ff0000, 0 0 60px rgba(255,0,0,0.3); } }
-        #cultist-cd-bar { width: 100%; height: 8px; background: #220000; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        #cultist-cd-bar { width: 100%; height: 10px; background: #220000; border-radius: 4px; margin-top: 8px; overflow: hidden; }
         #cultist-cd-fill { width: 0%; height: 100%; background: #ff0000; border-radius: 4px; transition: width 0.1s linear; }
         #magazine { display: flex; flex-direction: column-reverse; gap: 3px; align-items: center; }
         .bullet-slot { width: 36px; height: 16px; border: 2px solid #555; background: #111; transition: all 0.2s; border-radius: 2px; }
@@ -176,6 +173,15 @@
         .sniper-crosshair { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid rgba(255,0,0,0.6); border-radius: 50%; pointer-events: none; z-index: 10; display: none; box-shadow: inset 0 0 20px rgba(255,0,0,0.2); }
         .sniper-crosshair::before, .sniper-crosshair::after { content: ''; position: absolute; background: rgba(255,0,0,0.4); }
         .sniper-crosshair::before { width: 100%; height: 2px; top: 50%; } .sniper-crosshair::after { height: 100%; width: 2px; left: 50%; }
+
+        /* Gravity Well HUD */
+        #gwell-orb { width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #6600cc, #220044); border: 3px solid #8800ff; box-shadow: 0 0 20px rgba(136,0,255,0.5); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 28px; transition: all 0.3s; }
+        #gwell-orb.active { box-shadow: 0 0 40px #8800ff, 0 0 60px rgba(136,0,255,0.4); border-color: #cc66ff; animation: gwellPulse 0.6s infinite alternate; }
+        @keyframes gwellPulse { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+        #gwell-cd-bar { width: 100%; height: 8px; background: #220044; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        #gwell-cd-fill { width: 0%; height: 100%; background: #8800ff; border-radius: 4px; transition: width 0.1s linear; }
+        #sniper-cd-bar { width: 100%; height: 8px; background: #332200; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        #sniper-cd-fill { width: 0%; height: 100%; background: #ffcc00; border-radius: 4px; transition: width 0.1s linear; }
 
         /* Admin Panel */
         #admin-panel { position: fixed; top: 50px; left: 10px; z-index: 2000; background: rgba(0,0,0,0.95); border: 2px solid #ffcc00; box-shadow: 0 0 20px rgba(255,204,0,0.3); border-radius: 8px; width: 280px; display: none; flex-direction: column; font-family: monospace; font-size: 12px; max-height: 500px; overflow-y: auto; }
@@ -213,7 +219,7 @@
                         <div class="lb-header-text" style="margin-top:25px;margin-bottom:10px;">CUSTOM USERNAME EFFECTS</div>
                         <p>If you would like to have a custom username effect pay me $5.</p>
                         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:15px;text-align:center;font-size:1.3em;">
-                            <span class="user-john">John</span><span class="user-glitch">Jeffrey</span><span class="user-inferno">Jeremy</span><span class="user-diamond">Timmy</span><span class="user-gamer">Darel</span><span class="user-synth">Josh</span><span class="user-midas">Calvin</span><span class="user-sparkle">Starlight</span>
+                            <span class="user-john">John</span><span class="user-glitch">Jeffrey</span><span class="user-inferno">Jeremy</span><span class="user-diamond">Timmy</span><span class="user-gamer">Darel</span><span class="user-synth">Josh</span><span class="user-midas">Calvin</span><span class="user-sparkle">Starlight</span><span class="user-barnes">BARNESTTV</span>
                         </div>
                     </div>
                     <button class="btn btn-pink" style="margin-top:20px;" onclick="navTo('scr-changelog')">CHANGELOG</button>
@@ -330,8 +336,9 @@
     <div id="game-ui" class="game-area hidden">
         <div id="class-hud">
             <div id="hud-highroller" style="display:none;"><div class="class-hud-label">JACKPOT</div><div id="jackpot-ticker">Luck: 0.1%</div><div id="slot-reels"><div class="slot-reel" id="sr0">-</div><div class="slot-reel" id="sr1">-</div><div class="slot-reel" id="sr2">-</div></div></div>
-            <div id="hud-cultist" style="display:none;"><div class="class-hud-label">RUNES (Z to Sacrifice)</div><div id="rune-sigil"><div class="rune" id="rune0"></div><div class="rune" id="rune1"></div><div class="rune" id="rune2"></div></div><div id="cultist-cd-bar"><div id="cultist-cd-fill"></div></div><div id="cultist-cd-text" style="text-align:center;font-size:12px;color:#660000;margin-top:4px;">READY</div></div>
-            <div id="hud-sniper" style="display:none;"><div class="class-hud-label">MAGAZINE</div><div id="magazine"></div><div class="class-hud-label" style="margin-top:10px;">TARGET</div><div id="sniper-target-name" style="color:#ff0055;font-weight:900;font-size:20px;text-align:center;">---</div></div>
+            <div id="hud-cultist" style="display:none;"><div class="class-hud-label">EXORCISM (Z)</div><div style="text-align:center;font-size:13px;color:#888;margin-bottom:6px;">Clears 10 garbage lines<br>Sends queued garbage x1.5</div><div id="cultist-cd-bar"><div id="cultist-cd-fill"></div></div><div id="cultist-cd-text" style="text-align:center;font-size:14px;color:#00ff88;margin-top:4px;font-weight:900;">READY</div></div>
+            <div id="hud-sniper" style="display:none;"><div class="class-hud-label">MAGAZINE</div><div id="magazine"></div><div class="class-hud-label" style="margin-top:10px;">TARGET</div><div id="sniper-target-name" style="color:#ff0055;font-weight:900;font-size:20px;text-align:center;">---</div><div class="class-hud-label" style="margin-top:10px;">I-PIECE (Z)</div><div id="sniper-cd-bar"><div id="sniper-cd-fill"></div></div></div>
+            <div id="hud-gwell" style="display:none;"><div class="class-hud-label">GRAVITY WELL</div><div id="gwell-orb">\u{1F30C}</div><div class="class-hud-label" style="margin-top:10px;">WORMHOLE (Z)</div><div id="gwell-cd-bar"><div id="gwell-cd-fill"></div></div><div id="gwell-cd-text" style="text-align:center;font-size:12px;color:#cc66ff;margin-top:4px;font-weight:900;">WORMHOLE READY</div><div style="text-align:center;font-size:11px;color:#666;margin-top:6px;">HOLD: 3s cooldown</div></div>
         </div>
         <div id="p1-root" class="player-root">
             <div class="stats-header">
@@ -365,17 +372,19 @@ const CLASS_DATA = {
     high_roller: { name:'HIGH ROLLER', icon:'\u{1F3B0}', desc:'Gamble your way to victory with progressive jackpot mechanics.',
         pros:['Every line clear rolls for a 20-line jackpot','Jackpot odds increase every clear','Floor raises after each win'],
         cons:['Normal garbage output reduced by 50%','RNG dependent - might never hit','Early game is very weak'] },
-    cultist: { name:'CULTIST', icon:'\u{1F480}', desc:'Sacrifice your own board to unleash devastating exorcisms.',
-        pros:['Exorcism clears ALL garbage and sends it 1.5x multiplied','Burst damage potential is massive','Self-harm grants strategic control'],
-        cons:['Must take 18 lines of self-damage to charge (6 per rune)','Receives 1.5x MORE garbage from enemies','Sacrifice has 15 second cooldown'] },
+    cultist: { name:'CULTIST', icon:'\u{1F480}', desc:'Channel dark energy then unleash it all at once.',
+        pros:['Z: Clears 10 garbage lines from board + sends pending garbage x1.5','Massive burst damage if you tank hits','Exorcism can swing entire games'],
+        cons:['Receives 1.5x MORE garbage from enemies','15 second ability cooldown','Must have garbage on board to benefit'] },
     combo_sniper: { name:'COMBO SNIPER', icon:'\u{1F3AF}', desc:'Store ammunition from clears and unleash it all in one devastating triple or quad.',
-        pros:['Max 19 lines of targeted damage in one shot','Always targets the player doing best','Line clears cancel incoming garbage','Fires on triples AND quads'],
-        cons:['Cancelled garbage is NOT sent to enemies','Must clear triples/quads to deal damage','Lose bullets on death (transferred to killer)'] },
+        pros:['Max 19 lines of targeted damage in one shot','Z: Spawns I-piece on 8s cooldown','Quads clear 3 bottom lines + convert to bullets','Receives only 0.75x garbage'],
+        cons:['Singles/Doubles send ZERO garbage','Must clear triples/quads to deal damage','Line clears cancel garbage but don\'t send it'] },
+    gravity_well: { name:'GRAVITY WELL', icon:'\u{1F30C}', desc:'Warp spacetime to crush your opponents under their own weight.',
+        pros:['All garbage you send triples opponent gravity while queued','Z: Wormhole - 50% of opponents queued garbage placed instantly','Opponents struggle to survive your pressure'],
+        cons:['Can only use Hold every 3 seconds','Normal garbage output (no bonus)','Wormhole has 12 second cooldown'] },
     locked1:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
     locked2:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
     locked3:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
-    locked4:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]},
-    locked5:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]}
+    locked4:{name:'COMING SOON',icon:'\u{1F512}',desc:'',pros:[],cons:[]}
 };
 
 let socket=null,gameActive=false,inputLocked=false,isSpectator=false,gameMode='zen',apmTimer=null,statsCache={};
@@ -385,11 +394,12 @@ let pendingInviteType=null,pendingInviteId=null;
 // Mutator state
 let selectedClass=null,activeClass=null;
 let hrJackpotChance=0.001,hrFloor=0.001,hrFloorStep=0;
-let cultRunes=0,cultExorcismReady=false;
-let sniperBullets=0,sniperTargetId=null,sniperTargetName='---';
-let cultSacrificeCooldown=false;
+let cultCooldown=false,cultCdInterval=null;
+let sniperBullets=0,sniperTargetId=null,sniperTargetName='---',sniperZCooldown=false,sniperZCdInterval=null;
+// Gravity Well state
+let gwellWormholeCooldown=false,gwellWormholeCdInterval=null,gwellHoldCooldown=false,gwellHoldTimer=null;
 
-function formatUserHTML(u){if(!u)return'Guest';const n=u.trim();if(n==='John')return'<span class="user-john">John</span>';if(n==='La Bamba\u{1F0CF}')return'<span class="user-bamba">La Bamba\u{1F0CF}</span>';return u;}
+function formatUserHTML(u){if(!u)return'Guest';const n=u.trim();if(n==='John')return'<span class="user-john">John</span>';if(n==='La Bamba\u{1F0CF}')return'<span class="user-bamba">La Bamba\u{1F0CF}</span>';if(n==='BARNESTTV')return'<span class="user-barnes">BARNESTTV</span>';return u;}
 function setTheme(h){const r=document.documentElement;r.style.setProperty('--accent',h);const rv=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);r.style.setProperty('--glow',`rgba(${rv},${g},${b},0.2)`);r.style.setProperty('--glow-strong',`rgba(${rv},${g},${b},0.4)`);}
 function sysMsg(t){const b=document.getElementById('chat-history');if(b){b.innerHTML+=`<div><span style="color:#ff00de;font-weight:bold;">[SYSTEM]:</span> ${t}</div>`;b.scrollTop=b.scrollHeight;}}
 window.onload=function(){if(localStorage.getItem('savedUser')){document.getElementById('username').value=localStorage.getItem('savedUser');if(localStorage.getItem('savedPass'))document.getElementById('password').value=localStorage.getItem('savedPass');attemptLogin();}initClassGrid();};
@@ -399,7 +409,7 @@ function logOut(){localStorage.clear();location.reload();}
 
 function initClassGrid(){
     const grid=document.getElementById('class-grid'); grid.innerHTML='';
-    const keys=['high_roller','cultist','combo_sniper','locked1','locked2','locked3','locked4','locked5'];
+    const keys=['high_roller','cultist','combo_sniper','gravity_well','locked1','locked2','locked3','locked4'];
     keys.forEach(k=>{const d=CLASS_DATA[k];const c=document.createElement('div');c.className='class-card'+(k.startsWith('locked')?' locked':'');
         c.innerHTML=`<div><span class="cc-icon">${d.icon}</span>${d.name}</div>`;
         if(!k.startsWith('locked')){c.onclick=()=>{document.querySelectorAll('.class-card').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');selectedClass=k;showClassInfo(k);};}
@@ -462,7 +472,12 @@ function goHome(){
     document.getElementById('class-hud').style.display='none';
     hideAllClassHuds();setTheme('#00ffcc');navTo('scr-main');
 }
-function hideAllClassHuds(){['hud-highroller','hud-cultist','hud-sniper'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
+function hideAllClassHuds(){['hud-highroller','hud-cultist','hud-sniper','hud-gwell'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    clearInterval(cultCdInterval);cultCooldown=false;
+    clearInterval(sniperZCdInterval);sniperZCooldown=false;
+    clearInterval(gwellWormholeCdInterval);gwellWormholeCooldown=false;
+    clearTimeout(gwellHoldTimer);gwellHoldCooldown=false;
+}
 function openStats(){if(!socket)return alert("Login first.");socket.emit('request_all_stats');navTo('scr-stats');}
 function openBugs(){if(!socket)return alert("Login first.");socket.emit('request_bugs');navTo('scr-bugs');}
 function submitBug(){const t=document.getElementById('bug-topic').value.trim(),b=document.getElementById('bug-body').value.trim();if(!t||!b)return alert('Fill in both fields.');if(socket)socket.emit('submit_bug',{topic:t,body:b});document.getElementById('bug-topic').value='';document.getElementById('bug-body').value='';}
@@ -474,17 +489,19 @@ function start2v2Game(seed){gameMode='2v2';isSpectator=false;setTheme('#00a8ff')
 function startMutatorGame(seed,className){
     gameMode='mutator';activeClass=className;isSpectator=false;setTheme('#ff0055');setupGameUI();document.getElementById('ffa-grid').innerHTML='';
     p1.initRNG(seed);p1.reset();gameActive=true;
-    // Reset class state
+    // Reset ALL class state
     hrJackpotChance=0.001;hrFloorStep=0;hrFloor=0.001;
-    cultRunes=0;cultExorcismReady=false;cultSacrificeCooldown=false;
-    sniperBullets=0;sniperTargetId=null;sniperTargetName='---';
+    cultCooldown=false;clearInterval(cultCdInterval);
+    sniperBullets=0;sniperTargetId=null;sniperTargetName='---';sniperZCooldown=false;clearInterval(sniperZCdInterval);
+    gwellWormholeCooldown=false;clearInterval(gwellWormholeCdInterval);gwellHoldCooldown=false;clearTimeout(gwellHoldTimer);
     // Init magazine bullets
     const mag=document.getElementById('magazine');mag.innerHTML='';for(let i=0;i<10;i++){const s=document.createElement('div');s.className='bullet-slot';s.id='bullet'+i;mag.appendChild(s);}
     // Show correct HUD
     document.getElementById('class-hud').style.display='flex';hideAllClassHuds();
     if(className==='high_roller'){document.getElementById('hud-highroller').style.display='block';updateJackpotUI();}
-    else if(className==='cultist'){document.getElementById('hud-cultist').style.display='block';updateRuneUI();document.getElementById('cultist-cd-fill').style.width='0%';}
-    else if(className==='combo_sniper'){document.getElementById('hud-sniper').style.display='block';updateMagazineUI();}
+    else if(className==='cultist'){document.getElementById('hud-cultist').style.display='block';document.getElementById('cultist-cd-fill').style.width='0%';document.getElementById('cultist-cd-text').innerText='READY';document.getElementById('cultist-cd-text').style.color='#00ff88';}
+    else if(className==='combo_sniper'){document.getElementById('hud-sniper').style.display='block';updateMagazineUI();document.getElementById('sniper-cd-fill').style.width='0%';}
+    else if(className==='gravity_well'){document.getElementById('hud-gwell').style.display='block';document.getElementById('gwell-cd-fill').style.width='0%';document.getElementById('gwell-cd-text').innerText='WORMHOLE READY';document.getElementById('gwell-cd-text').style.color='#cc66ff';}
     loop();
 }
 
@@ -495,28 +512,66 @@ function spinSlots(won){
     if(won){reels.forEach(r=>{r.innerText='7';r.classList.add('win');});setTimeout(()=>reels.forEach(r=>r.classList.remove('win')),3000);}
     else{reels.forEach(r=>{r.innerText=symbols[Math.floor(Math.random()*symbols.length)];r.classList.remove('win');});}
 }
-function updateRuneUI(){
-    for(let i=0;i<3;i++){const r=document.getElementById('rune'+i);r.className='rune';if(i<cultRunes){if(cultRunes>=3)r.classList.add('ready');else r.classList.add('lit');}}
-    cultExorcismReady=(cultRunes>=3);
-}
 function updateMagazineUI(){for(let i=0;i<10;i++){const el=document.getElementById('bullet'+i);if(el){el.className='bullet-slot';if(i<sniperBullets)el.classList.add('loaded');}}}
 function updateSniperCrosshair(){
     document.querySelectorAll('.sniper-crosshair').forEach(el=>el.remove());
     if(sniperTargetId){const cvs=document.getElementById('cvs_'+sniperTargetId);if(cvs&&cvs.parentElement){let ch=cvs.parentElement.querySelector('.sniper-crosshair');if(!ch){ch=document.createElement('div');ch.className='sniper-crosshair';cvs.parentElement.style.position='relative';cvs.parentElement.appendChild(ch);}ch.style.display='block';}}
 }
 
-function cultistSacrifice(){
-    if(!gameActive||isSpectator||activeClass!=='cultist'||cultRunes>=3||cultSacrificeCooldown)return;
-    for(let i=0;i<6;i++){const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;p1.grid.shift();p1.grid.push(r);}
-    p1.linesRecvTotal+=6;p1.gBar.style.height=(p1.pendingG*B_SIZE)+'px';p1.updateStats();
-    cultRunes++;updateRuneUI();
-    if(cultRunes>=3)sysMsg('EXORCISM READY! Clear any line to unleash!');
-    cultSacrificeCooldown=true;
+// --- CULTIST: Z = clear 10 garbage lines + send pending garbage x1.5 ---
+function cultistAbility(){
+    if(!gameActive||isSpectator||activeClass!=='cultist'||cultCooldown)return;
+    // Count and remove up to 10 garbage lines from bottom of board
+    let removed=0;
+    for(let y=ROWS-1;y>=0&&removed<10;y--){
+        if(p1.grid[y].includes('#555')){p1.grid.splice(y,1);p1.grid.unshift(Array(COLS).fill(0));removed++;}
+    }
+    // Send all pending garbage x1.5
+    const toSend=Math.floor(p1.pendingG*1.5);
+    if(toSend>0&&socket){socket.emit('send_garbage',{mode:'mutator',amount:toSend});p1.linesSentTotal+=toSend;sysMsg('EXORCISM! Cleared '+removed+' lines, sent '+toSend+'!');}
+    else{sysMsg('EXORCISM! Cleared '+removed+' garbage lines.');}
+    p1.pendingG=0;
+    p1.gBar.style.height='0px';p1.updateStats();
+    // 15s cooldown - store interval ID to prevent stacking
+    cultCooldown=true;
     const cdFill=document.getElementById('cultist-cd-fill');const cdText=document.getElementById('cultist-cd-text');
     cdFill.style.width='100%';cdText.innerText='COOLDOWN';cdText.style.color='#ff0000';
+    clearInterval(cultCdInterval);
     let cdStart=Date.now();
-    const cdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/150);cdFill.style.width=pct+'%';
-        if(pct<=0){clearInterval(cdInterval);cultSacrificeCooldown=false;cdFill.style.width='0%';cdText.innerText='READY';cdText.style.color='#00ff88';}},50);
+    cultCdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/150);cdFill.style.width=pct+'%';
+        if(pct<=0){clearInterval(cultCdInterval);cultCooldown=false;cdFill.style.width='0%';cdText.innerText='READY';cdText.style.color='#00ff88';}},50);
+}
+
+// --- COMBO SNIPER: Z = spawn I-piece on 8s cooldown ---
+function sniperSpawnI(){
+    if(!gameActive||isSpectator||activeClass!=='combo_sniper'||sniperZCooldown)return;
+    // Force spawn I-piece (piece index 0)
+    p1.queue.unshift(0);
+    sysMsg('I-PIECE LOADED!');
+    sniperZCooldown=true;
+    const cdFill=document.getElementById('sniper-cd-fill');
+    cdFill.style.width='100%';
+    clearInterval(sniperZCdInterval);
+    let cdStart=Date.now();
+    sniperZCdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/80);cdFill.style.width=pct+'%';
+        if(pct<=0){clearInterval(sniperZCdInterval);sniperZCooldown=false;cdFill.style.width='0%';}},50);
+    p1.drawSide(p1.nCtx,p1.queue);
+}
+
+// --- GRAVITY WELL: Z = Wormhole (50% of opponents' queued garbage placed instantly) ---
+function gwellWormhole(){
+    if(!gameActive||isSpectator||activeClass!=='gravity_well'||gwellWormholeCooldown)return;
+    if(socket)socket.emit('wormhole');
+    sysMsg('WORMHOLE ACTIVATED!');
+    document.getElementById('gwell-orb').classList.add('active');
+    setTimeout(()=>document.getElementById('gwell-orb').classList.remove('active'),2000);
+    gwellWormholeCooldown=true;
+    const cdFill=document.getElementById('gwell-cd-fill');const cdText=document.getElementById('gwell-cd-text');
+    cdFill.style.width='100%';cdText.innerText='COOLDOWN';cdText.style.color='#ff0000';
+    clearInterval(gwellWormholeCdInterval);
+    let cdStart=Date.now();
+    gwellWormholeCdInterval=setInterval(()=>{const elapsed=Date.now()-cdStart;const pct=Math.max(0,100-elapsed/120);cdFill.style.width=pct+'%';
+        if(pct<=0){clearInterval(gwellWormholeCdInterval);gwellWormholeCooldown=false;cdFill.style.width='0%';cdText.innerText='WORMHOLE READY';cdText.style.color='#cc66ff';}},50);
 }
 
 function handleClassSweep(linesCleared,baseAtk){
@@ -526,11 +581,31 @@ function handleClassSweep(linesCleared,baseAtk){
         if(Math.random()<hrJackpotChance){spinSlots(true);sysMsg('JACKPOT! 20 LINES!');if(socket)socket.emit('send_garbage',{mode:'mutator',amount:20});hrFloorStep++;hrFloor=[0.001,0.01,0.05][Math.min(hrFloorStep,2)];hrJackpotChance=hrFloor;}else{hrJackpotChance+=0.002;spinSlots(false);}updateJackpotUI();return atk;
     }
     if(activeClass==='cultist'){
-        if(cultExorcismReady){let gc=0;p1.grid.forEach(row=>{if(row.includes('#555'))gc++;});for(let y=ROWS-1;y>=0;y--){if(p1.grid[y].includes('#555')){p1.grid.splice(y,1);p1.grid.unshift(Array(COLS).fill(0));}}const sent=Math.floor(gc*1.5);sysMsg('EXORCISM! Sent '+sent+' lines!');cultRunes=0;cultExorcismReady=false;updateRuneUI();return sent;}return baseAtk;
+        return baseAtk; // Cultist sends normally, ability is Z key
     }
     if(activeClass==='combo_sniper'){
-        if(linesCleared>=3){const dmg=Math.min(19,baseAtk+Math.floor(1.5*sniperBullets));sysMsg('FIRE! '+dmg+' lines targeted!');sniperBullets=0;updateMagazineUI();if(socket&&sniperTargetId)socket.emit('send_garbage',{mode:'mutator',amount:dmg,targetId:sniperTargetId});return 0;}
+        if(linesCleared>=3){
+            // Quad bonus: clear 3 bottom lines and convert to bullets
+            if(linesCleared===4){
+                let cleared=0;
+                for(let y=ROWS-1;y>=0&&cleared<3;y--){
+                    if(p1.grid[y].some(v=>v!==0)){p1.grid.splice(y,1);p1.grid.unshift(Array(COLS).fill(0));cleared++;}
+                }
+                sniperBullets=Math.min(10,sniperBullets+cleared);
+                sysMsg('QUAD BONUS! Cleared '+cleared+' lines → '+cleared+' bullets!');
+            }
+            const dmg=Math.min(19,baseAtk+Math.floor(1.5*sniperBullets));
+            sysMsg('FIRE! '+dmg+' lines!');sniperBullets=0;updateMagazineUI();
+            // Send even without specific target - use distributed
+            if(socket)socket.emit('send_garbage',{mode:'mutator',amount:dmg,targetId:sniperTargetId||null});
+            return 0;
+        }
         else{sniperBullets=Math.min(10,sniperBullets+(linesCleared===1?1:2));updateMagazineUI();if(socket)socket.emit('request_highest_board');return 0;}
+    }
+    if(activeClass==='gravity_well'){
+        // Normal garbage but flagged for gravity effect
+        if(baseAtk>0&&socket)socket.emit('send_garbage',{mode:'mutator',amount:baseAtk,gravityWell:true});
+        return 0; // We handle sending ourselves
     }
     return baseAtk;
 }
@@ -584,7 +659,14 @@ function connect(){
             const grid=document.getElementById('ffa-grid');grid.innerHTML='';
             d.players.forEach(p=>{if(p.id!==socket.id){const dv=document.createElement('div');dv.className='mini-card';dv.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.username)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;grid.appendChild(dv);}});
         } else {gameMode=d.mode;setupOnlineGame(d.seed,d.players);}});
-    socket.on('receive_garbage',n=>{if((gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')&&!isSpectator){let amt=n;if(activeClass==='cultist'&&gameMode==='mutator')amt=Math.ceil(n*1.5);p1.receiveGarbage(amt);}});
+    socket.on('receive_garbage',d=>{if((gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')&&!isSpectator){
+        let amt=typeof d==='number'?d:d.amount;
+        if(activeClass==='cultist'&&gameMode==='mutator')amt=Math.ceil(amt*1.5);
+        if(activeClass==='combo_sniper'&&gameMode==='mutator')amt=Math.floor(amt*0.75);
+        p1.receiveGarbage(amt);
+        // Gravity well: if the garbage came from gravity well player, triple our gravity for duration
+        if(typeof d==='object'&&d.gravityWell){p1.gravityBoost=3;clearTimeout(p1.gravityBoostTimer);p1.gravityBoostTimer=setTimeout(()=>{p1.gravityBoost=1;},8000);}
+    }});
     socket.on('enemy_board_update',d=>{if(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')drawEnemy(d.id,d.grid);});
     socket.on('elimination',d=>{feed(`${formatUserHTML(d.username)} eliminated by ${formatUserHTML(d.killer)}!`);});
     socket.on('request_win_stats',()=>{socket.emit('match_won',p1.getStats());});
@@ -601,6 +683,14 @@ function connect(){
     socket.on('ffa_spectate',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2')return;setTimeout(()=>{isSpectator=true;gameMode='ffa';setupGameUI();document.getElementById('p1-root').style.opacity='0.3';setupOnlineGame(d.seed,d.players);},1000);});
     socket.on('update_my_wins',w=>document.getElementById('display-wins').innerText=w);
     socket.on('sniper_target',d=>{sniperTargetId=d.id;sniperTargetName=d.username;document.getElementById('sniper-target-name').innerText=d.username;updateSniperCrosshair();});
+    socket.on('wormhole_hit',d=>{
+        // 50% of our pending garbage gets placed on our board instantly
+        const toPlace=Math.floor(p1.pendingG*0.5);
+        p1.pendingG-=toPlace;
+        for(let i=0;i<toPlace;i++){const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;p1.grid.shift();p1.grid.push(r);}
+        p1.gBar.style.height=(p1.pendingG*B_SIZE)+'px';p1.updateStats();
+        if(toPlace>0)sysMsg('WORMHOLE! '+toPlace+' lines warped onto your board!');
+    });
     socket.on('leader_info',d=>{/* High roller jackpot targets leader on server side */});
 
     // Duel
@@ -629,7 +719,7 @@ function sendChat(e){if(e.key==='Enter'){const input=document.getElementById('ch
 // === GAME ENGINE ===
 class SeededRNG{constructor(s){this.s=s;}next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;}}
 class Player{
-    constructor(){this.ctx=document.getElementById('p1').getContext('2d');this.nCtx=document.getElementById('p1-n').getContext('2d');this.hCtx=document.getElementById('p1-h').getContext('2d');this.gBar=document.getElementById('p1-g');this.elSent=document.getElementById('s-sent');this.elRecv=document.getElementById('s-recv');this.elTime=document.getElementById('s-time');this.elPPS=document.getElementById('s-pps');this.elAPM=document.getElementById('s-apm');this.popAct=document.getElementById('pop-action');this.popCmbo=document.getElementById('pop-combo');this.popB2B=document.getElementById('pop-b2b');this.popSent=document.getElementById('pop-sent');this.rotation=0;this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));this.bag=[];this.queue=[];this.holdId=null;this.canHold=true;this.pendingG=0;this.combo=-1;this.maxCombo=0;this.b2b=0;this.dropCounter=0;this.lockTimer=0;this.lockMoves=0;this.dasTimer=0;this.arrTimer=0;this.piecesPlaced=0;this.linesSentTotal=0;this.linesRecvTotal=0;this.rng=new SeededRNG(1);this.startTime=Date.now();}
+    constructor(){this.ctx=document.getElementById('p1').getContext('2d');this.nCtx=document.getElementById('p1-n').getContext('2d');this.hCtx=document.getElementById('p1-h').getContext('2d');this.gBar=document.getElementById('p1-g');this.elSent=document.getElementById('s-sent');this.elRecv=document.getElementById('s-recv');this.elTime=document.getElementById('s-time');this.elPPS=document.getElementById('s-pps');this.elAPM=document.getElementById('s-apm');this.popAct=document.getElementById('pop-action');this.popCmbo=document.getElementById('pop-combo');this.popB2B=document.getElementById('pop-b2b');this.popSent=document.getElementById('pop-sent');this.rotation=0;this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));this.bag=[];this.queue=[];this.holdId=null;this.canHold=true;this.pendingG=0;this.combo=-1;this.maxCombo=0;this.b2b=0;this.dropCounter=0;this.lockTimer=0;this.lockMoves=0;this.dasTimer=0;this.arrTimer=0;this.piecesPlaced=0;this.linesSentTotal=0;this.linesRecvTotal=0;this.rng=new SeededRNG(1);this.startTime=Date.now();this.gravityBoost=1;this.gravityBoostTimer=null;}
     getStats(){const sec=(Date.now()-this.startTime)/1000;return{apm:(sec>0?Math.floor((this.linesSentTotal/sec)*60):0),pps:(sec>0?(this.piecesPlaced/sec).toFixed(2):"0.00"),sent:this.linesSentTotal,recv:this.linesRecvTotal,maxCombo:this.maxCombo};}
     getBoardHeight(){let h=0;for(let y=0;y<ROWS;y++){if(this.grid[y].some(v=>v!==0)){h=ROWS-y;break;}}return h;}
     initRNG(s){this.rng=new SeededRNG(s);}
@@ -642,18 +732,21 @@ class Player{
     move(d){this.active.pos.x+=d;if(this.collide())this.active.pos.x-=d;else{this.lastMoveRotate=false;if(this.isGrounded()&&this.lockMoves<15){this.lockTimer=0;this.lockMoves++;}this.sendBoard();}}
     isGrounded(){this.active.pos.y++;const hit=this.collide();this.active.pos.y--;return hit;}
     hardDrop(){while(!this.collide())this.active.pos.y++;this.active.pos.y--;this.lock();}
-    hold(slot=1){const c=this.active.id;if(slot===1){if(!this.canHold)return;if(this.holdId===null){this.holdId=c;this.spawn();}else{const t=this.holdId;this.holdId=c;this.spawn(t);}this.canHold=false;}this.drawSide(this.hCtx,[this.holdId]);}
+    hold(slot=1){const c=this.active.id;if(slot===1){if(!this.canHold)return;if(activeClass==='gravity_well'&&gwellHoldCooldown)return;if(this.holdId===null){this.holdId=c;this.spawn();}else{const t=this.holdId;this.holdId=c;this.spawn(t);}this.canHold=false;if(activeClass==='gravity_well'){gwellHoldCooldown=true;clearTimeout(gwellHoldTimer);gwellHoldTimer=setTimeout(()=>{gwellHoldCooldown=false;},3000);}}this.drawSide(this.hCtx,[this.holdId]);}
     lock(){let entirelyInRed=true;this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v){const gy=y+this.active.pos.y;if(gy>=0){this.grid[gy][x+this.active.pos.x]=this.active.color;if(gy>=4)entirelyInRed=false;}}}));this.piecesPlaced++;const linesCleared=this.sweep();
         if(entirelyInRed&&linesCleared===0){if((gameMode==='duel'||gameMode==='2v2')&&socket){socket.emit(gameMode==='duel'?'duel_report_loss':'twovtwo_report_loss',this.getStats());gameActive=false;return;}else if(gameMode==='mutator'&&socket){socket.emit('player_died',this.getStats());isSpectator=true;document.getElementById('p1-root').style.opacity='0.3';return;}else if(gameMode!=='zen'&&gameMode!=='apm_test'&&socket){socket.emit('player_died',this.getStats());isSpectator=true;document.getElementById('p1-root').style.opacity='0.3';return;}else{this.reset();return;}}
         this.canHold=true;this.spawn();}
     sweep(){let lines=0,isPC=true;for(let y=ROWS-1;y>=0;y--){if(this.grid[y].every(v=>v!==0)){this.grid.splice(y,1);this.grid.unshift(Array(COLS).fill(0));lines++;y++;}else if(this.grid[y].some(v=>v!==0)){isPC=false;}}
         if(lines>0){this.combo++;if(this.combo>this.maxCombo)this.maxCombo=this.combo;let atk=0,txt=(lines==1)?"SINGLE":(lines==2)?"DOUBLE":(lines==3)?"TRIPLE":"QUAD";atk=(lines==4)?4:(lines-1);if(isPC){txt="ALL CLEAR";atk+=10;}this.showText(this.popAct,txt);if(lines==4){this.b2b++;if(this.b2b>1){atk+=1;this.showText(this.popB2B,"B2B x"+(this.b2b-1));}}else{this.b2b=0;}if(this.combo>0){atk+=Math.floor((this.combo-1)/2);this.showText(this.popCmbo,this.combo+" COMBO");}
-            // Combo sniper: cancel garbage with base attack, then class handles sending
+            // Class handling: sniper cancels garbage, gravity_well sends itself
             let baseAtk=atk;
             if(gameMode==='mutator'&&activeClass){atk=handleClassSweep(lines,atk);}
             if(activeClass==='combo_sniper'&&gameMode==='mutator'){
                 // Cancel pending garbage using base attack power but don't send cancelled lines
                 if(this.pendingG>0){let c=Math.min(this.pendingG,baseAtk);this.pendingG-=c;if(c>0)this.showText(this.popSent,`\u2716${c}`);}
+            } else if(activeClass==='gravity_well'&&gameMode==='mutator'){
+                // gravity_well handles sending in handleClassSweep, just cancel garbage normally
+                if(baseAtk>0)this.showText(this.popSent,`+${baseAtk}`);if(this.pendingG>0){let c=Math.min(this.pendingG,baseAtk);this.pendingG-=c;}this.linesSentTotal+=baseAtk;
             } else {
                 if(atk>0)this.showText(this.popSent,`+${atk}`);if(this.pendingG>0){let c=Math.min(this.pendingG,atk);this.pendingG-=c;atk-=c;}this.linesSentTotal+=atk;if(atk>0&&(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator')){if(socket&&!isSpectator)socket.emit('send_garbage',{mode:gameMode,amount:atk});}
             }
@@ -664,7 +757,7 @@ class Player{
     drawSide(ctx,ids){ctx.fillStyle='#000';ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);ids.forEach((id,i)=>{if(id!==null){ctx.fillStyle=COLORS[id];const shape=PIECES[id];const pw=shape[0].length*20,ph=shape.length*20;const ox=(ctx.canvas.width-pw)/2,oy=i*80+(80-ph)/2;shape.forEach((row,y)=>{row.forEach((v,x)=>{if(v)ctx.fillRect(ox+x*20,oy+y*20,19,19);});});}});}
     sendBoard(){if(socket&&!isSpectator){const d=JSON.parse(JSON.stringify(this.grid));this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v&&d[y+this.active.pos.y]){d[y+this.active.pos.y][x+this.active.pos.x]=this.active.color;}}));socket.emit('update_board',{grid:d,boardHeight:this.getBoardHeight()});}}
     showText(el,msg){el.innerText=msg;el.style.opacity=1;setTimeout(()=>el.style.opacity=0,1000);}
-    update(dt){let dropSpeed=700;if(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator'){const elapsed=(Date.now()-this.startTime)/1000;const reduction=Math.floor(elapsed/30)*210;dropSpeed=Math.max(100,700-reduction);}this.dropCounter+=dt;if(this.dropCounter>dropSpeed){this.active.pos.y++;if(this.collide()){this.active.pos.y--;}else{this.lockTimer=0;this.lockMoves=0;this.lastMoveRotate=false;}this.dropCounter=0;}if(this.isGrounded()){this.lockTimer+=dt;if(this.lockTimer>500||this.lockMoves>=15)this.lock();}this.sendBoard();}
+    update(dt){let dropSpeed=700;if(gameMode==='ffa'||gameMode==='duel'||gameMode==='2v2'||gameMode==='mutator'){const elapsed=(Date.now()-this.startTime)/1000;const reduction=Math.floor(elapsed/30)*210;dropSpeed=Math.max(100,700-reduction);}dropSpeed=Math.max(30,dropSpeed/this.gravityBoost);this.dropCounter+=dt;if(this.dropCounter>dropSpeed){this.active.pos.y++;if(this.collide()){this.active.pos.y--;}else{this.lockTimer=0;this.lockMoves=0;this.lastMoveRotate=false;}this.dropCounter=0;}if(this.isGrounded()){this.lockTimer+=dt;if(this.lockTimer>500||this.lockMoves>=15)this.lock();}this.sendBoard();}
     draw(){this.ctx.fillStyle='#000';this.ctx.fillRect(0,0,120,900);this.ctx.fillStyle='rgba(255,0,0,0.2)';this.ctx.fillRect(0,0,120,120);this.ctx.strokeStyle='rgba(255,255,255,0.1)';this.ctx.lineWidth=1;this.ctx.beginPath();for(let x=1;x<COLS;x++){this.ctx.moveTo(x*B_SIZE,4*B_SIZE);this.ctx.lineTo(x*B_SIZE,ROWS*B_SIZE);}for(let y=4;y<ROWS;y++){this.ctx.moveTo(0,y*B_SIZE);this.ctx.lineTo(COLS*B_SIZE,y*B_SIZE);}this.ctx.stroke();this.grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){this.ctx.fillStyle=v;this.ctx.fillRect(x*B_SIZE,y*B_SIZE,B_SIZE-1,B_SIZE-1);}}));if(this.active&&!isSpectator){let g={...this.active.pos};while(!this.collide(this.active.matrix,g))g.y++;g.y--;this.ctx.fillStyle='rgba(255,255,255,0.15)';this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v)this.ctx.fillRect((g.x+x)*B_SIZE,(g.y+y)*B_SIZE,B_SIZE-1,B_SIZE-1);}));this.ctx.fillStyle=this.active.color;this.active.matrix.forEach((r,y)=>r.forEach((v,x)=>{if(v)this.ctx.fillRect((this.active.pos.x+x)*B_SIZE,(this.active.pos.y+y)*B_SIZE,B_SIZE-1,B_SIZE-1);}));}}
 }
 
@@ -675,7 +768,7 @@ window.addEventListener('keydown',e=>{
     if(!inputLocked&&gameActive&&!isSpectator){
         if(["Space","ArrowUp","ArrowDown"].includes(e.code))e.preventDefault();
         // Z key = ability
-        if(e.code===ctrl.ability&&!keys.has(e.code)){keys.add(e.code);if(activeClass==='cultist')cultistSacrifice();return;}
+        if(e.code===ctrl.ability&&!keys.has(e.code)){keys.add(e.code);if(activeClass==='cultist')cultistAbility();else if(activeClass==='combo_sniper')sniperSpawnI();else if(activeClass==='gravity_well')gwellWormhole();return;}
         if(!keys.has(e.code)){keys.add(e.code);if(e.code==ctrl.rotate)p1.rotate();if(e.code==ctrl.hold)p1.hold(1);if(e.code==ctrl.hard){p1.hardDrop();}if(e.code==ctrl.left||e.code==ctrl.right){p1.dasTimer=0;p1.arrTimer=0;p1.move(e.code==ctrl.left?-1:1);}}
     }
 });
