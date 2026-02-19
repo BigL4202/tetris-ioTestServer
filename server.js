@@ -556,6 +556,25 @@ io.on('connection', (socket) => {
         });
     });
 
+    // Mutator events - broadcast to lobby feed + specific effects
+    socket.on('mutator_event', data => {
+        const mp=mmLobby.players.find(p=>p.id===socket.id);
+        if(!mp||!mp.alive)return;
+        const evt={type:data.type, username:socket.username};
+        // For sniper: also notify the target with muzzle flash
+        if(data.type==='sniper_shot'&&data.targetId){
+            const target=mmLobby.players.find(p=>p.id===data.targetId);
+            if(target){
+                io.to(target.id).emit('sniper_shot_hit',{shooter:socket.username});
+                evt.targetName=target.username;
+            }
+        }
+        // Broadcast feed to all alive players
+        mmLobby.players.filter(p=>p.alive).forEach(p=>{
+            io.to(p.id).emit('mutator_feed',evt);
+        });
+    });
+
     // === GO HOME = ELIMINATE ===
     socket.on('go_home', () => {
         // Eliminate from whatever mode they're in
