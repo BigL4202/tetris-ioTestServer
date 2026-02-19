@@ -34,9 +34,25 @@
         @keyframes midasAnim { to { background-position: 200% center; } }
         .user-sparkle { font-family: 'Georgia', serif; color: #fff; animation: sparkleAnim 1.5s infinite alternate; }
         @keyframes sparkleAnim { 0% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 10px #ff00de; } 50% { opacity: 0.8; text-shadow: 0 0 20px #fff, 0 0 30px #00ffff; } 100% { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 10px #ff00de; } }
-        .user-barnes { font-family: 'Impact', 'Arial Black', sans-serif; color: #999; letter-spacing: 3px; font-weight: 900; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); animation: barnesSpark 1.5s infinite; position: relative; }
-        @keyframes barnesSpark { 0% { color: #999; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } 15% { color: #fff; text-shadow: 0 0 8px #4488ff, 0 0 20px #2266ff, 0 0 35px rgba(255,255,0,0.5); } 30% { color: #bbb; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } 55% { color: #fff; text-shadow: 0 0 12px #66aaff, 0 0 25px #3377ff, 0 0 40px rgba(255,255,0,0.6); } 70% { color: #aaa; text-shadow: 0 0 15px rgba(255,255,0,0.5); } 100% { color: #999; text-shadow: 0 0 15px rgba(255,255,0,0.6), 0 0 30px rgba(255,255,0,0.3); } }
+        .user-barnes { font-family: 'Impact', 'Arial Black', sans-serif; color: #c0c0c0; letter-spacing: 4px; font-weight: 900; text-shadow: 0 0 10px rgba(255,255,0,0.8), 0 0 25px rgba(255,200,0,0.4), 0 0 50px rgba(68,136,255,0.2); animation: barnesSpark 2s infinite, barnesGlitch 4s infinite; position: relative; display: inline-block; background: linear-gradient(90deg, #999, #ddd, #fff, #ddd, #999); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 8px rgba(255,255,0,0.6)) drop-shadow(0 0 20px rgba(68,136,255,0.3)); }
+        @keyframes barnesSpark { 0%,100% { filter: drop-shadow(0 0 8px rgba(255,255,0,0.6)) drop-shadow(0 0 15px rgba(68,136,255,0.2)); background-position: 0% center; } 10% { filter: drop-shadow(0 0 20px rgba(68,136,255,0.9)) drop-shadow(0 0 40px rgba(255,255,0,0.8)) drop-shadow(0 0 60px #4488ff); } 12% { filter: drop-shadow(0 0 6px rgba(255,255,0,0.4)); } 50% { background-position: 100% center; } 60% { filter: drop-shadow(0 0 25px rgba(100,180,255,0.9)) drop-shadow(0 0 50px rgba(255,200,0,0.7)); } 62% { filter: drop-shadow(0 0 5px rgba(255,255,0,0.3)); } }
+        @keyframes barnesGlitch { 0%,94%,100% { transform: translate(0); } 95% { transform: translate(-2px,1px); } 96% { transform: translate(2px,-1px); } 97% { transform: translate(-1px,-1px); } 98% { transform: translate(1px,2px); } 99% { transform: translate(0); } }
 
+
+        /* Board effects */
+        .board-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; animation: flashAnim 0.4s ease-out forwards; }
+        @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .muzzle-flash { background: radial-gradient(circle, rgba(255,200,0,0.8), rgba(255,100,0,0.4), transparent 70%); }
+        .wormhole-vortex { background: radial-gradient(circle, rgba(136,0,255,0.6), rgba(80,0,200,0.3), transparent 60%); animation: vortexSpin 0.6s ease-out forwards; }
+        @keyframes vortexSpin { 0% { opacity: 1; transform: rotate(0deg) scale(0.5); } 50% { opacity: 0.8; transform: rotate(180deg) scale(1.2); } 100% { opacity: 0; transform: rotate(360deg) scale(0.8); } }
+        .jackpot-banner { position: fixed; top: 30%; left: 50%; transform: translate(-50%,-50%) scale(0); font-size: 64px; font-weight: 900; color: #FFD700; text-shadow: 0 0 30px #FFD700, 0 0 60px rgba(255,200,0,0.5), 2px 2px 0 #996600; z-index: 200; pointer-events: none; animation: jackpotPop 2s ease-out forwards; font-family: Impact, sans-serif; letter-spacing: 6px; }
+        @keyframes jackpotPop { 0% { transform: translate(-50%,-50%) scale(0) rotate(-10deg); opacity: 0; } 15% { transform: translate(-50%,-50%) scale(1.3) rotate(3deg); opacity: 1; } 30% { transform: translate(-50%,-50%) scale(1) rotate(0deg); } 80% { transform: translate(-50%,-50%) scale(1); opacity: 1; } 100% { transform: translate(-50%,-60%) scale(0.8); opacity: 0; } }
+        .coin { position: fixed; width: 12px; height: 12px; background: radial-gradient(circle at 30% 30%, #FFD700, #CC9900); border-radius: 50%; border: 1px solid #AA7700; z-index: 199; pointer-events: none; animation: coinFall linear forwards; box-shadow: 0 0 6px rgba(255,215,0,0.5); }
+        @keyframes coinFall { 0% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+        .black-hole-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; background: radial-gradient(circle, #000 30%, rgba(80,0,160,0.8) 50%, rgba(40,0,80,0.4) 70%, transparent 85%); animation: bhPulse 0.8s infinite alternate; border-radius: 50%; }
+        @keyframes bhPulse { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(1.05); opacity: 1; } }
+        .mutator-alert { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 900; padding: 8px 24px; border-radius: 6px; z-index: 150; pointer-events: none; animation: alertSlide 2.5s ease-out forwards; white-space: nowrap; }
+        @keyframes alertSlide { 0% { opacity: 0; top: 8%; } 10% { opacity: 1; top: 12%; } 80% { opacity: 1; } 100% { opacity: 0; top: 8%; } }
         .tech-panel { background: rgba(10,10,10,0.8); border: 1px solid var(--accent); box-shadow: 0 0 20px var(--glow); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; align-items: center; backdrop-filter: blur(10px); }
         .input-std { background: #111; border: 1px solid #333; color: #fff; padding: 12px; font-size: 18px; border-radius: 4px; margin: 10px 0; width: 300px; text-align: center; transition: 0.3s; }
         .input-std:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--glow); outline: none; background: #000; }
@@ -617,7 +633,7 @@ function sniperSpawnI(){
 // --- GRAVITY WELL: Z = Wormhole ---
 function gwellWormhole(){
     if(!gameActive||isSpectator||activeClass!=='gravity_well'||gwellWormholeCooldown)return;
-    if(socket)socket.emit('wormhole');sysMsg('WORMHOLE ACTIVATED!');
+    if(socket){socket.emit('wormhole');socket.emit('mutator_event',{type:'wormhole'});}sysMsg('WORMHOLE ACTIVATED!');
     document.getElementById('gwell-orb').classList.add('active');
     setTimeout(()=>document.getElementById('gwell-orb').classList.remove('active'),2000);
     gwellWormholeCooldown=true;
@@ -632,7 +648,7 @@ function gwellWormhole(){
 // --- GRAVITY WELL: X = Black Hole (lock opponent hold for 3s, costs 20 lines sent) ---
 function gwellBlackHole(){
     if(!gameActive||isSpectator||activeClass!=='gravity_well'||!gwellBlackHoleReady)return;
-    if(socket)socket.emit('black_hole');
+    if(socket){socket.emit('black_hole');socket.emit('mutator_event',{type:'black_hole'});}
     sysMsg('BLACK HOLE LAUNCHED!');
     gwellBlackHoleReady=false;gwellLinesSent=0;updateGwellUI();
 }
@@ -743,7 +759,7 @@ function handleClassSweep(linesCleared,baseAtk){
     if(!activeClass||gameMode!=='mutator')return baseAtk;
     if(activeClass==='high_roller'){
         let atk=Math.floor(baseAtk*0.5);
-        if(Math.random()<hrJackpotChance){spinSlots(true);sysMsg('JACKPOT! 20 LINES!');if(socket)socket.emit('send_garbage',{mode:'mutator',amount:20});hrFloorStep++;hrFloor=Math.max(0.001,0.025*hrFloorStep);hrJackpotChance=hrFloor;}else{hrJackpotChance+=0.0025;spinSlots(false);}updateJackpotUI();return atk;
+        if(Math.random()<hrJackpotChance){spinSlots(true);sysMsg('JACKPOT! 20 LINES!');showJackpotEffect();if(socket){socket.emit('send_garbage',{mode:'mutator',amount:20});socket.emit('mutator_event',{type:'jackpot'});}hrFloorStep++;hrFloor=Math.max(0.001,0.025*hrFloorStep);hrJackpotChance=hrFloor;}else{hrJackpotChance+=0.0025;spinSlots(false);}updateJackpotUI();return atk;
     }
     if(activeClass==='cultist'){
         if(cultExorcismReady){
@@ -759,7 +775,7 @@ function handleClassSweep(linesCleared,baseAtk){
         if(linesCleared>=3){
             if(linesCleared===4){let cleared=0;for(let y=ROWS-1;y>=0&&cleared<3;y--){if(p1.grid[y].some(v=>v!==0)){p1.grid.splice(y,1);p1.grid.unshift(Array(COLS).fill(0));cleared++;}}sniperBullets=Math.min(10,sniperBullets+cleared);sysMsg('QUAD BONUS! '+cleared+' bullets!');}
             const dmg=Math.min(19,baseAtk+Math.floor(1.5*sniperBullets));sysMsg('FIRE! '+dmg+' lines!');sniperBullets=0;updateMagazineUI();
-            if(socket)socket.emit('send_garbage',{mode:'mutator',amount:dmg,targetId:sniperTargetId||null});return 0;
+            if(socket){socket.emit('send_garbage',{mode:'mutator',amount:dmg,targetId:sniperTargetId||null});socket.emit('mutator_event',{type:'sniper_shot',targetId:sniperTargetId});}return 0;
         }
         else{sniperBullets=Math.min(10,sniperBullets+(linesCleared===1?1:2));updateMagazineUI();if(socket)socket.emit('request_highest_board');return 0;}
     }
@@ -774,10 +790,7 @@ function handleClassSweep(linesCleared,baseAtk){
         return atk;
     }
     if(activeClass==='diver'){
-        // Clearing lines below water reduces water level
-        const clearedUnderwater=Math.min(linesCleared,diverWaterLevel);
-        if(clearedUnderwater>0)diverWaterLevel=Math.max(0,diverWaterLevel-clearedUnderwater);
-        updateDiverUI();
+        // Water only goes away via flood gates - line clears don't reduce water
         return baseAtk;
     }
     return baseAtk;
@@ -864,7 +877,17 @@ function connect(){
         p1.pendingG-=toPlace;
         for(let i=0;i<toPlace;i++){const r=Array(COLS).fill('#555');r[Math.floor(Math.random()*COLS)]=0;p1.grid.shift();p1.grid.push(r);}
         p1.gBar.style.height=(p1.pendingG*B_SIZE)+'px';p1.updateStats();
-        if(toPlace>0)sysMsg('WORMHOLE! '+toPlace+' lines warped onto your board!');
+        if(toPlace>0){sysMsg('WORMHOLE! '+toPlace+' lines warped onto your board!');showBoardFlash('wormhole-vortex');showMutatorAlert('WORMHOLE INCOMING','#aa44ff','rgba(50,0,100,0.9)');}
+    });
+    socket.on('sniper_shot_hit',d=>{
+        showBoardFlash('muzzle-flash');
+        showMutatorAlert('SNIPED BY '+d.shooter,'#ffcc00','rgba(100,60,0,0.9)');
+    });
+    socket.on('mutator_feed',d=>{
+        if(d.type==='jackpot')feed('\u{1F3B0} '+formatUserHTML(d.username)+' HIT JACKPOT! 20 LINES!');
+        else if(d.type==='wormhole')feed('\u{1F30C} '+formatUserHTML(d.username)+' activated WORMHOLE!');
+        else if(d.type==='sniper_shot')feed('\u{1F3AF} '+formatUserHTML(d.username)+' SNIPED '+formatUserHTML(d.targetName)+'!');
+        else if(d.type==='black_hole')feed('\u{26AB} '+formatUserHTML(d.username)+' launched BLACK HOLE!');
     });
     socket.on('leader_info',d=>{/* High roller jackpot targets leader on server side */});
     socket.on('flood_hit',d=>{
@@ -881,6 +904,8 @@ function connect(){
     socket.on('black_hole_hit',()=>{
         p1.holdLocked=true;
         sysMsg('BLACK HOLE! Hold disabled for 3s!');
+        showBlackHoleOnHold();
+        showMutatorAlert('BLACK HOLE - HOLD DISABLED','#ff0033','rgba(80,0,0,0.9)');
         const hCanvas=document.getElementById('p1-h');hCanvas.style.border='2px solid #ff0033';hCanvas.style.boxShadow='0 0 20px rgba(255,0,51,0.5)';
         setTimeout(()=>{p1.holdLocked=false;hCanvas.style.border='';hCanvas.style.boxShadow='';sysMsg('Hold restored.');},3000);
     });
@@ -907,6 +932,45 @@ function setupOnlineGame(seed,players){gameActive=true;p1.initRNG(seed);p1.reset
 function drawEnemy(id,grid){const cvs=document.getElementById(`cvs_${id}`);if(!cvs)return;const ctx=cvs.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,80,520);if(grid)grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){ctx.fillStyle=v;ctx.fillRect(x*20,y*20,19,19);}}));}
 function feed(msg){const f=document.getElementById('kill-feed');const d=document.createElement('div');d.className='feed-msg';d.innerHTML=msg;f.appendChild(d);setTimeout(()=>d.remove(),4000);}
 function sendChat(e){if(e.key==='Enter'){const input=document.getElementById('chat-input');const txt=input.value.trim();if(txt&&socket){socket.emit('send_chat',txt);input.value='';}}}
+
+// === VISUAL EFFECTS ===
+function showBoardFlash(className){
+    const wrap=document.querySelector('.main-board-wrap');if(!wrap)return;
+    wrap.style.position='relative';
+    const fl=document.createElement('div');fl.className='board-flash '+className;wrap.appendChild(fl);
+    setTimeout(()=>fl.remove(),600);
+}
+function showMutatorAlert(text,color,bgColor){
+    const el=document.createElement('div');el.className='mutator-alert';el.innerText=text;
+    el.style.color=color;el.style.background=bgColor;el.style.border='2px solid '+color;
+    el.style.textShadow='0 0 10px '+color;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),2600);
+}
+function showJackpotEffect(){
+    // Banner
+    const b=document.createElement('div');b.className='jackpot-banner';b.innerText='JACKPOT!';
+    document.body.appendChild(b);setTimeout(()=>b.remove(),2200);
+    // Coins
+    for(let i=0;i<40;i++){
+        const c=document.createElement('div');c.className='coin';
+        const x=15+Math.random()*70;const dur=1+Math.random()*1.5;const delay=Math.random()*0.5;
+        const drift=(Math.random()-0.5)*100;
+        c.style.left=x+'vw';c.style.top='-20px';
+        c.style.animationDuration=dur+'s';c.style.animationDelay=delay+'s';
+        c.animate([
+            {top:'-20px',left:x+'vw',transform:'rotate(0deg)'},
+            {top:'105vh',left:'calc('+x+'vw + '+drift+'px)',transform:'rotate('+(360+Math.random()*720)+'deg)'}
+        ],{duration:dur*1000,delay:delay*1000,fill:'forwards'});
+        document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+delay)*1000+100);
+    }
+}
+function showBlackHoleOnHold(){
+    const hBox=document.querySelector('.col-left .box-container');if(!hBox)return;
+    hBox.style.position='relative';
+    const bh=document.createElement('div');bh.className='black-hole-overlay';bh.id='bh-overlay';
+    hBox.appendChild(bh);
+    setTimeout(()=>{const el=document.getElementById('bh-overlay');if(el)el.remove();},3000);
+}
 
 // === GAME ENGINE ===
 class SeededRNG{constructor(s){this.s=s;}next(){this.s=(this.s*9301+49297)%233280;return this.s/233280;}}
