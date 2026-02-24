@@ -8,12 +8,13 @@
 
         /* Background image layers */
         .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-size: cover; background-position: center; transition: opacity 2s ease-in-out; opacity: 0; }
-        .bg-layer.active { opacity: 0.15; }
+        .bg-layer.active { opacity: 0.25; }
+        #bg-dark { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: rgba(5,5,5,0.85); background-image: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 90%), linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 100% 100%, 40px 40px, 40px 40px; }
         #music-toggle { position: fixed; bottom: 10px; right: 10px; z-index: 500; background: rgba(0,0,0,0.7); border: 1px solid #333; color: #888; font-size: 18px; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
         #music-toggle:hover { border-color: var(--accent); color: var(--accent); }
         #music-toggle.playing { color: #00ffcc; border-color: #00ffcc; }
         :root { --accent: #00ffcc; --glow: rgba(0, 255, 204, 0.2); --glow-strong: rgba(0, 255, 204, 0.4); }
-        body { background-color: #050505; background-image: radial-gradient(circle at center, transparent 0%, #000 90%), linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 100% 100%, 40px 40px, 40px 40px; background-attachment: fixed; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        body { background-color: transparent; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #111; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
         #menu-container { position: absolute; z-index: 100; background: rgba(0,0,0,0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 1200px; transition: transform 0.3s ease; transform: scale(0.95); }
@@ -256,6 +257,7 @@
 <body>
     <div id="bg-a" class="bg-layer active"></div>
     <div id="bg-b" class="bg-layer"></div>
+    <div id="bg-dark"></div>
     <button id="music-toggle" onclick="toggleMusic()" title="Toggle Music">&#x1f50a;</button>
     <button id="home-btn" class="hidden" onclick="goHome()">HOME</button>
     <div id="queue-banner"><span class="q-mode" id="q-mode-text">SEARCHING...</span><span class="q-mate" id="q-mate-text"></span><span class="q-time" id="q-time-text">0:00</span><button class="q-exit" onclick="leaveQueue()">LEAVE QUEUE</button></div>
@@ -444,15 +446,20 @@ let audioCtx=null,musicEl=null,musicPlaying=false,sfxEnabled=true;
 
 function initAudio(){
     if(audioCtx)return;
-    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    // Music
-    musicEl=new Audio('assets/music.mp3');
-    musicEl.loop=true;musicEl.volume=0.3;
-    musicEl.play().then(()=>{musicPlaying=true;document.getElementById('music-toggle').classList.add('playing');}).catch(()=>{});
+    try{
+        audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtx.state==='suspended')audioCtx.resume();
+        musicEl=new Audio('assets/music.mp3');
+        musicEl.loop=true;musicEl.volume=0.3;
+        audioCtx.resume().then(()=>{
+            musicEl.play().then(()=>{musicPlaying=true;document.getElementById('music-toggle').classList.add('playing');}).catch(()=>{});
+        }).catch(()=>{});
+    }catch(e){console.warn('Audio init failed:',e);}
 }
 function toggleMusic(){
     if(!audioCtx)initAudio();
     if(!musicEl)return;
+    if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
     if(musicPlaying){musicEl.pause();musicPlaying=false;document.getElementById('music-toggle').classList.remove('playing');document.getElementById('music-toggle').innerHTML='\u{1F507}';}
     else{musicEl.play();musicPlaying=true;document.getElementById('music-toggle').classList.add('playing');document.getElementById('music-toggle').innerHTML='\u{1F50A}';}
 }
@@ -477,6 +484,7 @@ function cycleBg(){
 // === SFX ENGINE (Web Audio API synthesizer) ===
 function sfx(type){
     if(!audioCtx||!sfxEnabled)return;
+    try{
     if(audioCtx.state==='suspended')audioCtx.resume();
     const t=audioCtx.currentTime;
     const g=audioCtx.createGain();g.connect(audioCtx.destination);
@@ -597,11 +605,12 @@ function sfx(type){
         const g2=audioCtx.createGain();g2.gain.setValueAtTime(0.12,t+i*0.1);g2.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.4);
         o.connect(g2);g2.connect(audioCtx.destination);o.start(t+i*0.1);o.stop(t+i*0.1+0.4);});
     }
+    }catch(e){}
 }
 
 // Init audio on first user interaction
-document.addEventListener('keydown',function audioInit(){initAudio();document.removeEventListener('keydown',audioInit);},{once:false});
-document.addEventListener('click',function audioInit2(){initAudio();document.removeEventListener('click',audioInit2);},{once:false});
+document.addEventListener('keydown',function(){initAudio();},{once:true});
+document.addEventListener('click',function(){initAudio();},{once:true});
 
 const COLS=4,ROWS=30,B_SIZE=30;
 const PIECES=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
@@ -733,11 +742,11 @@ function hideAllClassHuds(){['hud-highroller','hud-cultist','hud-sniper','hud-gw
 function openStats(){if(!socket)return alert("Login first.");socket.emit('request_all_stats');navTo('scr-stats');}
 function openBugs(){if(!socket)return alert("Login first.");socket.emit('request_bugs');navTo('scr-bugs');}
 function submitBug(){const t=document.getElementById('bug-topic').value.trim(),b=document.getElementById('bug-body').value.trim();if(!t||!b)return alert('Fill in both fields.');if(socket)socket.emit('submit_bug',{topic:t,body:b});document.getElementById('bug-topic').value='';document.getElementById('bug-body').value='';}
-function startZen(){if(socket)socket.emit('set_status','zen');gameMode='zen';isSpectator=false;setTheme('#a29bfe');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(Math.random()*999);p1.reset();gameActive=true;loop();}
-function startAPMTest(){if(socket)socket.emit('set_status','apm_test');gameMode='apm_test';isSpectator=false;setTheme('#ff5555');clearTimeout(apmTimer);setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(Math.random()*999);p1.reset();gameActive=true;loop();apmTimer=setTimeout(()=>{gameActive=false;document.getElementById('overlay-cnt').classList.remove('hidden');document.getElementById('cnt-txt').innerText=p1.elAPM.innerText+" APM";setTimeout(goHome,3000);},60000);}
+function startZen(){if(socket)socket.emit('set_status','zen');gameMode='zen';isSpectator=false;setTheme('#a29bfe');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(Math.random()*999);p1.reset();gameActive=true;restartLoop();}
+function startAPMTest(){if(socket)socket.emit('set_status','apm_test');gameMode='apm_test';isSpectator=false;setTheme('#ff5555');clearTimeout(apmTimer);setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(Math.random()*999);p1.reset();gameActive=true;restartLoop();apmTimer=setTimeout(()=>{gameActive=false;document.getElementById('overlay-cnt').classList.remove('hidden');document.getElementById('cnt-txt').innerText=p1.elAPM.innerText+" APM";setTimeout(goHome,3000);},60000);}
 function setupGameUI(){document.getElementById('menu-container').style.display='none';document.getElementById('game-ui').classList.remove('hidden');document.getElementById('home-btn').classList.remove('hidden');}
-function startDuelGame(seed){gameMode='duel';isSpectator=false;setTheme('#ff00de');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(seed);p1.reset();gameActive=true;loop();}
-function start2v2Game(seed){gameMode='2v2';isSpectator=false;setTheme('#00a8ff');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(seed);p1.reset();gameActive=true;loop();}
+function startDuelGame(seed){gameMode='duel';isSpectator=false;setTheme('#ff00de');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(seed);p1.reset();gameActive=true;restartLoop();}
+function start2v2Game(seed){gameMode='2v2';isSpectator=false;setTheme('#00a8ff');setupGameUI();document.getElementById('ffa-grid').innerHTML='';p1.initRNG(seed);p1.reset();gameActive=true;restartLoop();}
 function startMutatorGame(seed,className){
     gameMode='mutator';activeClass=className;isSpectator=false;setTheme('#ff0055');setupGameUI();document.getElementById('ffa-grid').innerHTML='';
     p1.initRNG(seed);p1.reset();gameActive=true;
@@ -758,7 +767,7 @@ function startMutatorGame(seed,className){
     else if(className==='speedster'){document.getElementById('hud-speedster').style.display='block';updateSpeedsterUI();}
     else if(className==='gravity_well'){document.getElementById('hud-gwell').style.display='block';document.getElementById('gwell-cd-fill').style.width='0%';document.getElementById('gwell-cd-text').innerText='WORMHOLE READY';document.getElementById('gwell-cd-text').style.color='#cc66ff';updateGwellUI();}
     else if(className==='diver'){document.getElementById('hud-diver').style.display='block';updateDiverUI();}
-    loop();
+    restartLoop();
 }
 
 // === CLASS MECHANICS ===
@@ -1044,7 +1053,7 @@ function connect(){
         else if(gameMode==='ffa'){socket.emit('join_ffa');}
         else{setTimeout(goHome,1000);}
     });
-    socket.on('ffa_spectate',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2')return;setTimeout(()=>{isSpectator=true;gameMode='ffa';setupGameUI();document.getElementById('p1-root').style.opacity='0.3';setupOnlineGame(d.seed,d.players);},1000);});
+    socket.on('ffa_spectate',d=>{if(gameMode==='zen'||gameMode==='apm_test'||gameMode==='duel'||gameMode==='2v2')return;setTimeout(()=>{isSpectator=true;if(gameMode!=='mutator')gameMode='ffa';setupGameUI();document.getElementById('p1-root').style.opacity='0.3';setupOnlineGame(d.seed,d.players);},1000);});
     socket.on('update_my_wins',w=>document.getElementById('display-wins').innerText=w);
     socket.on('sniper_target',d=>{sniperTargetId=d.id;sniperTargetName=d.username;document.getElementById('sniper-target-name').innerText=d.username;updateSniperCrosshair();});
     socket.on('wormhole_hit',d=>{
@@ -1104,7 +1113,7 @@ function showStatDetails(user){const d=statsCache[user],div=document.getElementB
 function switchStatsTab(tab){const gl=document.getElementById('stats-layout'),dl=document.getElementById('stats-duel-layout'),gb=document.getElementById('stats-tab-general'),db=document.getElementById('stats-tab-duels');if(tab==='general'){gb.style.background='var(--accent)';gb.style.color='#000';db.style.background='#222';db.style.color='#888';gl.style.display='flex';dl.style.display='none';}else{gb.style.background='#222';gb.style.color='#888';db.style.background='#ff00de';db.style.color='#fff';gl.style.display='none';dl.style.display='block';showDuelHistory();}}
 function showDuelHistory(){const div=document.getElementById('stats-duel-content');if(!statsCache||!Object.keys(statsCache).length){div.innerHTML='<div style="text-align:center;color:#666;margin-top:50px;">No stats.</div>';return;}let all=[];for(const[u,d] of Object.entries(statsCache)){if(d.history)d.history.forEach(h=>{if(h.type==='duel'||h.type==='2v2')all.push({player:u,date:h.date,place:h.place,vs:h.vs||'?',score:h.score||'?',type:h.type||'duel'});});}all.sort((a,b)=>new Date(b.date)-new Date(a.date));if(!all.length){div.innerHTML='<div style="text-align:center;color:#666;margin-top:50px;">No records.</div>';return;}let h='<table class="history-table"><thead><tr><th>DATE</th><th>TYPE</th><th>PLAYER</th><th>VS</th><th>RESULT</th><th>SCORE</th></tr></thead><tbody>';all.forEach(d=>{const dt=new Date(d.date).toLocaleDateString();const rc=d.place===1?'#00ffcc':'#ff5555';const rt=d.place===1?'WIN':'LOSS';h+=`<tr><td>${dt}</td><td>${d.type.toUpperCase()}</td><td>${formatUserHTML(d.player)}</td><td>${formatUserHTML(d.vs)}</td><td style="color:${rc};font-weight:bold;">${rt}</td><td>${d.score}</td></tr>`;});h+='</tbody></table>';div.innerHTML=h;}
 
-function setupOnlineGame(seed,players){gameActive=true;p1.initRNG(seed);p1.reset();const grid=document.getElementById('ffa-grid');grid.innerHTML='';players.forEach(p=>{if(p.id!==socket.id){const d=document.createElement('div');d.className='mini-card';d.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.username)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;grid.appendChild(d);}});loop();}
+function setupOnlineGame(seed,players){gameActive=true;p1.initRNG(seed);p1.reset();const grid=document.getElementById('ffa-grid');grid.innerHTML='';players.forEach(p=>{if(p.id!==socket.id){const d=document.createElement('div');d.className='mini-card';d.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.username)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;grid.appendChild(d);}});restartLoop();}
 function drawEnemy(id,grid){const cvs=document.getElementById(`cvs_${id}`);if(!cvs)return;const ctx=cvs.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,80,520);if(grid)grid.forEach((r,y)=>r.forEach((v,x)=>{if(v){ctx.fillStyle=v;ctx.fillRect(x*20,y*20,19,19);}}));}
 function feed(msg){const f=document.getElementById('kill-feed');const d=document.createElement('div');d.className='feed-msg';d.innerHTML=msg;f.appendChild(d);setTimeout(()=>d.remove(),4000);}
 function sendChat(e){if(e.key==='Enter'){const input=document.getElementById('chat-input');const txt=input.value.trim();if(txt&&socket){socket.emit('send_chat',txt);input.value='';}}}
@@ -1249,8 +1258,10 @@ window.addEventListener('keydown',e=>{
     }
 });
 window.addEventListener('keyup',e=>{keys.delete(e.code);});
-let lastT=0;
-function loop(t=0){const dt=t-lastT;lastT=t;if(gameActive){if(!isSpectator&&!inputLocked){if(keys.has(ctrl.soft)){p1.active.pos.y++;if(p1.collide())p1.active.pos.y--;else{p1.lastMoveRotate=false;p1.lockTimer=0;}}if(keys.has(ctrl.left)||keys.has(ctrl.right)){const d=keys.has(ctrl.left)?-1:1;p1.dasTimer+=dt;if(p1.dasTimer>130){p1.arrTimer+=dt;if(p1.arrTimer>0){p1.move(d);p1.arrTimer=0;}}}p1.update(dt);p1.updateStats();updateSpeedster(dt);updateDiver(dt);}p1.draw();drawDiverWater();}requestAnimationFrame(loop);}
+let lastT=0,loopId=0;
+function restartLoop(){cancelAnimationFrame(loopId);lastT=0;loopId=requestAnimationFrame(loop);}
+function loop(t=0){const dt=t-lastT;lastT=t;if(gameActive){if(!isSpectator&&!inputLocked){if(keys.has(ctrl.soft)){p1.active.pos.y++;if(p1.collide())p1.active.pos.y--;else{p1.lastMoveRotate=false;p1.lockTimer=0;}}if(keys.has(ctrl.left)||keys.has(ctrl.right)){const d=keys.has(ctrl.left)?-1:1;p1.dasTimer+=dt;if(p1.dasTimer>130){p1.arrTimer+=dt;if(p1.arrTimer>0){p1.move(d);p1.arrTimer=0;}}}p1.update(dt);p1.updateStats();updateSpeedster(dt);updateDiver(dt);}p1.draw();drawDiverWater();}loopId=requestAnimationFrame(loop);}
+restartLoop();
 </script>
 </body>
 </html>
