@@ -464,7 +464,7 @@ io.on('connection', (socket) => {
     // === BOARD UPDATES (isolated) ===
     socket.on('update_board', data => {
         const grid = data.grid || data;
-        const height = data.height || 0;
+        const height = data.boardHeight || 0;
         // FFA
         const fp = ffaLobby.players.find(x=>x.id===socket.id);
         if(fp) { fp.lastActivity=Date.now(); fp.boardHeight=height; socket.to('lobby_ffa').emit('enemy_board_update',{id:socket.id,grid}); return; }
