@@ -331,6 +331,12 @@ io.on('connection', (socket) => {
     socket.on('join_ffa', () => {
         if(!socket.username) return;
         socket.join('lobby_ffa');
+        if(ffaLobby.state === 'playing') {
+            // Mid-match join: spectate only, don't add to players array
+            socket.emit('ffa_spectate', { seed: ffaLobby.seed, players: ffaLobby.players.map(p=>({id:p.id,username:p.username})) });
+            if(onlinePlayers[socket.id]){onlinePlayers[socket.id].status='ffa';} bp();
+            return;
+        }
         if(!ffaLobby.players.find(p=>p.id===socket.id)){
             ffaLobby.players.push({ id:socket.id, username:socket.username, alive:true, damageLog:[], lastActivity:Date.now(), linesSent:0, boardHeight:0 });
         }
@@ -338,9 +344,6 @@ io.on('connection', (socket) => {
         socket.emit('ffa_joined', { count: ffaLobby.players.length, state: ffaLobby.state });
         io.to('lobby_ffa').emit('lobby_update', { count: ffaLobby.players.length });
         if(ffaLobby.state === 'waiting') tryStartLobby(ffaLobby, 'lobby_ffa', 'ffa');
-        else if(ffaLobby.state === 'playing') {
-            socket.emit('ffa_spectate', { seed: ffaLobby.seed, players: ffaLobby.players.map(p=>({id:p.id,username:p.username})) });
-        }
     });
 
     // === DIRECT JOIN MUTATOR MADNESS ===
@@ -350,6 +353,12 @@ io.on('connection', (socket) => {
         if(!sock.username) return;
         sock.mmClass = classId || 'high_roller';
         sock.join('lobby_mm');
+        if(mmLobby.state === 'playing') {
+            // Mid-match join: spectate only, don't add to players array
+            sock.emit('ffa_spectate', { seed: mmLobby.seed, players: mmLobby.players.map(p=>({id:p.id,username:p.username,className:p.mmClass})) });
+            if(onlinePlayers[sock.id]){onlinePlayers[sock.id].status='mutator';} bp();
+            return;
+        }
         if(!mmLobby.players.find(p=>p.id===sock.id)){
             mmLobby.players.push({ id:sock.id, username:sock.username, alive:true, damageLog:[], lastActivity:Date.now(), linesSent:0, boardHeight:0, mmClass:classId });
         }
@@ -357,9 +366,6 @@ io.on('connection', (socket) => {
         sock.emit('mm_joined', { count: mmLobby.players.length, state: mmLobby.state });
         io.to('lobby_mm').emit('lobby_update', { count: mmLobby.players.length });
         if(mmLobby.state === 'waiting') tryStartLobby(mmLobby, 'lobby_mm', 'mutator');
-        else if(mmLobby.state === 'playing') {
-            sock.emit('ffa_spectate', { seed: mmLobby.seed, players: mmLobby.players.map(p=>({id:p.id,username:p.username,className:p.mmClass})) });
-        }
     }
 
     // === DUEL QUEUE ===
