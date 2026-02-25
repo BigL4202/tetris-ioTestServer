@@ -452,6 +452,7 @@ function initAudio(){
         musicEl=new Audio('/assets/music.mp3');
         musicEl.loop=true;musicEl.volume=0.3;
         musicEl.preload='auto';
+        musicEl.addEventListener('error',e=>console.warn('Music load error:',e.target.error));
         function tryPlay(){
             if(audioCtx.state==='suspended')audioCtx.resume();
             musicEl.play().then(()=>{
@@ -484,10 +485,17 @@ function cycleBg(){
 }
 // Preload + start
 (function(){
-    BG_IMAGES.forEach(src=>{const img=new Image();img.src=src;});
-    const i=Math.floor(Math.random()*BG_IMAGES.length);lastBgIndex=i;
-    document.getElementById('bg-a').style.backgroundImage='url('+BG_IMAGES[i]+')';
-    bgInterval=setInterval(cycleBg,60000);
+    // Test if assets are accessible
+    fetch('/assets/bg1.jpg',{method:'HEAD'}).then(r=>{
+        console.log('Asset check: /assets/bg1.jpg status='+r.status);
+        if(r.ok){
+            BG_IMAGES.forEach(src=>{const img=new Image();img.src=src;});
+            const i=Math.floor(Math.random()*BG_IMAGES.length);lastBgIndex=i;
+            document.getElementById('bg-a').style.backgroundImage='url('+BG_IMAGES[i]+')';
+            bgInterval=setInterval(cycleBg,60000);
+            console.log('Backgrounds loaded');
+        } else { console.warn('Assets not found (status '+r.status+'). Visit /debug-assets to check server.'); }
+    }).catch(e=>console.warn('Asset fetch failed:',e));
 })();
 
 // === SFX ENGINE (Web Audio API synthesizer) ===
@@ -1110,7 +1118,13 @@ function connect(){
     socket.on('duel_end',d=>{gameActive=false;document.getElementById('duel-hud').style.display='none';document.getElementById('duel-results-title').innerText=d.winnerName+' WINS!';document.getElementById('duel-results-score').innerText=(d.finalScores[d.p1Id]||0)+' - '+(d.finalScores[d.p2Id]||0);document.getElementById('duel-results-sub').innerText=d.reason||'Returning to menu...';document.getElementById('duel-results').style.display='flex';currentDuel=null;setTimeout(()=>{document.getElementById('duel-results').style.display='none';goHome();},5000);});
     // 2v2
     socket.on('twovtwo_start',d=>{clearQueueUI();current2v2={gameId:d.gameId,t1:d.t1,t2:d.t2};document.getElementById('duel-hud-p1').innerText=d.t1.map(p=>p.name).join(' & ');document.getElementById('duel-hud-p2').innerText=d.t2.map(p=>p.name).join(' & ');document.getElementById('duel-hud-s1').innerText='0';document.getElementById('duel-hud-s2').innerText='0';document.getElementById('duel-hud-round').innerText='ROUND 1';document.getElementById('duel-hud').style.display='flex';start2v2Game(d.seed);const grid=document.getElementById('ffa-grid');[...d.t1,...d.t2].filter(p=>p.id!==socket.id).forEach(p=>{const d2=document.createElement('div');d2.className='mini-card';d2.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.name)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;grid.appendChild(d2);});});
-    socket.on('twovtwo_round_result',d=>{gameActive=false;document.getElementById('duel-hud-s1').innerText=d.scores.t1;document.getElementById('duel-hud-s2').innerText=d.scores.t2;document.getElementById('duel-hud-round').innerText='ROUND '+d.round;const ov=document.getElementById('overlay-cnt'),tx=document.getElementById('cnt-txt');ov.classList.remove('hidden');tx.innerText=d.roundWinnerNames+' win!';setTimeout(()=>{tx.innerText='3';setTimeout(()=>tx.innerText='2',1000);setTimeout(()=>tx.innerText='1',2000);setTimeout(()=>{ov.classList.add('hidden');start2v2Game(d.newSeed);if(current2v2){[...current2v2.t1,...current2v2.t2].filter(p=>p.id!==socket.id).forEach(p=>{const d2=document.createElement('div');d2.className='mini-card';d2.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.name)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;document.getElementById('ffa-grid').appendChild(d2);});}},3000);},2000);});
+    socket.on('twovtwo_player_died',()=>{
+        // You died but your teammate is still alive - spectate
+        gameActive=false;isSpectator=true;
+        document.getElementById('p1-root').style.opacity='0.3';
+        sysMsg('You died! Waiting for teammate...');
+    });
+    socket.on('twovtwo_round_result',d=>{gameActive=false;isSpectator=false;document.getElementById('p1-root').style.opacity='1';document.getElementById('duel-hud-s1').innerText=d.scores.t1;document.getElementById('duel-hud-s2').innerText=d.scores.t2;document.getElementById('duel-hud-round').innerText='ROUND '+d.round;const ov=document.getElementById('overlay-cnt'),tx=document.getElementById('cnt-txt');ov.classList.remove('hidden');tx.innerText=d.roundWinnerNames+' win!';setTimeout(()=>{tx.innerText='3';setTimeout(()=>tx.innerText='2',1000);setTimeout(()=>tx.innerText='1',2000);setTimeout(()=>{ov.classList.add('hidden');start2v2Game(d.newSeed);if(current2v2){[...current2v2.t1,...current2v2.t2].filter(p=>p.id!==socket.id).forEach(p=>{const d2=document.createElement('div');d2.className='mini-card';d2.innerHTML=`<div style="font-size:10px;color:#888">${formatUserHTML(p.name)}</div><canvas id="cvs_${p.id}" width="80" height="520"></canvas>`;document.getElementById('ffa-grid').appendChild(d2);});}},3000);},2000);});
     socket.on('twovtwo_end',d=>{gameActive=false;document.getElementById('duel-hud').style.display='none';document.getElementById('duel-results-title').innerText=d.winNames+' WIN!';document.getElementById('duel-results-score').innerText=d.scores.t1+' - '+d.scores.t2;document.getElementById('duel-results-sub').innerText=d.reason||'';document.getElementById('duel-results').style.display='flex';current2v2=null;setTimeout(()=>{document.getElementById('duel-results').style.display='none';goHome();},5000);});
     socket.on('receive_chat',d=>{const box=document.getElementById('chat-history');box.innerHTML+=`<div><span style="color:var(--accent);font-weight:bold;">${formatUserHTML(d.user)}:</span> ${d.text}</div>`;box.scrollTop=box.scrollHeight;if(!isChatOpen){unreadChatCount++;const bg=document.getElementById('chat-badge');bg.innerText=unreadChatCount;bg.classList.remove('hidden');}});
     socket.on('receive_all_stats',d=>{statsCache=d;const list=document.getElementById('stats-list');list.innerHTML='';Object.keys(d).sort((a,b)=>{const ga=u=>{const h=d[u].history||[];return h.length?h.reduce((s,x)=>s+(x.apm||0),0)/h.length:0;};return ga(b)-ga(a);}).forEach(u=>{const h=d[u].history||[];let avg=h.length?(h.reduce((s,x)=>s+(x.apm||0),0)/h.length).toFixed(0):0;const div=document.createElement('div');div.className='player-item';div.innerHTML=`<span>${formatUserHTML(u)}</span> <span style="color:#666">${avg} APM</span>`;div.onclick=()=>{document.querySelectorAll('.player-item').forEach(el=>el.classList.remove('selected'));div.classList.add('selected');showStatDetails(u);};list.appendChild(div);});});
