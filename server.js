@@ -8,6 +8,26 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
+
+// Explicit assets route - ensures Render serves binary files correctly
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.mp3')) res.setHeader('Content-Type', 'audio/mpeg');
+        else if (filePath.endsWith('.jpg')) res.setHeader('Content-Type', 'image/jpeg');
+        else if (filePath.endsWith('.png')) res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+}));
+
+// Debug endpoint - check if assets exist on the server
+app.get('/debug-assets', (req, res) => {
+    const assetsDir = path.join(__dirname, 'public', 'assets');
+    const exists = fs.existsSync(assetsDir);
+    let files = [];
+    if (exists) try { files = fs.readdirSync(assetsDir); } catch(e) {}
+    res.json({ assetsDir, exists, files, cwd: process.cwd(), dirname: __dirname });
+});
+
 app.get('/', (req, res) => {
     const pub = path.join(__dirname, 'public', 'index.html');
     if (fs.existsSync(pub)) res.sendFile(pub);
@@ -440,7 +460,14 @@ io.on('connection', (socket) => {
         if(!game||!game.active) return;
         if(game.deadThisRound.includes(socket.id)) return;
         game.deadThisRound.push(socket.id);
+        // Tell this player to spectate while teammate continues
+        socket.emit('twovtwo_player_died');
         const myTeam = game.t1.some(p=>p.id===socket.id) ? 't1' : 't2';
+        // Check if BOTH players on this team are dead
+        const teamPlayers = game[myTeam];
+        const bothDead = teamPlayers.every(p => game.deadThisRound.includes(p.id));
+        if(!bothDead) return; // Teammate still alive, wait
+        // Both dead - round over
         const winTeamKey = myTeam==='t1'?'t2':'t1';
         game.scores[winTeamKey]++;
         const wS=game.scores[winTeamKey], lS=game.scores[myTeam];
