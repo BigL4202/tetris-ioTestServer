@@ -26,7 +26,7 @@
         "p1": "Test1",
         "p2": "BigL_",
         "p1Queued": false,
-        "p2Queued": false,
+        "p2Queued": true,
         "score1": 0,
         "score2": 0,
         "winner": null,
