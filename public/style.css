@@ -12,11 +12,17 @@
   --board-border: #00e5ff;
 }
 
-body[data-theme="cyan"] { --board-border: #00e5ff; --accent-cyan: #00e5ff; }
-body[data-theme="crimson"] { --board-border: #ff1744; --accent-cyan: #ff5252; }
-body[data-theme="gold"] { --board-border: #ffca28; --accent-cyan: #ffd54f; }
-body[data-theme="emerald"] { --board-border: #00e676; --accent-cyan: #00e676; }
-body[data-theme="violet"] { --board-border: #d500f9; --accent-cyan: #e040fb; }
+body[data-theme="cyan"]     { --board-border: #00e5ff; --accent-cyan: #00e5ff; }
+body[data-theme="crimson"]  { --board-border: #ff1744; --accent-cyan: #ff5252; }
+body[data-theme="emerald"]  { --board-border: #00e676; --accent-cyan: #00e676; }
+body[data-theme="gold"]     { --board-border: #ffca28; --accent-cyan: #ffd54f; }
+body[data-theme="violet"]   { --board-border: #d500f9; --accent-cyan: #e040fb; }
+body[data-theme="cobalt"]   { --board-border: #2979ff; --accent-cyan: #448aff; }
+body[data-theme="inferno"]  { --board-border: #ff6d00; --accent-cyan: #ff9100; }
+body[data-theme="sakura"]   { --board-border: #ff4081; --accent-cyan: #ff80ab; }
+body[data-theme="arctic"]   { --board-border: #84ffff; --accent-cyan: #b2ebf2; }
+body[data-theme="obsidian"] { --board-border: #b0bec5; --accent-cyan: #eceff1; }
+body[data-theme="celestial"]{ --board-border: #ffd700; --accent-cyan: #00e5ff; }
 
 * {
   box-sizing: border-box;
@@ -35,7 +41,7 @@ body {
   flex-direction: column;
 }
 
-/* Shuffling Background Layers */
+/* Shuffling / Locked Background Layers */
 #bg-stage {
   position: fixed;
   inset: 0;
@@ -51,7 +57,7 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0;
-  transition: opacity 1.5s ease-in-out;
+  transition: opacity 1.2s ease-in-out;
 }
 
 .bg-layer.active-bg {
@@ -237,8 +243,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 14px 24px;
-  gap: 14px;
+  padding: 12px 20px;
+  gap: 12px;
   overflow: hidden;
 }
 
@@ -246,12 +252,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 2px 0;
 }
 
 .hub-giant-title {
-  font-size: 3.1rem;
+  font-size: 2.9rem;
   font-weight: 900;
   letter-spacing: 4px;
   text-shadow: 0 0 24px rgba(0, 229, 255, 0.45);
@@ -262,11 +268,12 @@ body {
   gap: 10px;
 }
 
+/* 4-Column Hub Grid: Active Players (Left) | Singleplayer | Multiplayer | Leaderboards */
 .hub-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr 380px;
-  gap: 16px;
+  grid-template-columns: 250px 1fr 1fr 340px;
+  gap: 14px;
   min-height: 0;
 }
 
@@ -298,7 +305,7 @@ body {
 }
 
 .card-header h3 {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.8px;
   color: var(--accent-cyan);
 }
@@ -306,6 +313,76 @@ body {
 .sub-hint {
   font-size: 0.72rem;
   color: var(--text-dim);
+}
+
+/* Active Players Sidebar List & Expandable Challenge Button */
+.active-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.active-player-item {
+  background: rgba(16, 26, 46, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+.active-player-item:hover {
+  border-color: var(--accent-cyan);
+}
+
+.ap-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.ap-challenge-drawer {
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: stretch;
+}
+
+.ap-challenge-drawer button {
+  width: 100%;
+}
+
+/* Bottom-Left Incoming Challenge Toast */
+.challenge-toast {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 330px;
+  background: rgba(11, 20, 36, 0.97);
+  border: 2px solid var(--accent-gold);
+  border-radius: 8px;
+  padding: 14px 16px;
+  z-index: 180;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.challenge-toast-text {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.challenge-toast-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .mode-cards-list {
@@ -339,13 +416,13 @@ body {
 }
 
 .mc-title {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 900;
   color: #ffffff;
 }
 
 .mc-desc {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-dim);
   line-height: 1.35;
 }
@@ -359,7 +436,7 @@ body {
 
 .badge {
   align-self: flex-start;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   padding: 3px 8px;
   background: rgba(0, 229, 255, 0.15);
   border: 1px solid var(--accent-cyan);
@@ -375,12 +452,11 @@ body {
 }
 
 .queue-pill {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: var(--accent-green);
 }
 
-/* Spectator List in Hub */
 .spectate-section {
   margin-top: 6px;
   padding-top: 10px;
@@ -391,10 +467,9 @@ body {
 }
 
 .spectate-header {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 800;
   color: var(--accent-gold);
-  letter-spacing: 0.5px;
 }
 
 .spectate-list {
@@ -411,23 +486,75 @@ body {
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   padding: 7px 10px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
-/* Level Unlocks & Customization View */
+/* 4-Column CUSTOMIZATION View (1st Col on Left = Background Thumbnails) */
 .hub-customize-view {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: 280px 1fr 1fr 1fr;
+  gap: 14px;
   min-height: 0;
 }
 
-.unlock-grid {
-  padding: 14px;
+.bg-thumbnails-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.bg-thumb-card {
+  border: 2px solid var(--panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(8, 14, 26, 0.9);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  transition: transform 0.14s ease, border-color 0.14s ease;
+}
+
+.bg-thumb-card.shuffle-card {
+  grid-column: span 2;
+}
+
+.bg-thumb-card:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+}
+
+.bg-thumb-card.equipped {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.4);
+}
+
+.bg-thumb-preview {
+  height: 68px;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.bg-thumb-label {
+  padding: 5px 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unlock-grid {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   overflow-y: auto;
 }
 
@@ -435,11 +562,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: rgba(16, 26, 46, 0.85);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   cursor: pointer;
+  gap: 8px;
 }
 
 .unlock-item.equipped {
@@ -448,7 +576,7 @@ body {
 }
 
 .unlock-item.locked {
-  opacity: 0.48;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -573,7 +701,6 @@ body {
   font-weight: 900;
 }
 
-/* APM Tug of War Bar */
 .tug-of-war-wrap {
   width: 260px;
   height: 7px;
@@ -590,7 +717,6 @@ body {
   transition: width 0.2s ease;
 }
 
-/* FFA 4-Mode Target Bar */
 .ffa-target-bar {
   display: flex;
   align-items: center;
@@ -731,7 +857,6 @@ body {
   transition: height 0.12s ease-out;
 }
 
-/* Main Board Frame (Supports Physics Shake & Damage Flash) */
 .board-frame {
   position: relative;
   height: 96%;
@@ -790,7 +915,6 @@ body {
   max-width: 100%;
 }
 
-/* Multi-Board Opponent & Spectator Grid */
 .multi-opponents-panel {
   height: 96%;
   min-width: 240px;
@@ -942,7 +1066,6 @@ body {
   flex: 1;
 }
 
-/* Buttons, Inputs & Keybind Modal */
 input[type="text"], .select-box {
   background: rgba(4, 9, 18, 0.9);
   border: 1px solid var(--panel-border);
