@@ -1,29 +1,56 @@
 // ============================================================================
-// PROJECT A^2 CONTROLLER: SPECTATOR, FFA MULTI-BOARD, SKINS, KEYBINDS & SHAKE
+// PROJECT A^2 MAIN CONTROLLER: FIXED BLOCK RENDERER, FFA LOOP, 1v1 & LEVEL 100
 // ============================================================================
 
 (function () {
-  // Level-Unlocked Cosmetics Catalog
+  // Built-in Color & Matrix Fallbacks (Guarantees blocks are NEVER invisible)
+  const FALLBACK_COLORS = {
+    I: '#00e5ff', O: '#ffea00', T: '#d500f9',
+    S: '#00e676', Z: '#ff1744', J: '#2979ff',
+    L: '#ff9100', G: '#78909c'
+  };
+
+  // Level-Unlocked Rewards Every 10 Levels up to Level 100
   const UNLOCKABLE_SKINS = [
-    { id: 'bevel', name: 'Glossy Bevel', reqLevel: 1, desc: 'Classic highlighted 3D stacker blocks' },
-    { id: 'flat', name: 'Flat Minimalist', reqLevel: 2, desc: 'Clean solid-color tournament blocks' },
-    { id: 'neon', name: 'Neon Wireframe', reqLevel: 4, desc: 'Hollow glowing cyber-grid blocks' },
-    { id: 'pixel', name: 'Retro Pixel', reqLevel: 6, desc: '8-bit arcade inner-framed blocks' },
-    { id: 'mono', name: 'Monochrome High-Contrast', reqLevel: 10, desc: 'Pure white/cyan high-speed visibility blocks' }
+    { id: 'bevel',   name: 'Glossy Bevel',            reqLevel: 1,   desc: 'Classic highlighted 3D stacker blocks' },
+    { id: 'flat',    name: 'Flat Minimalist',         reqLevel: 10,  desc: 'Clean solid-color tournament blocks' },
+    { id: 'neon',    name: 'Neon Wireframe',          reqLevel: 20,  desc: 'Hollow glowing cyber-grid blocks' },
+    { id: 'pixel',   name: 'Retro Pixel',             reqLevel: 30,  desc: '8-bit arcade inner-framed blocks' },
+    { id: 'mono',    name: 'Monochrome High-Contrast',reqLevel: 40,  desc: 'Pure white/cyan high-speed blocks' },
+    { id: 'carbon',  name: 'Carbon Weave',            reqLevel: 50,  desc: 'Dark core with bright corner accents' },
+    { id: 'prism',   name: 'Prism Glass',             reqLevel: 60,  desc: 'Double-beveled crystal blocks' },
+    { id: 'plasma',  name: 'Plasma Core',             reqLevel: 70,  desc: 'Glowing center orb blocks' },
+    { id: 'goldskin',name: 'Royal Sovereign',         reqLevel: 80,  desc: 'Golden rimmed prestige blocks' },
+    { id: 'cyber',   name: 'Cyber Circuit',           reqLevel: 90,  desc: 'Cross-wired digital matrix blocks' },
+    { id: 'a2omega', name: 'A² Omega (Master)',       reqLevel: 100, desc: 'Level 100 Master radiant core blocks' }
   ];
 
   const UNLOCKABLE_GHOSTS = [
-    { id: 'fill', name: 'Translucent Fill', reqLevel: 1, desc: 'Standard shaded ghost piece' },
-    { id: 'outline', name: 'Neon Outline', reqLevel: 3, desc: 'Crisp hollow border ghost piece' },
-    { id: 'crosshair', name: 'Target Crosshair', reqLevel: 7, desc: 'Corner-bracket precision ghost piece' }
+    { id: 'fill',      name: 'Translucent Fill', reqLevel: 1,   desc: 'Standard shaded ghost piece' },
+    { id: 'outline',   name: 'Neon Outline',     reqLevel: 10,  desc: 'Crisp hollow border ghost piece' },
+    { id: 'crosshair', name: 'Target Crosshair', reqLevel: 20,  desc: 'Corner-bracket precision ghost piece' },
+    { id: 'dashed',    name: 'Tactical Dashed',  reqLevel: 30,  desc: 'Dashed perimeter laser ghost' },
+    { id: 'core',      name: 'Center Dot',       reqLevel: 40,  desc: 'Minimalist center node ghost' },
+    { id: 'double',    name: 'Double Frame',     reqLevel: 50,  desc: 'Twin concentric wireframe ghost' },
+    { id: 'pulse',     name: 'Pulse Glow',       reqLevel: 60,  desc: 'High-visibility luminous ghost' },
+    { id: 'brackets',  name: 'Corner Brackets',  reqLevel: 70,  desc: ' corner-pinned ghost' },
+    { id: 'xray',      name: 'X-Ray Grid',       reqLevel: 80,  desc: 'Internal cross-hatch ghost' },
+    { id: 'beacon',    name: 'Solar Beacon',     reqLevel: 90,  desc: 'Golden outlined ghost piece' },
+    { id: 'omega',     name: 'Omega Phantom',    reqLevel: 100, desc: 'Level 100 Master diamond ghost' }
   ];
 
   const UNLOCKABLE_THEMES = [
-    { id: 'cyan', name: 'Cyan Core', reqLevel: 1, desc: 'Default Project A² neon cyan border & accents' },
-    { id: 'crimson', name: 'Crimson Pulse', reqLevel: 3, desc: 'High-alert red arena border & accents' },
-    { id: 'gold', name: 'Solar Gold', reqLevel: 5, desc: 'Championship gold arena border & accents' },
-    { id: 'emerald', name: 'Emerald Matrix', reqLevel: 8, desc: 'Bioluminescent green arena border & accents' },
-    { id: 'violet', name: 'Violet Void', reqLevel: 12, desc: 'Deep-space purple arena border & accents' }
+    { id: 'cyan',      name: 'Cyan Core',        reqLevel: 1,   desc: 'Default Project A² neon cyan border' },
+    { id: 'crimson',   name: 'Crimson Pulse',    reqLevel: 10,  desc: 'High-alert red arena border' },
+    { id: 'emerald',   name: 'Emerald Matrix',   reqLevel: 20,  desc: 'Bioluminescent green arena border' },
+    { id: 'gold',      name: 'Solar Gold',       reqLevel: 30,  desc: 'Championship gold arena border' },
+    { id: 'violet',    name: 'Violet Void',      reqLevel: 40,  desc: 'Deep-space purple arena border' },
+    { id: 'cobalt',    name: 'Cobalt Storm',     reqLevel: 50,  desc: 'Electric blue arena border' },
+    { id: 'inferno',   name: 'Inferno Blaze',    reqLevel: 60,  desc: 'Molten orange arena border' },
+    { id: 'sakura',    name: 'Neon Sakura',      reqLevel: 70,  desc: 'Cyberpunk magenta arena border' },
+    { id: 'arctic',    name: 'Arctic Frost',     reqLevel: 80,  desc: 'Sub-zero ice cyan arena border' },
+    { id: 'obsidian',  name: 'Obsidian Chrome',  reqLevel: 90,  desc: 'Platinum silver arena border' },
+    { id: 'celestial', name: 'A² Celestial',     reqLevel: 100, desc: 'Level 100 Master gold & cyan theme' }
   ];
 
   const DEFAULT_KEYBINDS = {
@@ -80,6 +107,9 @@
   const hubCustomizeView = document.getElementById('hub-customize-view');
   const hubStatsView = document.getElementById('hub-stats-view');
 
+  const activePlayersCountEl = document.getElementById('active-players-count');
+  const activePlayersBarEl = document.getElementById('active-players-bar');
+
   const launchZen4Btn = document.getElementById('launch-zen-4-btn');
   const launchZen10Btn = document.getElementById('launch-zen-10-btn');
   const launchApmTestBtn = document.getElementById('launch-apm-test-btn');
@@ -90,6 +120,12 @@
   const hub1v1QueueStatus = document.getElementById('hub-1v1-queue-status');
   const hubFfaStatus = document.getElementById('hub-ffa-status');
   const liveMatchesList = document.getElementById('live-matches-list');
+
+  // Bottom-Left Incoming Challenge Toast
+  const challengeToast = document.getElementById('challenge-toast');
+  const challengeToastText = document.getElementById('challenge-toast-text');
+  const acceptDirectChallengeBtn = document.getElementById('accept-direct-challenge-btn');
+  const denyDirectChallengeBtn = document.getElementById('deny-direct-challenge-btn');
 
   // Leaderboards & Player Stats Directory
   const lbContentEl = document.getElementById('leaderboard-content');
@@ -145,7 +181,6 @@
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
 
-  // Settings & Customization State
   const handling = { das: 115, arr: 10, sdf: 40 };
   const userPrefs = {
     boardShake: true,
@@ -153,12 +188,14 @@
     blockSkin: 'bevel',
     ghostStyle: 'fill',
     boardTheme: 'cyan',
+    lockedBg: 'shuffle',
     keybinds: { ...DEFAULT_KEYBINDS }
   };
 
   let listeningKeybindAction = null;
+  let expandedActivePlayerId = null;
+  let pendingDirectChallengeId = null;
 
-  // Board Shake Spring Physics State
   let shakeOffsetX = 0;
   let shakeOffsetY = 0;
   let shakeVelX = 0;
@@ -168,19 +205,26 @@
   let myUserObj = null;
   let isAuthenticated = false;
   let activeScreen = 'auth';
-  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'duel', 'ffa', 'spectate'
+  let currentMode = 'hub';
   let currentCols = 4;
   let canControlBoard = false;
   let selectedManualTargetId = null;
 
   let countdownInterval = null;
+  let summaryInterval = null;
   let apmTestRemainingMs = 60000;
   let lastReportedZenLines = 0;
 
   let activeLeaderboardTab = 'byApm';
   let cachedLeaderboards = { byApm: [], byZen: [], byWins: [], byCombo: [], byDuels: [] };
   let cachedAllPlayers = [];
+  let cachedOnlinePlayers = [];
   let ws = null;
+
+  function getPieceColor(type) {
+    if (window.PIECE_COLORS && window.PIECE_COLORS[type]) return window.PIECE_COLORS[type];
+    return FALLBACK_COLORS[type] || '#00e5ff';
+  }
 
   const engine = new window.StackerEngine(4, 26, 20, {
     onSfx: (name, comboIdx) => window.AudioController.playSFX(name, comboIdx),
@@ -213,20 +257,22 @@
     }
   });
 
-  // Load Media Resources
+  // Load Media Resources & Render Background Thumbnails
   fetch('/api/resources')
     .then(r => r.json())
     .then(manifest => {
       window.AudioController.init(manifest);
       window.BackgroundController.init(manifest);
+      renderBackgroundThumbnailsGrid();
     })
     .catch(() => {
       window.AudioController.init({ bg: [], music: [], sfx: [] });
       window.BackgroundController.init({ bg: [], music: [], sfx: [] });
+      renderBackgroundThumbnailsGrid();
     });
 
   // ============================================================================
-  // BOARD SHAKE PHYSICS & LOCK FLASH HELPERS
+  // BOARD SHAKE PHYSICS
   // ============================================================================
 
   function triggerBoardImpulse(ix, iy, isDamage = false) {
@@ -266,7 +312,7 @@
   }
 
   // ============================================================================
-  // AUTHENTICATION, LEVEL BAR & CUSTOMIZATION HYDRATION
+  // AUTHENTICATION, AUTO-SESSION RESTORE & LEVEL BAR
   // ============================================================================
 
   function showAuthError(msg) {
@@ -295,6 +341,7 @@
         return;
       }
 
+      localStorage.setItem('a2_saved_user', data.user.username);
       if (data.leaderboards) cachedLeaderboards = data.leaderboards;
       if (data.allPlayers) cachedAllPlayers = data.allPlayers;
       completeLogin(data.user);
@@ -303,14 +350,30 @@
     }
   }
 
+  // Auto-restore saved player profile on page load so player_data is always hydrated
+  const savedUsername = localStorage.getItem('a2_saved_user');
+  if (savedUsername) {
+    authUsernameInput.value = savedUsername;
+    fetch(`/api/auth/profile/${encodeURIComponent(savedUsername)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.ok && data.user) {
+          if (data.leaderboards) cachedLeaderboards = data.leaderboards;
+          if (data.allPlayers) cachedAllPlayers = data.allPlayers;
+          completeLogin(data.user);
+        }
+      })
+      .catch(() => {});
+  }
+
   function updateTopLevelBar(u) {
     if (!u || !u.stats) return;
     myUserObj = u;
     navPilotName.textContent = u.username;
     const lvl = u.stats.level || 1;
     const xp = u.stats.xp || 0;
-    const currentFloorXp = Math.pow(lvl - 1, 2) * 100;
-    const nextFloorXp = Math.pow(lvl, 2) * 100;
+    const currentFloorXp = Math.pow(lvl - 1, 2) * 80;
+    const nextFloorXp = Math.pow(lvl, 2) * 80;
     const pct = Math.min(100, Math.max(0, ((xp - currentFloorXp) / Math.max(1, nextFloorXp - currentFloorXp)) * 100));
 
     navPilotLevel.textContent = `LVL ${lvl}`;
@@ -343,11 +406,14 @@
     userPrefs.blockSkin = settings.blockSkin || 'bevel';
     userPrefs.ghostStyle = settings.ghostStyle || 'fill';
     userPrefs.boardTheme = settings.boardTheme || 'cyan';
+    userPrefs.lockedBg = settings.lockedBg || 'shuffle';
     document.body.setAttribute('data-theme', userPrefs.boardTheme);
+    window.BackgroundController.setLockedBackground(userPrefs.lockedBg);
 
     userPrefs.keybinds = { ...DEFAULT_KEYBINDS, ...(settings.keybinds || {}) };
     renderKeybindsModalList();
     renderUnlockGrids();
+    renderBackgroundThumbnailsGrid();
   }
 
   function saveUserSettingsToServer() {
@@ -366,6 +432,7 @@
           blockSkin: userPrefs.blockSkin,
           ghostStyle: userPrefs.ghostStyle,
           boardTheme: userPrefs.boardTheme,
+          lockedBg: userPrefs.lockedBg,
           keybinds: userPrefs.keybinds
         }
       })
@@ -397,6 +464,7 @@
   });
 
   logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('a2_saved_user');
     leaveCurrentArenaOrQueue();
     isAuthenticated = false;
     myUserObj = null;
@@ -408,8 +476,142 @@
   });
 
   // ============================================================================
-  // LEVEL-UNLOCKED SKINS, GHOSTS & BOARD THEMES UI
+  // ACTIVE PLAYERS SIDEBAR & BOTTOM-LEFT 1v1 CHALLENGE TOAST
   // ============================================================================
+
+  function renderActivePlayersBar() {
+    if (!activePlayersBarEl) return;
+    activePlayersCountEl.textContent = cachedOnlinePlayers.length;
+    activePlayersBarEl.innerHTML = '';
+
+    cachedOnlinePlayers.forEach(p => {
+      const isMe = p.id === myId || (myUserObj && p.username === myUserObj.username);
+      const isExpanded = expandedActivePlayerId === p.id;
+
+      const item = document.createElement('div');
+      item.className = 'active-player-item';
+
+      const topRow = document.createElement('div');
+      topRow.className = 'ap-top-row';
+      topRow.innerHTML = `
+        <div>
+          <strong>${escapeHtml(p.username)} ${isMe ? '(YOU)' : ''}</strong>
+          <div class="sub-hint">LVL ${p.level || 1} • ${Number(p.apm || 0).toFixed(1)} APM</div>
+        </div>
+        <span class="badge">${p.inDuel ? 'IN 1v1' : p.mode.toUpperCase()}</span>
+      `;
+      item.appendChild(topRow);
+
+      // Clicking a player toggles the "CHALLENGE TO 1v1" button underneath their name
+      if (!isMe && !p.inDuel) {
+        item.addEventListener('click', (e) => {
+          if (e.target.tagName === 'BUTTON') return;
+          expandedActivePlayerId = (expandedActivePlayerId === p.id) ? null : p.id;
+          renderActivePlayersBar();
+        });
+
+        if (isExpanded) {
+          const drawer = document.createElement('div');
+          drawer.className = 'ap-challenge-drawer';
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-primary btn-sm';
+          btn.textContent = 'CHALLENGE TO 1v1';
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: 'send_direct_challenge', targetId: p.id }));
+              btn.textContent = 'CHALLENGE SENT...';
+              btn.disabled = true;
+            }
+          });
+          drawer.appendChild(btn);
+          item.appendChild(drawer);
+        }
+      }
+
+      activePlayersBarEl.appendChild(item);
+    });
+  }
+
+  acceptDirectChallengeBtn.addEventListener('click', () => {
+    if (pendingDirectChallengeId && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'respond_direct_challenge',
+        challengeId: pendingDirectChallengeId,
+        accept: true
+      }));
+    }
+    pendingDirectChallengeId = null;
+    challengeToast.classList.add('hidden');
+  });
+
+  denyDirectChallengeBtn.addEventListener('click', () => {
+    if (pendingDirectChallengeId && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'respond_direct_challenge',
+        challengeId: pendingDirectChallengeId,
+        accept: false
+      }));
+    }
+    pendingDirectChallengeId = null;
+    challengeToast.classList.add('hidden');
+  });
+
+  // ============================================================================
+  // 4-COLUMN CUSTOMIZATION: BACKGROUND THUMBNAILS + LEVEL 100 REWARDS
+  // ============================================================================
+
+  function renderBackgroundThumbnailsGrid() {
+    const grid = document.getElementById('bg-thumbnails-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // 1. Default Shuffle All Option Card
+    const shuffleCard = document.createElement('div');
+    const isShuffleEquipped = !userPrefs.lockedBg || userPrefs.lockedBg === 'shuffle';
+    shuffleCard.className = `bg-thumb-card shuffle-card ${isShuffleEquipped ? 'equipped' : ''}`;
+    shuffleCard.innerHTML = `
+      <div class="bg-thumb-preview" style="background: linear-gradient(135deg, #00e5ff 0%, #2979ff 50%, #d500f9 100%); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.8rem;">
+        SHUFFLE ALL (DEFAULT 3M)
+      </div>
+      <div class="bg-thumb-label">${isShuffleEquipped ? 'ACTIVE: SHUFFLING' : 'CLICK TO SHUFFLE ALL'}</div>
+    `;
+    shuffleCard.addEventListener('click', () => {
+      userPrefs.lockedBg = 'shuffle';
+      window.BackgroundController.setLockedBackground('shuffle');
+      saveUserSettingsToServer();
+      renderBackgroundThumbnailsGrid();
+    });
+    grid.appendChild(shuffleCard);
+
+    // 2. Individual Background Thumbnails (Click to lock)
+    const catalog = window.BackgroundController.getCatalog();
+    catalog.forEach(item => {
+      const isLockedToThis = userPrefs.lockedBg === item.id;
+      const card = document.createElement('div');
+      card.className = `bg-thumb-card ${isLockedToThis ? 'equipped' : ''}`;
+
+      const previewDiv = document.createElement('div');
+      previewDiv.className = 'bg-thumb-preview';
+      previewDiv.style.backgroundImage = item.thumbPreview || item.cssValue;
+
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'bg-thumb-label';
+      labelDiv.textContent = isLockedToThis ? `LOCKED: ${item.label}` : item.label;
+
+      card.appendChild(previewDiv);
+      card.appendChild(labelDiv);
+
+      card.addEventListener('click', () => {
+        userPrefs.lockedBg = item.id;
+        window.BackgroundController.setLockedBackground(item.id);
+        saveUserSettingsToServer();
+        renderBackgroundThumbnailsGrid();
+      });
+
+      grid.appendChild(card);
+    });
+  }
 
   function renderUnlockGrids() {
     const myLvl = (myUserObj && myUserObj.stats && myUserObj.stats.level) ? myUserObj.stats.level : 1;
@@ -430,7 +632,7 @@
             <div class="sub-hint">${escapeHtml(item.desc)}</div>
           </div>
           <span class="badge ${equipped ? 'gold-badge' : ''}">
-            ${equipped ? 'EQUIPPED' : (unlocked ? `UNLOCKED (LVL ${item.reqLevel})` : `LOCKED (REQ LVL ${item.reqLevel})`)}
+            ${equipped ? 'EQUIPPED' : (unlocked ? `LVL ${item.reqLevel}` : `LOCKED (LVL ${item.reqLevel})`)}
           </span>
         `;
         if (unlocked) {
@@ -453,7 +655,7 @@
   }
 
   // ============================================================================
-  // KEYBIND REMAPPER UI IN SETTINGS
+  // KEYBIND REMAPPER UI
   // ============================================================================
 
   function renderKeybindsModalList() {
@@ -491,7 +693,7 @@
   });
 
   // ============================================================================
-  // HUB NAVIGATION, FULL LEADERBOARDS, SPECTATOR LIST & PLAYER STATS
+  // HUB NAVIGATION, FULL LEADERBOARDS & PLAYER STATS DIRECTORY
   // ============================================================================
 
   function navigateToHub() {
@@ -499,15 +701,18 @@
     currentMode = 'hub';
     canControlBoard = false;
     if (countdownInterval) clearInterval(countdownInterval);
+    if (summaryInterval) clearInterval(summaryInterval);
 
     arenaScreen.classList.add('hidden');
     postMatchScreen.classList.add('hidden');
     returnHubBtn.classList.add('hidden');
     hubScreen.classList.remove('hidden');
 
+    renderActivePlayersBar();
     renderLeaderboard();
     renderPlayersDirectory();
     renderUnlockGrids();
+    renderBackgroundThumbnailsGrid();
   }
 
   function switchHubTab(activeBtn, activeView) {
@@ -521,6 +726,7 @@
   hubTabCustomize.addEventListener('click', () => {
     switchHubTab(hubTabCustomize, hubCustomizeView);
     renderUnlockGrids();
+    renderBackgroundThumbnailsGrid();
   });
   hubTabStats.addEventListener('click', () => {
     switchHubTab(hubTabStats, hubStatsView);
@@ -651,7 +857,7 @@
   }
 
   // ============================================================================
-  // GAME MODE LAUNCHERS, FFA TARGETING & 3-SECOND COUNTDOWN ENGINE
+  // GAME MODE LAUNCHERS & 3-SECOND COUNTDOWN ENGINE
   // ============================================================================
 
   function setFfaTargetModeUI(mode) {
@@ -679,6 +885,9 @@
 
   function startThreeSecondCountdown(seed, cols, onGoCallback) {
     if (countdownInterval) clearInterval(countdownInterval);
+    if (summaryInterval) clearInterval(summaryInterval);
+    postMatchScreen.classList.add('hidden');
+
     canControlBoard = false;
     configureBoardDimensions(cols);
     engine.reset(seed, cols);
@@ -734,6 +943,7 @@
     }
 
     playerPlayfieldWrapper.classList.remove('hidden');
+    configureBoardDimensions(cols);
 
     if (modeKey === 'apm_test') {
       apmTestRemainingMs = 60000;
@@ -843,12 +1053,13 @@
   });
 
   // ============================================================================
-  // 5-SECOND POST-MATCH STATS SUMMARY SCREEN
+  // 5-SECOND POST-MATCH STATS SUMMARY (Stays in FFA Lobby on FFA finish!)
   // ============================================================================
 
   function displayFiveSecondMatchSummary(msg) {
     canControlBoard = false;
     if (countdownInterval) clearInterval(countdownInterval);
+    if (summaryInterval) clearInterval(summaryInterval);
 
     document.getElementById('summary-mode-title').textContent = msg.modeTitle || 'MATCH SUMMARY';
     document.getElementById('summary-winner-banner').textContent = `WINNER: ${msg.winnerName}`;
@@ -872,17 +1083,29 @@
     });
 
     postMatchScreen.classList.remove('hidden');
-    const secSpan = document.getElementById('summary-countdown-sec');
+    const footerEl = document.getElementById('summary-footer-text');
     let rem = 5;
-    secSpan.textContent = String(rem);
 
-    const sumTimer = setInterval(() => {
+    const updateFooterLabel = () => {
+      if (msg.returnToHub === false) {
+        footerEl.innerHTML = `Next FFA round starting automatically in <span id="summary-countdown-sec">${Math.max(0, rem)}</span>s...`;
+      } else {
+        footerEl.innerHTML = `Returning to Project A² Hub in <span id="summary-countdown-sec">${Math.max(0, rem)}</span>s...`;
+      }
+    };
+    updateFooterLabel();
+
+    summaryInterval = setInterval(() => {
       rem -= 1;
-      secSpan.textContent = String(Math.max(0, rem));
+      updateFooterLabel();
       if (rem <= 0) {
-        clearInterval(sumTimer);
+        clearInterval(summaryInterval);
+        summaryInterval = null;
         postMatchScreen.classList.add('hidden');
-        navigateToHub();
+        // Only return to Hub if it was a 1v1 set; FFA stays in the arena for the auto-restart!
+        if (msg.returnToHub !== false) {
+          navigateToHub();
+        }
       }
     }, 1000);
   }
@@ -950,14 +1173,14 @@
           for (let colIdx = 0; colIdx < cols; colIdx++) {
             const cell = b.grid[r][colIdx];
             if (cell) {
-              drawStyledBlock(ctx, colIdx, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0, userPrefs.blockSkin);
+              drawStyledBlock(ctx, colIdx, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
             }
           }
         }
 
         if (b.activePiece && b.activePiece.matrix) {
           const p = b.activePiece;
-          const pCol = window.PIECE_COLORS[p.type] || '#fff';
+          const pCol = getPieceColor(p.type);
           for (let r = 0; r < p.matrix.length; r++) {
             for (let colIdx = 0; colIdx < p.matrix[r].length; colIdx++) {
               if (p.matrix[r][colIdx]) {
@@ -1006,16 +1229,16 @@
           break;
 
         case 'hub_sync':
+          cachedOnlinePlayers = msg.onlinePlayers || [];
           hub1v1QueueStatus.textContent = `In Queue: ${msg.queue1v1Count || 0}`;
           hubFfaStatus.textContent = `In Lobby: ${msg.ffaPlayerCount || 0}`;
           if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
-          if (msg.leaderboards) {
-            cachedLeaderboards = msg.leaderboards;
-            if (activeScreen === 'hub') renderLeaderboard();
-          }
-          if (msg.allPlayers) {
-            cachedAllPlayers = msg.allPlayers;
-            if (activeScreen === 'hub') renderPlayersDirectory();
+          if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
+          if (msg.allPlayers) cachedAllPlayers = msg.allPlayers;
+          if (activeScreen === 'hub') {
+            renderActivePlayersBar();
+            renderLeaderboard();
+            renderPlayersDirectory();
           }
           break;
 
@@ -1023,8 +1246,25 @@
           appendChatMessage(msg.sender, msg.text, msg.style);
           break;
 
+        // Bottom-Left Direct 1v1 Challenge Popup
+        case 'direct_challenge_received':
+          pendingDirectChallengeId = msg.challengeId;
+          challengeToastText.textContent = `${msg.fromName} has challenged you to 1v1`;
+          challengeToast.classList.remove('hidden');
+          window.AudioController.playSFX('garbage_in');
+          break;
+
+        case 'challenge_cleared':
+          if (pendingDirectChallengeId === msg.challengeId) {
+            pendingDirectChallengeId = null;
+            challengeToast.classList.add('hidden');
+          }
+          renderActivePlayersBar();
+          break;
+
         case 'duel_init':
           queueWaitingBanner.classList.add('hidden');
+          challengeToast.classList.add('hidden');
           enterArenaMode('duel', `1v1 BEST OF 3 • ${msg.p1.username} vs ${msg.p2.username}`, 4);
           arenaScoreStrip.textContent = `${msg.p1.username} (0) - (0) ${msg.p2.username} | ROUND 1`;
           tugOfWarWrap.classList.remove('hidden');
@@ -1054,6 +1294,7 @@
         case 'ffa_waiting':
           if (currentMode === 'ffa') {
             canControlBoard = false;
+            postMatchScreen.classList.add('hidden');
             showOverlay('WAITING FOR PLAYERS', `In Lobby: ${msg.playerCount} / 2+ required`);
           }
           break;
@@ -1239,7 +1480,6 @@
   }
 
   window.addEventListener('keydown', (e) => {
-    // Capture key if user is remapping a keybind in Settings
     if (listeningKeybindAction) {
       e.preventDefault();
       if (e.code !== 'Escape') {
@@ -1258,7 +1498,6 @@
       e.preventDefault();
     }
 
-    // FFA 1-4 Target Switching Hotkeys
     if (currentMode === 'ffa') {
       if (e.code === 'Digit1') { setFfaTargetModeUI('payback'); return; }
       if (e.code === 'Digit2') { setFfaTargetModeUI('ko'); return; }
@@ -1345,7 +1584,7 @@
   }
 
   // ============================================================================
-  // SKIN & GHOST RENDERERS
+  // 11-TIER SKIN & GHOST RENDERERS (GUARANTEED VISIBLE BLOCKS)
   // ============================================================================
 
   function drawStyledBlock(ctx, x, y, size, color, alpha = 1.0, skin = 'bevel') {
@@ -1354,35 +1593,92 @@
     const px = x * size + 1;
     const py = y * size + 1;
     const w = size - 2;
+    const safeColor = color || '#00e5ff';
 
-    if (skin === 'flat') {
-      ctx.fillStyle = color;
-      ctx.fillRect(px, py, w, w);
-    } else if (skin === 'neon') {
-      ctx.fillStyle = 'rgba(5, 10, 20, 0.85)';
-      ctx.fillRect(px, py, w, w);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
-    } else if (skin === 'pixel') {
-      ctx.fillStyle = color;
-      ctx.fillRect(px, py, w, w);
-      ctx.fillStyle = '#050a14';
-      ctx.fillRect(px + 4, py + 4, w - 8, w - 8);
-      ctx.fillStyle = color;
-      ctx.fillRect(px + 7, py + 7, w - 14, w - 14);
-    } else if (skin === 'mono') {
-      ctx.fillStyle = '#e6f1ff';
-      ctx.fillRect(px, py, w, w);
-      ctx.strokeStyle = '#00e5ff';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
-    } else {
-      // Default 'bevel'
-      ctx.fillStyle = color;
-      ctx.fillRect(px, py, w, w);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
-      ctx.fillRect(px, py, w, 3);
+    switch (skin) {
+      case 'flat':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        break;
+      case 'neon':
+        ctx.fillStyle = 'rgba(8, 14, 26, 0.9)';
+        ctx.fillRect(px, py, w, w);
+        ctx.strokeStyle = safeColor;
+        ctx.lineWidth = 2.2;
+        ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+        break;
+      case 'pixel':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.fillStyle = '#050a14';
+        ctx.fillRect(px + 4, py + 4, w - 8, w - 8);
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px + 7, py + 7, w - 14, w - 14);
+        break;
+      case 'mono':
+        ctx.fillStyle = '#e6f1ff';
+        ctx.fillRect(px, py, w, w);
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+        break;
+      case 'carbon':
+        ctx.fillStyle = '#182232';
+        ctx.fillRect(px, py, w, w);
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, 4);
+        ctx.fillRect(px, py + w - 3, w, 3);
+        break;
+      case 'prism':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(px + 3, py + 3, w - 6, w - 6);
+        break;
+      case 'plasma':
+        ctx.fillStyle = 'rgba(10, 16, 28, 0.9)';
+        ctx.fillRect(px, py, w, w);
+        ctx.fillStyle = safeColor;
+        ctx.beginPath();
+        ctx.arc(px + w / 2, py + w / 2, w * 0.36, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = safeColor;
+        ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+        break;
+      case 'goldskin':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+        break;
+      case 'cyber':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.strokeStyle = '#050a14';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + w, py + w);
+        ctx.stroke();
+        break;
+      case 'a2omega':
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px + w * 0.28, py + w * 0.28, w * 0.44, w * 0.44);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+        break;
+      case 'bevel':
+      default:
+        ctx.fillStyle = safeColor;
+        ctx.fillRect(px, py, w, w);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
+        ctx.fillRect(px, py, w, 3);
+        break;
     }
     ctx.restore();
   }
@@ -1392,14 +1688,15 @@
     const px = x * size + 1;
     const py = y * size + 1;
     const w = size - 2;
+    const safeColor = color || '#00e5ff';
 
-    if (ghostStyle === 'outline') {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.75;
+    if (ghostStyle === 'outline' || ghostStyle === 'pulse') {
+      ctx.strokeStyle = safeColor;
+      ctx.lineWidth = ghostStyle === 'pulse' ? 2.5 : 2;
+      ctx.globalAlpha = 0.8;
       ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
-    } else if (ghostStyle === 'crosshair') {
-      ctx.strokeStyle = color;
+    } else if (ghostStyle === 'crosshair' || ghostStyle === 'brackets' || ghostStyle === 'xray') {
+      ctx.strokeStyle = safeColor;
       ctx.lineWidth = 2;
       ctx.globalAlpha = 0.85;
       ctx.strokeRect(px + 2, py + 2, w - 4, w - 4);
@@ -1409,8 +1706,30 @@
       ctx.moveTo(px + w / 2, py + w / 2 - 4);
       ctx.lineTo(px + w / 2, py + w / 2 + 4);
       ctx.stroke();
+    } else if (ghostStyle === 'dashed') {
+      ctx.strokeStyle = safeColor;
+      ctx.setLineDash([4, 3]);
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.85;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+    } else if (ghostStyle === 'core') {
+      ctx.fillStyle = safeColor;
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(px + w * 0.3, py + w * 0.3, w * 0.4, w * 0.4);
+    } else if (ghostStyle === 'double') {
+      ctx.strokeStyle = safeColor;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.85;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+      ctx.strokeRect(px + 5, py + 5, w - 10, w - 10);
+    } else if (ghostStyle === 'beacon' || ghostStyle === 'omega') {
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.85;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+      drawStyledBlock(ctx, x, y, size, safeColor, 0.25, userPrefs.blockSkin);
     } else {
-      drawStyledBlock(ctx, x, y, size, color, 0.24, userPrefs.blockSkin);
+      drawStyledBlock(ctx, x, y, size, safeColor, 0.28, userPrefs.blockSkin);
     }
     ctx.restore();
   }
@@ -1418,15 +1737,21 @@
   function renderArena(now) {
     if (currentMode === 'spectate') return;
     const cellSize = 32;
-    const cols = engine.cols;
-    const rows = engine.rows;
+    const cols = engine.cols || 4;
+    const rows = engine.rows || 26;
+
+    // Guarantee canvas dimensions match engine dimensions so blocks are never clipped or invisible
+    if (boardCanvas.width !== cols * cellSize || boardCanvas.height !== rows * cellSize) {
+      boardCanvas.width = cols * cellSize;
+      boardCanvas.height = rows * cellSize;
+    }
 
     boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
 
     boardCtx.fillStyle = 'rgba(255, 30, 70, 0.06)';
     boardCtx.fillRect(0, 0, cols * cellSize, engine.bufferRows * cellSize);
 
-    boardCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    boardCtx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
     boardCtx.lineWidth = 1;
     for (let r = 0; r <= rows; r++) {
       boardCtx.beginPath();
@@ -1441,7 +1766,7 @@
       boardCtx.stroke();
     }
 
-    boardCtx.strokeStyle = 'rgba(255, 61, 87, 0.75)';
+    boardCtx.strokeStyle = 'rgba(255, 61, 87, 0.78)';
     boardCtx.lineWidth = 2;
     boardCtx.beginPath();
     boardCtx.moveTo(0, engine.bufferRows * cellSize);
@@ -1451,12 +1776,13 @@
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = engine.grid[r][c];
-        if (cell) drawStyledBlock(boardCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0, userPrefs.blockSkin);
+        if (cell) {
+          drawStyledBlock(boardCtx, c, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
+        }
       }
     }
 
-    // Render Piece Lock Flash Effect
-    if (userPrefs.lockFlash && engine.lockFlashCells.length > 0) {
+    if (userPrefs.lockFlash && Array.isArray(engine.lockFlashCells) && engine.lockFlashCells.length > 0) {
       engine.lockFlashCells = engine.lockFlashCells.filter(f => f.expiresAt > now);
       boardCtx.save();
       boardCtx.fillStyle = 'rgba(255, 255, 255, 0.78)';
@@ -1469,24 +1795,28 @@
     if (engine.activePiece && !engine.gameOver) {
       const p = engine.activePiece;
       const ghostY = engine.getGhostY();
-      const pColor = window.PIECE_COLORS[p.type];
+      const pColor = getPieceColor(p.type);
 
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) drawGhostBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, userPrefs.ghostStyle);
+          if (p.matrix[r][c]) {
+            drawGhostBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, userPrefs.ghostStyle);
+          }
         }
       }
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) drawStyledBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0, userPrefs.blockSkin);
+          if (p.matrix[r][c]) {
+            drawStyledBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0, userPrefs.blockSkin);
+          }
         }
       }
     }
 
     holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
-    if (engine.holdPiece) {
+    if (engine.holdPiece && window.TETROMINO_MATRICES && window.TETROMINO_MATRICES[engine.holdPiece]) {
       const mat = window.TETROMINO_MATRICES[engine.holdPiece][0];
-      const col = !engine.canHold ? '#546e7a' : window.PIECE_COLORS[engine.holdPiece];
+      const col = !engine.canHold ? '#546e7a' : getPieceColor(engine.holdPiece);
       for (let r = 0; r < mat.length; r++) {
         for (let c = 0; c < mat[r].length; c++) {
           if (mat[r][c]) drawStyledBlock(holdCtx, 0.8 + c, 0.8 + r, 22, col, 1.0, userPrefs.blockSkin);
@@ -1496,8 +1826,9 @@
 
     nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
     engine.nextQueue.slice(0, 5).forEach((type, idx) => {
+      if (!window.TETROMINO_MATRICES || !window.TETROMINO_MATRICES[type]) return;
       const mat = window.TETROMINO_MATRICES[type][0];
-      const col = window.PIECE_COLORS[type];
+      const col = getPieceColor(type);
       for (let r = 0; r < mat.length; r++) {
         for (let c = 0; c < mat[r].length; c++) {
           if (mat[r][c]) drawStyledBlock(nextCtx, 0.8 + c, idx * 3.4 + 0.5 + r, 20, col, 1.0, userPrefs.blockSkin);
