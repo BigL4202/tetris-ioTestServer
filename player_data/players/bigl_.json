@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-15T21:38:43.280Z",
+  "updatedAt": "2026-10-15T21:38:50.680Z",
   "lastLogin": "2026-10-15T21:35:38.724Z",
   "settings": {
     "das": 115,
@@ -15,9 +15,9 @@
     "preferredCols": 4,
     "boardShake": true,
     "lockFlash": false,
-    "blockSkin": "cyber",
-    "ghostStyle": "beacon",
-    "boardTheme": "obsidian",
+    "blockSkin": "a2omega",
+    "ghostStyle": "omega",
+    "boardTheme": "celestial",
     "keybinds": {
       "moveLeft": "ArrowLeft",
       "moveRight": "ArrowRight",
