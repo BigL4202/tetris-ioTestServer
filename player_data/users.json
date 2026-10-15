@@ -4,8 +4,8 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T19:09:45.744Z",
-    "lastLogin": "2026-10-15T19:04:18.949Z",
+    "updatedAt": "2026-10-15T19:38:25.910Z",
+    "lastLogin": "2026-10-15T19:38:03.514Z",
     "settings": {
       "das": 115,
       "arr": 10,
@@ -13,7 +13,23 @@
       "musicVolume": 40,
       "sfxVolume": 75,
       "bgInterval": 60,
-      "preferredCols": 4
+      "preferredCols": 4,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "boardTheme": "cyan",
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
     },
     "stats": {
       "gamesPlayed": 1,
@@ -21,7 +37,7 @@
       "duelWins": 0,
       "duelLosses": 0,
       "maxCombo": 0,
-      "totalLinesCleared": 1,
+      "totalLinesCleared": 2,
       "totalAttackSent": 0,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -29,9 +45,9 @@
       "totalReceivedSum": 0,
       "receivedSamples": 1,
       "avgReceived": 0,
-      "xp": 0,
+      "xp": 6,
       "level": 1,
-      "zenLines": 0,
+      "zenLines": 1,
       "apmTestBest": 0,
       "apmTestLast": 0
     },
