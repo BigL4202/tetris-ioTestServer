@@ -14,7 +14,8 @@
     "seeding": "random",
     "status": "registration",
     "registeredPlayers": [
-      "BigL_"
+      "BigL_",
+      "Test1"
     ],
     "matches": [],
     "champion": null
