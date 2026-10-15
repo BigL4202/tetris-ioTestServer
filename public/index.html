@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TETR.IO 4x26 & 10x26 Multiplayer Stacker</title>
+  <title>Project A² | Multiplayer Stacker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,16 +13,50 @@
     <div class="bg-vignette"></div>
   </div>
 
+  <!-- DEDICATED LOGIN & REGISTRATION SCREEN OVERLAY -->
+  <div id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <span class="brand-accent">PROJECT</span> A<sup>2</sup>
+      </div>
+      <p class="auth-subtitle">4x26 & 10x26 Competitive Multiplayer Stacker</p>
+
+      <div id="auth-error-box" class="auth-error hidden"></div>
+
+      <form id="auth-form" class="auth-form">
+        <div class="auth-field">
+          <label for="auth-username">PILOT CALLSIGN (USERNAME)</label>
+          <input type="text" id="auth-username" maxlength="18" placeholder="Enter Callsign..." required autocomplete="username" />
+        </div>
+
+        <div class="auth-field">
+          <label for="auth-password">ACCESS PASSCODE (PASSWORD)</label>
+          <input type="password" id="auth-password" maxlength="64" placeholder="Enter Password..." required autocomplete="current-password" />
+        </div>
+
+        <div class="auth-btn-row">
+          <button type="submit" id="login-submit-btn" class="btn btn-primary auth-btn">LOGIN TO A²</button>
+          <button type="button" id="register-submit-btn" class="btn btn-success auth-btn">REGISTER NEW PILOT</button>
+        </div>
+      </form>
+
+      <div class="auth-footer-note">
+        Player profiles, passwords, handling configs & match records sync to <code>/player_data</code>.
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation & Mode Bar -->
   <header class="top-bar">
     <div class="brand">
-      <span class="brand-accent">TETR</span>.ARGON <span id="matrix-badge" class="badge">4x26 MATRIX</span>
+      <span class="brand-accent">PROJECT</span> A<sup>2</sup>
+      <span id="matrix-badge" class="badge">4x26 MATRIX</span>
     </div>
 
     <div class="profile-controls">
-      <label for="username-input">PILOT:</label>
-      <input type="text" id="username-input" maxlength="18" placeholder="Username" />
-      <button id="save-profile-btn" class="btn btn-primary">SET</button>
+      <span class="pilot-tag-label">PILOT:</span>
+      <span id="active-pilot-name" class="active-pilot-badge">NOT LOGGED IN</span>
+      <button id="logout-btn" class="btn btn-sm btn-danger">LOGOUT</button>
     </div>
 
     <div class="mode-controls">
@@ -50,7 +84,7 @@
       <span id="duel-p1-score" class="duel-score-pill">0</span>
     </div>
     <div class="duel-center">
-      <div id="duel-format-label">1v1 DUEL • FIRST TO 6 (WIN BY 2)</div>
+      <div id="duel-format-label">PROJECT A² 1v1 DUEL • FIRST TO 6 (WIN BY 2)</div>
       <div id="duel-round-label">ROUND 1</div>
     </div>
     <div class="duel-side p2-side">
@@ -64,7 +98,6 @@
 
     <!-- LEFT COLUMN: Online Players, Challenges & Leaderboards -->
     <aside class="side-panel left-panel">
-      <!-- Pending Challenge Alert Box -->
       <div id="challenge-alert-box" class="challenge-box hidden">
         <div id="challenge-alert-text">Incoming 1v1 Challenge!</div>
         <div id="challenge-timer-bar" class="timer-bar"></div>
@@ -74,13 +107,11 @@
         </div>
       </div>
 
-      <!-- Outgoing Challenge Status -->
       <div id="outgoing-challenge-box" class="challenge-box outgoing hidden">
         <div id="outgoing-challenge-text">Waiting for opponent...</div>
         <button id="cancel-challenge-btn" class="btn btn-danger btn-sm">CANCEL</button>
       </div>
 
-      <!-- Online Players & 1v1 Challenge Dispatch -->
       <section class="panel-card">
         <div class="card-header">
           <h3>ONLINE PILOTS (<span id="online-count">0</span>)</h3>
@@ -89,10 +120,9 @@
         <div id="online-players-list" class="scrollable-list"></div>
       </section>
 
-      <!-- Multi-Tab Leaderboards (Avg APM, Wins, Combo, Duel Records) -->
       <section class="panel-card leaderboard-card">
         <div class="card-header">
-          <h3>LEADERBOARDS</h3>
+          <h3>A² LEADERBOARDS</h3>
         </div>
         <div class="lb-tabs">
           <button class="lb-tab active" data-tab="byApm">AVG APM</button>
@@ -108,7 +138,6 @@
     <section class="center-stage">
       <div class="playfield-wrapper">
         
-        <!-- Left of Board: HOLD Piece & Complete Telemetry Stat Boxes -->
         <div class="hud-left-col">
           <div class="hud-box hold-box">
             <div class="hud-label">HOLD (C / SHIFT)</div>
@@ -147,12 +176,10 @@
           </div>
         </div>
 
-        <!-- Incoming Garbage Meter Bar -->
         <div class="garbage-meter-container">
           <div id="garbage-meter-fill" class="garbage-meter-fill"></div>
         </div>
 
-        <!-- Main Playfield Canvas (Renders 6 Buffer Rows + 20 Visible Rows) -->
         <div class="board-frame">
           <canvas id="board-canvas" width="320" height="832"></canvas>
           <div id="action-callout" class="action-callout"></div>
@@ -162,7 +189,6 @@
           </div>
         </div>
 
-        <!-- Right of Board: 5-Piece NEXT Queue -->
         <div class="hud-right-col">
           <div class="hud-box next-box">
             <div class="hud-label">NEXT (7-BAG)</div>
@@ -187,7 +213,7 @@
 
       <section class="panel-card chat-card">
         <div class="card-header">
-          <h3>LOBBY & MATCH COMMS</h3>
+          <h3>A² LOBBY & MATCH COMMS</h3>
         </div>
         <div id="chat-messages" class="chat-messages"></div>
         <form id="chat-form" class="chat-input-row">
@@ -203,7 +229,7 @@
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-window">
       <div class="modal-header">
-        <h2>HANDLING, AUDIO & RESOURCES</h2>
+        <h2>PROJECT A² HANDLING & AUDIO</h2>
         <button id="close-settings-btn" class="btn btn-sm btn-danger">✕</button>
       </div>
       <div class="modal-body">
