@@ -1,19 +1,62 @@
 // ============================================================================
-// PROJECT A^2 MAIN CONTROLLER: AUTHENTICATION, RENDERER, INPUT & WEBSOCKET
+// PROJECT A^2 CONTROLLER: HUB, LEVELING, 1:00 APM TEST, 1v1 BO3, FFA & STATS
 // ============================================================================
 
 (function () {
-  // Auth Screen Elements
+  // Screens & Navigation
   const authScreen = document.getElementById('auth-screen');
+  const topBar = document.getElementById('top-bar');
+  const hubScreen = document.getElementById('hub-screen');
+  const arenaScreen = document.getElementById('arena-screen');
+  const postMatchScreen = document.getElementById('post-match-screen');
+  const returnHubBtn = document.getElementById('return-hub-btn');
+
+  // Auth Elements
   const authForm = document.getElementById('auth-form');
   const authUsernameInput = document.getElementById('auth-username');
   const authPasswordInput = document.getElementById('auth-password');
   const registerSubmitBtn = document.getElementById('register-submit-btn');
   const authErrorBox = document.getElementById('auth-error-box');
-  const activePilotNameEl = document.getElementById('active-pilot-name');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // Canvas & HUD Elements
+  // Pilot Level Strip
+  const navPilotName = document.getElementById('nav-pilot-name');
+  const navPilotLevel = document.getElementById('nav-pilot-level');
+  const navXpFill = document.getElementById('nav-xp-fill');
+  const navXpText = document.getElementById('nav-xp-text');
+
+  // Hub Elements
+  const hubTabPlay = document.getElementById('hub-tab-play');
+  const hubTabStats = document.getElementById('hub-tab-stats');
+  const hubPlayView = document.getElementById('hub-play-view');
+  const hubStatsView = document.getElementById('hub-stats-view');
+
+  const launchZen4Btn = document.getElementById('launch-zen-4-btn');
+  const launchZen10Btn = document.getElementById('launch-zen-10-btn');
+  const launchApmTestBtn = document.getElementById('launch-apm-test-btn');
+  const join1v1QueueBtn = document.getElementById('join-1v1-queue-btn');
+  const leave1v1QueueBtn = document.getElementById('leave-1v1-queue-btn');
+  const queueWaitingBanner = document.getElementById('queue-waiting-banner');
+  const joinFfaLobbyBtn = document.getElementById('join-ffa-lobby-btn');
+  const hub1v1QueueStatus = document.getElementById('hub-1v1-queue-status');
+  const hubFfaStatus = document.getElementById('hub-ffa-status');
+
+  // Leaderboards & Player Stats Directory
+  const lbContentEl = document.getElementById('leaderboard-content');
+  const lbTabs = document.querySelectorAll('.lb-tab');
+  const pilotSearchInput = document.getElementById('pilot-search-input');
+  const allPilotsDirectory = document.getElementById('all-pilots-directory');
+  const inspectedPilotTitle = document.getElementById('inspected-pilot-title');
+  const inspectedPilotBody = document.getElementById('inspected-pilot-body');
+
+  // Arena Elements
+  const arenaModeTitle = document.getElementById('arena-mode-title');
+  const arenaScoreStrip = document.getElementById('arena-score-strip');
+  const arenaTimerDisplay = document.getElementById('arena-timer-display');
+  const arenaRestartBtn = document.getElementById('arena-restart-btn');
+  const arenaLeaveBtn = document.getElementById('arena-leave-btn');
+  const opponentPreviewPanel = document.getElementById('opponent-preview-panel');
+
   const boardCanvas = document.getElementById('board-canvas');
   const boardCtx = boardCanvas.getContext('2d');
   const holdCanvas = document.getElementById('hold-canvas');
@@ -23,25 +66,8 @@
   const oppCanvas = document.getElementById('opponent-canvas');
   const oppCtx = oppCanvas.getContext('2d');
 
-  const matrixBadge = document.getElementById('matrix-badge');
-  const matrixSelect = document.getElementById('matrix-select');
-  const modeZenBtn = document.getElementById('mode-zen-btn');
-  const modeFfaBtn = document.getElementById('mode-ffa-btn');
-  const restartBtn = document.getElementById('restart-btn');
-  const forfeitDuelBtn = document.getElementById('forfeit-duel-btn');
-
-  // Duel Banner Elements
-  const duelBanner = document.getElementById('duel-banner');
-  const duelP1Name = document.getElementById('duel-p1-name');
-  const duelP1Score = document.getElementById('duel-p1-score');
-  const duelP2Name = document.getElementById('duel-p2-name');
-  const duelP2Score = document.getElementById('duel-p2-score');
-  const duelRoundLabel = document.getElementById('duel-round-label');
-
-  // Telemetry Stat Elements
   const statApm = document.getElementById('stat-apm');
   const statPps = document.getElementById('stat-pps');
-  const statVs = document.getElementById('stat-vs');
   const statLinesSent = document.getElementById('stat-lines-sent');
   const statRecv = document.getElementById('stat-recv');
   const statCombo = document.getElementById('stat-combo');
@@ -52,23 +78,10 @@
   const overlayTitle = document.getElementById('overlay-title');
   const overlaySubtitle = document.getElementById('overlay-subtitle');
 
-  // Online List, Challenges & Leaderboards
-  const onlineCountEl = document.getElementById('online-count');
-  const onlineListEl = document.getElementById('online-players-list');
-  const lbContentEl = document.getElementById('leaderboard-content');
-  const lbTabs = document.querySelectorAll('.lb-tab');
-
-  const challengeAlertBox = document.getElementById('challenge-alert-box');
-  const challengeAlertText = document.getElementById('challenge-alert-text');
-  const challengeTimerBar = document.getElementById('challenge-timer-bar');
-  const acceptChallengeBtn = document.getElementById('accept-challenge-btn');
-  const declineChallengeBtn = document.getElementById('decline-challenge-btn');
-
-  const outgoingChallengeBox = document.getElementById('outgoing-challenge-box');
-  const outgoingChallengeText = document.getElementById('outgoing-challenge-text');
-  const cancelChallengeBtn = document.getElementById('cancel-challenge-btn');
-
-  // Chat Elements
+  // Chat Drawer Elements ("Chat" + top-right X button)
+  const chatDrawer = document.getElementById('chat-drawer');
+  const toggleChatBtn = document.getElementById('toggle-chat-btn');
+  const closeChatBtn = document.getElementById('close-chat-btn');
   const chatMessagesEl = document.getElementById('chat-messages');
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
@@ -80,21 +93,23 @@
   };
 
   let myId = null;
-  let myUsername = '';
+  let myUserObj = null;
   let isAuthenticated = false;
-  let currentMode = 'zen';
+  let activeScreen = 'auth'; // 'auth', 'hub', 'arena'
+  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'duel', 'ffa'
   let currentCols = 4;
-  let activeLeaderboardTab = 'byApm';
-  let cachedLeaderboards = { byApm: [], byWins: [], byCombo: [], byDuels: [] };
-  let sessionGamesCount = 0;
-  let sessionTotalReceived = 0;
+  let canControlBoard = false; // False during 3s countdown or waiting for FFA players
 
-  let activeIncomingChallenge = null;
-  let challengeCountdownTimer = null;
+  let countdownInterval = null;
+  let apmTestRemainingMs = 60000;
+  let lastReportedZenLines = 0;
+
+  let activeLeaderboardTab = 'byApm';
+  let cachedLeaderboards = { byApm: [], byZen: [], byWins: [], byCombo: [], byDuels: [] };
+  let cachedAllPlayers = [];
   let ws = null;
 
-  // Instantiate Core Stacker Engine
-  const engine = new window.StackerEngine(currentCols, 26, 20, {
+  const engine = new window.StackerEngine(4, 26, 20, {
     onSfx: (name, comboIdx) => window.AudioController.playSFX(name, comboIdx),
     onCallout: (text) => showCallout(text),
     onSendGarbage: (lines) => {
@@ -103,21 +118,29 @@
       }
     },
     onTopOut: (stats) => {
-      sessionGamesCount += 1;
-      sessionTotalReceived += stats.garbageReceived;
-      if (ws && ws.readyState === WebSocket.OPEN && isAuthenticated) {
-        ws.send(JSON.stringify({ type: 'player_topout', stats }));
-      }
-      if (currentMode !== 'duel') {
-        showOverlay('TOP OUT', 'Press R or click RESTART to play again');
+      canControlBoard = false;
+      if (currentMode === 'duel' || currentMode === 'ffa') {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'player_topout', stats }));
+        }
+        showOverlay('TOP OUT', 'Waiting for match result...');
+      } else if (currentMode === 'apm_test') {
+        finishApmTest();
       } else {
-        showOverlay('ROUND LOST', 'Waiting for next round...');
+        // Zen modes auto-report any remaining lines
+        flushZenLines();
+        showOverlay('TOP OUT', 'Press R or click RESTART for a new 3s countdown');
       }
     },
-    onSync: () => sendBoardSync()
+    onSync: () => {
+      if (currentMode === 'zen4' || currentMode === 'zen10') {
+        flushZenLines();
+      }
+      sendBoardSync();
+    }
   });
 
-  // Load Resources (/api/resources)
+  // Load Media Resources
   fetch('/api/resources')
     .then(r => r.json())
     .then(manifest => {
@@ -130,7 +153,7 @@
     });
 
   // ============================================================================
-  // DEDICATED LOGIN & REGISTRATION FLOW
+  // AUTHENTICATION & LEVEL BAR HYDRATION
   // ============================================================================
 
   function showAuthError(msg) {
@@ -142,9 +165,8 @@
     authErrorBox.classList.add('hidden');
     const username = authUsernameInput.value.trim();
     const password = authPasswordInput.value;
-
     if (!username || !password) {
-      showAuthError('Please enter both a Callsign and Password.');
+      showAuthError('Enter both a Callsign and Password.');
       return;
     }
 
@@ -160,51 +182,52 @@
         return;
       }
 
-      completePilotLogin(data.user);
-    } catch (err) {
-      showAuthError('Network error communicating with Project A² server.');
+      if (data.leaderboards) cachedLeaderboards = data.leaderboards;
+      if (data.allPlayers) cachedAllPlayers = data.allPlayers;
+      completeLogin(data.user);
+    } catch (e) {
+      showAuthError('Could not connect to Project A² server.');
     }
   }
 
-  function completePilotLogin(userObj) {
-    isAuthenticated = true;
-    myUsername = userObj.username;
-    activePilotNameEl.textContent = myUsername;
-    authScreen.classList.add('hidden');
+  function updateTopLevelBar(u) {
+    if (!u || !u.stats) return;
+    myUserObj = u;
+    navPilotName.textContent = u.username;
+    const lvl = u.stats.level || 1;
+    const xp = u.stats.xp || 0;
+    const currentFloorXp = Math.pow(lvl - 1, 2) * 100;
+    const nextFloorXp = Math.pow(lvl, 2) * 100;
+    const pct = Math.min(100, Math.max(0, ((xp - currentFloorXp) / Math.max(1, nextFloorXp - currentFloorXp)) * 100));
 
-    // Apply user's saved handling settings from player_data
+    navPilotLevel.textContent = `LVL ${lvl}`;
+    navXpFill.style.width = `${pct}%`;
+    navXpText.textContent = `${xp} XP`;
+  }
+
+  function completeLogin(userObj) {
+    isAuthenticated = true;
+    updateTopLevelBar(userObj);
+
     if (userObj.settings) {
-      if (typeof userObj.settings.das === 'number') {
-        handling.das = userObj.settings.das;
-        document.getElementById('slider-das').value = handling.das;
-        document.getElementById('val-das').textContent = handling.das;
-      }
-      if (typeof userObj.settings.arr === 'number') {
-        handling.arr = userObj.settings.arr;
-        document.getElementById('slider-arr').value = handling.arr;
-        document.getElementById('val-arr').textContent = handling.arr;
-      }
-      if (typeof userObj.settings.sdf === 'number') {
-        handling.sdf = userObj.settings.sdf;
-        document.getElementById('slider-sdf').value = handling.sdf;
-        document.getElementById('val-sdf').textContent = handling.sdf;
-      }
-      if (userObj.settings.preferredCols === 4 || userObj.settings.preferredCols === 10) {
-        currentCols = userObj.settings.preferredCols;
-        matrixSelect.value = String(currentCols);
-        updateMatrixBadge();
-      }
+      handling.das = userObj.settings.das ?? 115;
+      handling.arr = userObj.settings.arr ?? 10;
+      handling.sdf = userObj.settings.sdf ?? 40;
+      document.getElementById('slider-das').value = handling.das;
+      document.getElementById('val-das').textContent = handling.das;
+      document.getElementById('slider-arr').value = handling.arr;
+      document.getElementById('val-arr').textContent = handling.arr;
+      document.getElementById('slider-sdf').value = handling.sdf;
+      document.getElementById('val-sdf').textContent = handling.sdf;
     }
 
-    engine.reset(Date.now(), currentCols);
+    authScreen.classList.add('hidden');
+    topBar.classList.remove('hidden');
+    navigateToHub();
     window.AudioController.playCurrentMusic();
 
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'auth_bind',
-        username: myUsername,
-        boardCols: currentCols
-      }));
+      ws.send(JSON.stringify({ type: 'auth_bind', username: userObj.username }));
     }
   }
 
@@ -218,31 +241,360 @@
   });
 
   logoutBtn.addEventListener('click', () => {
+    leaveCurrentArenaOrQueue();
     isAuthenticated = false;
-    myUsername = '';
+    myUserObj = null;
     authPasswordInput.value = '';
+    topBar.classList.add('hidden');
+    hubScreen.classList.add('hidden');
+    arenaScreen.classList.add('hidden');
     authScreen.classList.remove('hidden');
   });
 
-  function pushSettingsToServer() {
-    if (!isAuthenticated || !myUsername) return;
-    fetch('/api/auth/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: myUsername,
-        settings: {
-          das: handling.das,
-          arr: handling.arr,
-          sdf: handling.sdf,
-          preferredCols: currentCols
-        }
-      })
-    }).catch(() => {});
+  // ============================================================================
+  // HUB NAVIGATION, TOP-5 LEADERBOARDS & PLAYER STATS DIRECTORY
+  // ============================================================================
+
+  function navigateToHub() {
+    activeScreen = 'hub';
+    currentMode = 'hub';
+    canControlBoard = false;
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    arenaScreen.classList.add('hidden');
+    postMatchScreen.classList.add('hidden');
+    returnHubBtn.classList.add('hidden');
+    hubScreen.classList.remove('hidden');
+
+    renderLeaderboard();
+    renderPilotsDirectory();
+  }
+
+  hubTabPlay.addEventListener('click', () => {
+    hubTabPlay.classList.add('active');
+    hubTabStats.classList.remove('active');
+    hubPlayView.classList.remove('hidden');
+    hubStatsView.classList.add('hidden');
+  });
+
+  hubTabStats.addEventListener('click', () => {
+    hubTabStats.classList.add('active');
+    hubTabPlay.classList.remove('active');
+    hubStatsView.classList.remove('hidden');
+    hubPlayView.classList.add('hidden');
+    renderPilotsDirectory();
+  });
+
+  function renderLeaderboard() {
+    lbContentEl.innerHTML = '';
+    const rows = (cachedLeaderboards[activeLeaderboardTab] || []).slice(0, 5);
+
+    if (rows.length === 0) {
+      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No Top-5 records yet!</span></div>`;
+      return;
+    }
+
+    rows.forEach((r, idx) => {
+      const div = document.createElement('div');
+      div.className = 'lb-row';
+      let val = '';
+      if (activeLeaderboardTab === 'byApm') {
+        val = `${Number(r.apm || 0).toFixed(1)} APM`;
+      } else if (activeLeaderboardTab === 'byZen') {
+        val = `${r.zenLines || 0} Lines`;
+      } else if (activeLeaderboardTab === 'byWins') {
+        val = `${r.wins || 0} Wins`;
+      } else if (activeLeaderboardTab === 'byCombo') {
+        val = `${r.maxCombo || 0}x Combo`;
+      } else if (activeLeaderboardTab === 'byDuels') {
+        val = `${r.duelWins || 0}W - ${r.duelLosses || 0}L`;
+      }
+
+      div.innerHTML = `
+        <span class="lb-rank">#${idx + 1}</span>
+        <span class="lb-user">${escapeHtml(r.username)} <small style="color:#ffca28">LVL ${r.level || 1}</small></span>
+        <span class="lb-val">${val}</span>
+      `;
+      lbContentEl.appendChild(div);
+    });
+  }
+
+  lbTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      lbTabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeLeaderboardTab = btn.dataset.tab;
+      renderLeaderboard();
+    });
+  });
+
+  function renderPilotsDirectory() {
+    const filter = (pilotSearchInput.value || '').trim().toLowerCase();
+    allPilotsDirectory.innerHTML = '';
+
+    const list = cachedAllPlayers.filter(p => p.username.toLowerCase().includes(filter));
+    list.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'pilot-row';
+      row.innerHTML = `
+        <div>
+          <strong>${escapeHtml(p.username)}</strong>
+          <div class="sub-hint">LVL ${p.stats.level} (${p.stats.xp} XP) • ${p.stats.apmTestBest.toFixed(1)} APM</div>
+        </div>
+        <span class="badge">VIEW STATS ➔</span>
+      `;
+      row.addEventListener('click', () => inspectPilotProfile(p));
+      allPilotsDirectory.appendChild(row);
+    });
+  }
+
+  pilotSearchInput.addEventListener('input', renderPilotsDirectory);
+
+  function inspectPilotProfile(p) {
+    inspectedPilotTitle.textContent = `PILOT DOSSIER: ${p.username.toUpperCase()} (LVL ${p.stats.level})`;
+    const s = p.stats;
+    const historyHtml = (p.matchHistory || []).slice().reverse().slice(0, 10).map(m => `
+      <tr>
+        <td>${escapeHtml(m.mode || '-')}</td>
+        <td>${escapeHtml(m.result || '-')}</td>
+        <td>${Number(m.apm || 0).toFixed(1)}</td>
+        <td>${m.lines || 0}</td>
+        <td>${m.maxCombo || 0}x</td>
+      </tr>
+    `).join('') || `<tr><td colspan="5">No matches logged yet</td></tr>`;
+
+    inspectedPilotBody.innerHTML = `
+      <div class="stat-grid-boxes">
+        <div class="stat-card"><span class="stat-title">ACCOUNT LEVEL</span><span class="stat-val">LVL ${s.level} (${s.xp} XP)</span></div>
+        <div class="stat-card"><span class="stat-title">OFFICIAL APM (BEST)</span><span class="stat-val">${Number(s.apmTestBest || 0).toFixed(1)} APM</span></div>
+        <div class="stat-card"><span class="stat-title">LAST APM TEST</span><span class="stat-val">${Number(s.apmTestLast || 0).toFixed(1)} APM</span></div>
+        <div class="stat-card"><span class="stat-title">ZEN LINES CLEARED</span><span class="stat-val">${s.zenLines || 0}</span></div>
+        <div class="stat-card"><span class="stat-title">1v1 BO3 RECORD</span><span class="stat-val">${s.duelWins || 0}W - ${s.duelLosses || 0}L</span></div>
+        <div class="stat-card"><span class="stat-title">FFA WINS</span><span class="stat-val">${s.ffaWins || 0}</span></div>
+        <div class="stat-card"><span class="stat-title">MAX COMBO</span><span class="stat-val">${s.maxCombo || 0}x</span></div>
+        <div class="stat-card"><span class="stat-title">CAREER LINES / SENT</span><span class="stat-val">${s.totalLinesCleared || 0} / ${s.totalAttackSent || 0}</span></div>
+      </div>
+      <h4 style="color:var(--accent-cyan);font-size:0.82rem;">RECENT MATCH HISTORY</h4>
+      <table class="summary-table">
+        <thead>
+          <tr><th>MODE</th><th>RESULT</th><th>APM</th><th>LINES</th><th>MAX COMBO</th></tr>
+        </thead>
+        <tbody>${historyHtml}</tbody>
+      </table>
+    `;
   }
 
   // ============================================================================
-  // WEBSOCKET CONNECTION
+  // GAME MODE LAUNCHERS & 3-SECOND COUNTDOWN ENGINE
+  // ============================================================================
+
+  function configureBoardDimensions(cols) {
+    currentCols = cols;
+    const frame = document.querySelector('.board-frame');
+    if (frame) {
+      frame.style.aspectRatio = `${cols} / 26`;
+    }
+    boardCanvas.width = cols * 32;
+    boardCanvas.height = 26 * 32;
+  }
+
+  function startThreeSecondCountdown(seed, cols, onGoCallback) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    canControlBoard = false;
+    configureBoardDimensions(cols);
+    engine.reset(seed, cols);
+    lastReportedZenLines = 0;
+
+    let count = 3;
+    showOverlay('3', 'GET READY...');
+    window.AudioController.playSFX('move');
+
+    countdownInterval = setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        showOverlay(String(count), 'GET READY...');
+        window.AudioController.playSFX('move');
+      } else if (count === 0) {
+        showOverlay('GO!', '');
+        window.AudioController.playSFX('rotate');
+        engine.startTime = performance.now();
+        canControlBoard = true;
+        if (onGoCallback) onGoCallback();
+      } else {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        hideOverlay();
+      }
+    }, 1000);
+  }
+
+  function enterArenaMode(modeKey, titleText, cols, seed = Date.now()) {
+    activeScreen = 'arena';
+    currentMode = modeKey;
+    hubScreen.classList.add('hidden');
+    postMatchScreen.classList.add('hidden');
+    arenaScreen.classList.remove('hidden');
+    returnHubBtn.classList.remove('hidden');
+
+    arenaModeTitle.textContent = titleText;
+    arenaScoreStrip.textContent = '';
+
+    if (modeKey === 'apm_test') {
+      apmTestRemainingMs = 60000;
+      arenaTimerDisplay.textContent = '60.0s';
+      arenaTimerDisplay.classList.remove('hidden');
+    } else {
+      arenaTimerDisplay.classList.add('hidden');
+    }
+
+    if (modeKey === 'duel' || modeKey === 'ffa') {
+      opponentPreviewPanel.classList.remove('hidden');
+      arenaRestartBtn.classList.add('hidden');
+    } else {
+      opponentPreviewPanel.classList.add('hidden');
+      arenaRestartBtn.classList.remove('hidden');
+    }
+
+    if (modeKey === 'zen4' || modeKey === 'zen10' || modeKey === 'apm_test') {
+      startThreeSecondCountdown(seed, cols);
+    }
+  }
+
+  function flushZenLines() {
+    if (currentMode !== 'zen4' && currentMode !== 'zen10') return;
+    const delta = engine.linesCleared - lastReportedZenLines;
+    if (delta > 0 && ws && ws.readyState === WebSocket.OPEN) {
+      lastReportedZenLines = engine.linesCleared;
+      ws.send(JSON.stringify({
+        type: 'zen_lines_add',
+        lines: delta,
+        maxCombo: engine.maxCombo
+      }));
+    }
+  }
+
+  function finishApmTest() {
+    if (currentMode !== 'apm_test') return;
+    canControlBoard = false;
+    engine.gameOver = true;
+    arenaTimerDisplay.textContent = '0.0s';
+    const m = engine.getLiveMetrics();
+    window.AudioController.playSFX('win');
+    showOverlay(`${m.apm.toFixed(1)} APM`, '1-Minute APM Test Recorded to Leaderboard! Press R to try again.');
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'apm_test_complete',
+        apm: m.apm,
+        linesCleared: m.linesCleared,
+        maxCombo: m.maxCombo
+      }));
+    }
+  }
+
+  // Singleplayer Mode Buttons
+  launchZen4Btn.addEventListener('click', () => {
+    enterArenaMode('zen4', '4x26 ZEN MODE', 4);
+  });
+
+  launchZen10Btn.addEventListener('click', () => {
+    enterArenaMode('zen10', '10x26 ZEN MODE', 10);
+  });
+
+  launchApmTestBtn.addEventListener('click', () => {
+    enterArenaMode('apm_test', 'APM TEST (1:00 SPRINT)', 4);
+  });
+
+  // Multiplayer Queue & FFA Buttons
+  join1v1QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'join_1v1_queue' }));
+      queueWaitingBanner.classList.remove('hidden');
+    }
+  });
+
+  leave1v1QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'leave_1v1_queue' }));
+      queueWaitingBanner.classList.add('hidden');
+    }
+  });
+
+  joinFfaLobbyBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      enterArenaMode('ffa', 'FFA ARENA (4x26)', 4);
+      canControlBoard = false;
+      showOverlay('WAITING FOR PLAYERS TO JOIN', 'FFA starts automatically when 2 or more players are in the lobby...');
+      ws.send(JSON.stringify({ type: 'join_ffa_lobby' }));
+    }
+  });
+
+  function leaveCurrentArenaOrQueue() {
+    flushZenLines();
+    queueWaitingBanner.classList.add('hidden');
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'leave_active_mode' }));
+    }
+    navigateToHub();
+  }
+
+  returnHubBtn.addEventListener('click', leaveCurrentArenaOrQueue);
+  arenaLeaveBtn.addEventListener('click', leaveCurrentArenaOrQueue);
+
+  arenaRestartBtn.addEventListener('click', () => {
+    if (currentMode === 'duel' || currentMode === 'ffa') return;
+    flushZenLines();
+    if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
+    startThreeSecondCountdown(Date.now(), currentCols);
+  });
+
+  // ============================================================================
+  // 5-SECOND POST-MATCH STATS SUMMARY SCREEN (1v1 & FFA)
+  // ============================================================================
+
+  function displayFiveSecondMatchSummary(msg) {
+    canControlBoard = false;
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    document.getElementById('summary-mode-title').textContent = msg.modeTitle || 'MATCH SUMMARY';
+    document.getElementById('summary-winner-banner').textContent = `WINNER: ${msg.winnerName}`;
+
+    const tbody = document.getElementById('summary-table-body');
+    tbody.innerHTML = '';
+
+    (msg.players || []).forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(p.placement)}</strong></td>
+        <td>${escapeHtml(p.username)}</td>
+        <td>${Number(p.apm || 0).toFixed(1)}</td>
+        <td>${Number(p.pps || 0).toFixed(2)}</td>
+        <td>${p.lines || 0}</td>
+        <td>${p.sent || 0}</td>
+        <td>${p.recv || 0}</td>
+        <td>${p.maxCombo || 0}x</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    postMatchScreen.classList.remove('hidden');
+    const secSpan = document.getElementById('summary-countdown-sec');
+    let rem = 5;
+    secSpan.textContent = String(rem);
+
+    const sumTimer = setInterval(() => {
+      rem -= 1;
+      secSpan.textContent = String(Math.max(0, rem));
+      if (rem <= 0) {
+        clearInterval(sumTimer);
+        postMatchScreen.classList.add('hidden');
+        navigateToHub();
+      }
+    }, 1000);
+  }
+
+  // ============================================================================
+  // WEBSOCKET CLIENT
   // ============================================================================
 
   function connectWebSocket() {
@@ -250,12 +602,8 @@
     ws = new WebSocket(`${proto}//${window.location.host}`);
 
     ws.addEventListener('open', () => {
-      if (isAuthenticated && myUsername) {
-        ws.send(JSON.stringify({
-          type: 'auth_bind',
-          username: myUsername,
-          boardCols: currentCols
-        }));
+      if (isAuthenticated && myUserObj) {
+        ws.send(JSON.stringify({ type: 'auth_bind', username: myUserObj.username }));
       }
     });
 
@@ -270,22 +618,24 @@
       switch (msg.type) {
         case 'welcome':
           myId = msg.id;
+          if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
+          if (msg.allPlayers) cachedAllPlayers = msg.allPlayers;
+          break;
+
+        case 'profile_synced':
+          if (msg.user) updateTopLevelBar(msg.user);
+          break;
+
+        case 'hub_sync':
+          hub1v1QueueStatus.textContent = `In Queue: ${msg.queue1v1Count || 0}`;
+          hubFfaStatus.textContent = `In Lobby: ${msg.ffaPlayerCount || 0}`;
           if (msg.leaderboards) {
             cachedLeaderboards = msg.leaderboards;
-            renderLeaderboard();
+            if (activeScreen === 'hub') renderLeaderboard();
           }
-          break;
-
-        case 'profile_updated':
-          myUsername = msg.username;
-          activePilotNameEl.textContent = myUsername;
-          break;
-
-        case 'online_list':
-          renderOnlinePlayers(msg.players || []);
-          if (msg.leaderboards) {
-            cachedLeaderboards = msg.leaderboards;
-            renderLeaderboard();
+          if (msg.allPlayers) {
+            cachedAllPlayers = msg.allPlayers;
+            if (activeScreen === 'hub') renderPilotsDirectory();
           }
           break;
 
@@ -293,99 +643,63 @@
           appendChatMessage(msg.sender, msg.text, msg.style);
           break;
 
-        case 'error_msg':
-          appendChatMessage('ALERT', msg.text, 'duel-win');
-          break;
-
-        case 'challenge_sent':
-          outgoingChallengeBox.classList.remove('hidden');
-          outgoingChallengeText.textContent = `Challenging ${msg.challenge.toName} (${msg.challenge.boardCols}x26)...`;
-          break;
-
-        case 'challenge_received':
-          activeIncomingChallenge = msg.challenge;
-          challengeAlertBox.classList.remove('hidden');
-          challengeAlertText.textContent = `${msg.challenge.fromName} challenged you to a ${msg.challenge.boardCols}x26 1v1 Duel!`;
-          startChallengeBarTimer(msg.challenge.expiresAt);
-          window.AudioController.playSFX('garbage_in');
-          break;
-
-        case 'challenge_expired':
-        case 'challenge_cleared':
-          clearChallengeUI();
-          if (msg.text) appendChatMessage('PROJECT A²', msg.text, 'system');
-          break;
-
-        case 'challenge_declined':
-          clearChallengeUI();
-          appendChatMessage('PROJECT A²', `${msg.byName} declined your 1v1 challenge.`, 'system');
-          break;
-
+        // 1v1 Best of 3 Matchmaking Events
         case 'duel_init':
-          clearChallengeUI();
-          currentMode = 'duel';
-          currentCols = msg.boardCols;
-          matrixSelect.value = String(currentCols);
-          matrixSelect.disabled = true;
-          modeZenBtn.classList.remove('active');
-          modeFfaBtn.classList.remove('active');
-          forfeitDuelBtn.classList.remove('hidden');
-          updateMatrixBadge();
-
-          duelBanner.classList.remove('hidden');
-          duelP1Name.textContent = msg.p1.username;
-          duelP1Score.textContent = msg.p1.score;
-          duelP2Name.textContent = msg.p2.username;
-          duelP2Score.textContent = msg.p2.score;
-          duelRoundLabel.textContent = `ROUND ${msg.round} STARTING...`;
-          showOverlay('1v1 DUEL READY', `${msg.p1.username} vs ${msg.p2.username} • Get Ready!`);
+          queueWaitingBanner.classList.add('hidden');
+          enterArenaMode('duel', `1v1 BEST OF 3 • ${msg.p1.username} vs ${msg.p2.username}`, 4);
+          arenaScoreStrip.textContent = `${msg.p1.username} (0) — (0) ${msg.p2.username} | ROUND 1`;
           break;
 
-        case 'duel_round_start':
-          currentCols = msg.boardCols;
-          duelP1Score.textContent = msg.p1Score;
-          duelP2Score.textContent = msg.p2Score;
-          duelRoundLabel.textContent = `ROUND ${msg.round}`;
-          hideOverlay();
-          engine.reset(msg.seed, currentCols);
-          window.BackgroundController.applyNextBackground();
-          sendBoardSync();
+        case 'duel_round_countdown':
+          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} — ${msg.p2Score} | ROUND ${msg.round} (BEST OF 3)`;
+          startThreeSecondCountdown(msg.seed, 4);
           break;
 
         case 'duel_round_result':
-          duelP1Score.textContent = msg.p1Score;
-          duelP2Score.textContent = msg.p2Score;
+          canControlBoard = false;
+          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} — ${msg.p2Score}`;
           if (msg.roundWinnerId === myId) {
             window.AudioController.playSFX('win');
-            showOverlay(`ROUND ${msg.round} VICTORY!`, `Next round starting shortly...`);
+            showOverlay(`ROUND ${msg.round} WON!`, `Score: ${msg.p1Score} - ${msg.p2Score}`);
           } else {
-            showOverlay(`ROUND ${msg.round} LOST`, `${msg.roundWinnerName} took the point`);
+            window.AudioController.playSFX('lose');
+            showOverlay(`ROUND ${msg.round} LOST`, `${msg.roundWinnerName} won the round`);
           }
           break;
 
-        case 'duel_match_over':
-          currentMode = 'zen';
-          matrixSelect.disabled = false;
-          forfeitDuelBtn.classList.add('hidden');
-          modeZenBtn.classList.add('active');
-          duelBanner.classList.add('hidden');
-
-          if (msg.winnerId === myId) {
-            window.AudioController.playSFX('win');
-            showOverlay('1v1 SET VICTORY!', `You defeated ${msg.loserName} (${msg.p1Score}-${msg.p2Score})!`);
-          } else {
-            window.AudioController.playSFX('lose');
-            showOverlay('1v1 SET DEFEAT', `${msg.winnerName} won the set (${msg.p1Score}-${msg.p2Score})`);
+        // FFA Waiting vs Countdown Events
+        case 'ffa_waiting':
+          if (currentMode === 'ffa') {
+            canControlBoard = false;
+            showOverlay('WAITING FOR PLAYERS TO JOIN', `Players in Lobby: ${msg.playerCount} / 2+ required to start`);
           }
+          break;
+
+        case 'ffa_countdown_start':
+          if (currentMode === 'ffa') {
+            arenaScoreStrip.textContent = `${msg.playerCount} PILOTS ALIVE`;
+            startThreeSecondCountdown(msg.seed, 4);
+          }
+          break;
+
+        case 'match_summary_5s':
+          if (msg.updatedUser) updateTopLevelBar(msg.updatedUser);
+          if (msg.updatedUserP1 && myUserObj && msg.updatedUserP1.username === myUserObj.username) {
+            updateTopLevelBar(msg.updatedUserP1);
+          }
+          if (msg.updatedUserP2 && myUserObj && msg.updatedUserP2.username === myUserObj.username) {
+            updateTopLevelBar(msg.updatedUserP2);
+          }
+          displayFiveSecondMatchSummary(msg);
           break;
 
         case 'receive_garbage':
-          engine.queueIncomingGarbage(msg.lines);
+          if (canControlBoard) engine.queueIncomingGarbage(msg.lines);
           break;
 
         case 'opponent_sync':
           document.getElementById('opp-header-name').textContent = `VS: ${msg.username}`;
-          document.getElementById('opp-live-metrics').textContent = `${msg.apm || 0} APM | ${msg.pps || 0} PPS`;
+          document.getElementById('opp-live-metrics').textContent = `${Number(msg.apm || 0).toFixed(1)} APM`;
           drawOpponentBoard(msg);
           break;
       }
@@ -401,135 +715,47 @@
   function sendBoardSync() {
     if (!ws || ws.readyState !== WebSocket.OPEN || !isAuthenticated) return;
     if (currentMode !== 'duel' && currentMode !== 'ffa') return;
-    const metrics = engine.getLiveMetrics();
+    const m = engine.getLiveMetrics();
     ws.send(JSON.stringify({
       type: 'board_sync',
       grid: engine.grid,
       activePiece: engine.activePiece,
-      holdPiece: engine.holdPiece,
-      nextQueue: engine.nextQueue.slice(0, 5),
-      garbageQueue: engine.getPendingGarbageCount(),
-      apm: metrics.apm,
-      pps: metrics.pps,
-      vsScore: metrics.vsScore,
-      garbageReceived: metrics.garbageReceived,
-      b2b: metrics.b2b,
-      combo: metrics.combo,
-      maxCombo: metrics.maxCombo
+      apm: m.apm,
+      pps: m.pps,
+      linesCleared: m.linesCleared,
+      attackSent: m.attackSent,
+      garbageReceived: m.garbageReceived,
+      maxCombo: m.maxCombo
     }));
   }
 
   setInterval(() => {
-    if (isAuthenticated && !engine.gameOver && (currentMode === 'duel' || currentMode === 'ffa')) {
+    if (isAuthenticated && canControlBoard && (currentMode === 'duel' || currentMode === 'ffa')) {
       sendBoardSync();
     }
   }, 250);
 
   // ============================================================================
-  // UI HELPERS
+  // CHAT DRAWER ("Chat" + Close X Button) & SETTINGS
   // ============================================================================
 
-  function clearChallengeUI() {
-    activeIncomingChallenge = null;
-    challengeAlertBox.classList.add('hidden');
-    outgoingChallengeBox.classList.add('hidden');
-    if (challengeCountdownTimer) {
-      clearInterval(challengeCountdownTimer);
-      challengeCountdownTimer = null;
+  closeChatBtn.addEventListener('click', () => {
+    chatDrawer.classList.add('hidden');
+  });
+
+  toggleChatBtn.addEventListener('click', () => {
+    chatDrawer.classList.toggle('hidden');
+  });
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'chat', text }));
     }
-  }
-
-  function startChallengeBarTimer(expiresAt) {
-    if (challengeCountdownTimer) clearInterval(challengeCountdownTimer);
-    const total = 60000;
-    challengeCountdownTimer = setInterval(() => {
-      const rem = Math.max(0, expiresAt - Date.now());
-      challengeTimerBar.style.width = `${(rem / total) * 100}%`;
-      if (rem <= 0) clearChallengeUI();
-    }, 200);
-  }
-
-  function renderOnlinePlayers(list) {
-    onlineCountEl.textContent = list.length;
-    onlineListEl.innerHTML = '';
-
-    list.forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'pilot-row';
-
-      const info = document.createElement('div');
-      info.className = 'pilot-info';
-      const isMe = p.id === myId;
-      info.innerHTML = `
-        <span class="pilot-name">${escapeHtml(p.username)} ${isMe ? '(YOU)' : ''}</span>
-        <span class="pilot-meta">${p.mode.toUpperCase()} • ${p.boardCols}x26 • ${p.avgApm} APM • ${p.duelWins}W-${p.duelLosses}L</span>
-      `;
-      row.appendChild(info);
-
-      if (!isMe && !p.inDuel && currentMode !== 'duel') {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-primary btn-sm';
-        btn.textContent = `⚔ 1v1 (${currentCols}x26)`;
-        btn.addEventListener('click', () => {
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-              type: 'send_challenge',
-              targetId: p.id,
-              boardCols: currentCols
-            }));
-          }
-        });
-        row.appendChild(btn);
-      } else if (p.inDuel) {
-        const tag = document.createElement('span');
-        tag.className = 'badge';
-        tag.textContent = 'IN DUEL';
-        row.appendChild(tag);
-      }
-
-      onlineListEl.appendChild(row);
-    });
-  }
-
-  function renderLeaderboard() {
-    lbContentEl.innerHTML = '';
-    const rows = cachedLeaderboards[activeLeaderboardTab] || [];
-
-    if (rows.length === 0) {
-      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No pilots recorded yet!</span></div>`;
-      return;
-    }
-
-    rows.forEach((r, idx) => {
-      const div = document.createElement('div');
-      div.className = 'lb-row';
-      let metricStr = '';
-      if (activeLeaderboardTab === 'byApm') {
-        metricStr = `${Number(r.avgApm || 0).toFixed(1)} APM`;
-      } else if (activeLeaderboardTab === 'byWins') {
-        metricStr = `${(r.ffaWins || 0) + (r.duelWins || 0)} Wins`;
-      } else if (activeLeaderboardTab === 'byCombo') {
-        metricStr = `${r.maxCombo || 0}x Combo`;
-      } else if (activeLeaderboardTab === 'byDuels') {
-        metricStr = `${r.duelWins || 0}W - ${r.duelLosses || 0}L (${Number(r.avgApm || 0).toFixed(1)} APM)`;
-      }
-
-      div.innerHTML = `
-        <span class="lb-rank">#${idx + 1}</span>
-        <span class="lb-user">${escapeHtml(r.username)}</span>
-        <span class="lb-val">${metricStr}</span>
-      `;
-      lbContentEl.appendChild(div);
-    });
-  }
-
-  lbTabs.forEach(tabBtn => {
-    tabBtn.addEventListener('click', () => {
-      lbTabs.forEach(b => b.classList.remove('active'));
-      tabBtn.classList.add('active');
-      activeLeaderboardTab = tabBtn.dataset.tab;
-      renderLeaderboard();
-    });
+    chatInput.value = '';
+    chatInput.blur();
   });
 
   function appendChatMessage(sender, text, style = 'user') {
@@ -553,7 +779,7 @@
     if (calloutTimeout) clearTimeout(calloutTimeout);
     calloutTimeout = setTimeout(() => {
       actionCallout.style.opacity = '0';
-    }, 1100);
+    }, 1000);
   }
 
   function showOverlay(title, subtitle) {
@@ -566,129 +792,20 @@
     overlayBanner.classList.add('hidden');
   }
 
-  function updateMatrixBadge() {
-    matrixBadge.textContent = `${currentCols}x26 MATRIX`;
-    const frame = document.querySelector('.board-frame');
-    if (frame) {
-      frame.style.aspectRatio = `${currentCols} / 26`;
-    }
-    boardCanvas.width = currentCols * 32;
-    boardCanvas.height = 26 * 32;
-  }
-
-  updateMatrixBadge();
-
-  // ============================================================================
-  // CONTROLS & UI EVENTS
-  // ============================================================================
-
-  matrixSelect.addEventListener('change', () => {
-    if (currentMode === 'duel') return;
-    currentCols = Number(matrixSelect.value) === 10 ? 10 : 4;
-    updateMatrixBadge();
-    hideOverlay();
-    engine.reset(Date.now(), currentCols);
-    pushSettingsToServer();
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'set_profile',
-        boardCols: currentCols,
-        mode: currentMode
-      }));
-    }
-  });
-
-  modeZenBtn.addEventListener('click', () => {
-    if (currentMode === 'duel') return;
-    currentMode = 'zen';
-    modeZenBtn.classList.add('active');
-    modeFfaBtn.classList.remove('active');
-    hideOverlay();
-    engine.reset(Date.now(), currentCols);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'set_profile', boardCols: currentCols, mode: 'zen' }));
-    }
-  });
-
-  modeFfaBtn.addEventListener('click', () => {
-    if (currentMode === 'duel') return;
-    currentMode = 'ffa';
-    modeFfaBtn.classList.add('active');
-    modeZenBtn.classList.remove('active');
-    hideOverlay();
-    engine.reset(Date.now(), currentCols);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'set_profile', boardCols: currentCols, mode: 'ffa' }));
-    }
-  });
-
-  restartBtn.addEventListener('click', () => {
-    if (currentMode === 'duel') return;
-    hideOverlay();
-    engine.reset(Date.now(), currentCols);
-  });
-
-  forfeitDuelBtn.addEventListener('click', () => {
-    if (currentMode === 'duel' && ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'forfeit_duel' }));
-    }
-  });
-
-  acceptChallengeBtn.addEventListener('click', () => {
-    if (activeIncomingChallenge && ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'respond_challenge',
-        challengeId: activeIncomingChallenge.id,
-        accept: true
-      }));
-      clearChallengeUI();
-    }
-  });
-
-  declineChallengeBtn.addEventListener('click', () => {
-    if (activeIncomingChallenge && ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'respond_challenge',
-        challengeId: activeIncomingChallenge.id,
-        accept: false
-      }));
-      clearChallengeUI();
-    }
-  });
-
-  cancelChallengeBtn.addEventListener('click', () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'cancel_challenge' }));
-      clearChallengeUI();
-    }
-  });
-
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = chatInput.value.trim();
-    if (!text) return;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'chat', text }));
-    }
-    chatInput.value = '';
-    chatInput.blur();
-  });
-
-  document.getElementById('next-track-btn').addEventListener('click', () => {
-    window.AudioController.nextTrack();
-  });
-
-  document.getElementById('next-bg-btn').addEventListener('click', () => {
-    window.BackgroundController.applyNextBackground();
-  });
+  document.getElementById('next-track-btn').addEventListener('click', () => window.AudioController.nextTrack());
+  document.getElementById('next-bg-btn').addEventListener('click', () => window.BackgroundController.applyNextBackground());
 
   const settingsModal = document.getElementById('settings-modal');
-  document.getElementById('open-settings-btn').addEventListener('click', () => {
-    settingsModal.classList.remove('hidden');
-  });
+  document.getElementById('open-settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
   document.getElementById('close-settings-btn').addEventListener('click', () => {
     settingsModal.classList.add('hidden');
-    pushSettingsToServer();
+    if (isAuthenticated && myUserObj) {
+      fetch('/api/auth/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: myUserObj.username, settings: handling })
+      }).catch(() => {});
+    }
   });
 
   const bindSlider = (sliderId, labelId, initialVal, onChange) => {
@@ -702,24 +819,15 @@
     });
   };
 
-  bindSlider('slider-das', 'val-das', handling.das, v => {
-    handling.das = v;
-    localStorage.setItem('a2_das', v);
-  });
-  bindSlider('slider-arr', 'val-arr', handling.arr, v => {
-    handling.arr = v;
-    localStorage.setItem('a2_arr', v);
-  });
-  bindSlider('slider-sdf', 'val-sdf', handling.sdf, v => {
-    handling.sdf = v;
-    localStorage.setItem('a2_sdf', v);
-  });
+  bindSlider('slider-das', 'val-das', handling.das, v => { handling.das = v; localStorage.setItem('a2_das', v); });
+  bindSlider('slider-arr', 'val-arr', handling.arr, v => { handling.arr = v; localStorage.setItem('a2_arr', v); });
+  bindSlider('slider-sdf', 'val-sdf', handling.sdf, v => { handling.sdf = v; localStorage.setItem('a2_sdf', v); });
   bindSlider('slider-music', 'val-music', 40, v => window.AudioController.setMusicVolume(v / 100));
   bindSlider('slider-sfx', 'val-sfx', 75, v => window.AudioController.setSfxVolume(v / 100));
   bindSlider('slider-bg-interval', 'val-bg-interval', 60, v => window.BackgroundController.setShuffleInterval(v));
 
   // ============================================================================
-  // INPUT HANDLING
+  // INPUT HANDLING & 60FPS GAME LOOP
   // ============================================================================
 
   const keysDown = new Set();
@@ -728,33 +836,36 @@
   let arrTimer = 0;
   let softDropTimer = 0;
 
-  function isBlockingInput() {
-    if (!isAuthenticated) return true;
+  function isTyping() {
     const el = document.activeElement;
     return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
   }
 
   window.addEventListener('keydown', (e) => {
-    if (isBlockingInput()) return;
+    if (isTyping() || activeScreen !== 'arena') return;
 
     if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
       e.preventDefault();
     }
-
     if (e.repeat) return;
     keysDown.add(e.code);
 
+    if (e.code === 'KeyR' && currentMode !== 'duel' && currentMode !== 'ffa') {
+      flushZenLines();
+      if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
+      startThreeSecondCountdown(Date.now(), currentCols);
+      return;
+    }
+
+    if (!canControlBoard || engine.gameOver) return;
+
     switch (e.code) {
       case 'ArrowLeft':
-        moveDir = -1;
-        dasTimer = 0;
-        arrTimer = 0;
+        moveDir = -1; dasTimer = 0; arrTimer = 0;
         engine.moveHorizontal(-1);
         break;
       case 'ArrowRight':
-        moveDir = 1;
-        dasTimer = 0;
-        arrTimer = 0;
+        moveDir = 1; dasTimer = 0; arrTimer = 0;
         engine.moveHorizontal(1);
         break;
       case 'ArrowUp':
@@ -777,40 +888,22 @@
       case 'KeyC':
         engine.hold();
         break;
-      case 'KeyR':
-        if (currentMode !== 'duel') {
-          hideOverlay();
-          engine.reset(Date.now(), currentCols);
-        }
-        break;
     }
   });
 
   window.addEventListener('keyup', (e) => {
     keysDown.delete(e.code);
     if (e.code === 'ArrowLeft' && moveDir === -1) {
-      if (keysDown.has('ArrowRight')) {
-        moveDir = 1;
-        dasTimer = 0;
-        arrTimer = 0;
-        engine.moveHorizontal(1);
-      } else {
-        moveDir = 0;
-      }
+      moveDir = keysDown.has('ArrowRight') ? 1 : 0;
+      dasTimer = 0; arrTimer = 0;
     } else if (e.code === 'ArrowRight' && moveDir === 1) {
-      if (keysDown.has('ArrowLeft')) {
-        moveDir = -1;
-        dasTimer = 0;
-        arrTimer = 0;
-        engine.moveHorizontal(-1);
-      } else {
-        moveDir = 0;
-      }
+      moveDir = keysDown.has('ArrowLeft') ? -1 : 0;
+      dasTimer = 0; arrTimer = 0;
     }
   });
 
-  function updateInputHandling(dtMs) {
-    if (engine.gameOver || isBlockingInput()) return;
+  function updateInput(dtMs) {
+    if (!canControlBoard || engine.gameOver || isTyping()) return;
 
     if (moveDir !== 0) {
       dasTimer += dtMs;
@@ -843,10 +936,6 @@
     }
   }
 
-  // ============================================================================
-  // CANVAS RENDERING
-  // ============================================================================
-
   function drawBlock(ctx, x, y, size, color, alpha = 1.0) {
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -857,7 +946,7 @@
     ctx.restore();
   }
 
-  function renderMainBoard() {
+  function renderArena() {
     const cellSize = 32;
     const cols = engine.cols;
     const rows = engine.rows;
@@ -892,9 +981,7 @@
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = engine.grid[r][c];
-        if (cell) {
-          drawBlock(boardCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#ffffff', 1.0);
-        }
+        if (cell) drawBlock(boardCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0);
       }
     }
 
@@ -905,46 +992,46 @@
 
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) {
-            drawBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, 0.24);
-          }
+          if (p.matrix[r][c]) drawBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, 0.24);
         }
       }
-
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) {
-            drawBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0);
-          }
+          if (p.matrix[r][c]) drawBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0);
         }
       }
     }
-  }
 
-  function renderMiniPiece(ctx, type, offsetX, offsetY, cellSize = 20, dimmed = false) {
-    if (!type) return;
-    const mat = window.TETROMINO_MATRICES[type][0];
-    const color = dimmed ? '#546e7a' : window.PIECE_COLORS[type];
-    for (let r = 0; r < mat.length; r++) {
-      for (let c = 0; c < mat[r].length; c++) {
-        if (mat[r][c]) {
-          drawBlock(ctx, offsetX + c, offsetY + r, cellSize, color, 1.0);
-        }
-      }
-    }
-  }
-
-  function renderHoldAndNext() {
     holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
     if (engine.holdPiece) {
-      renderMiniPiece(holdCtx, engine.holdPiece, 0.8, 0.8, 22, !engine.canHold);
+      const mat = window.TETROMINO_MATRICES[engine.holdPiece][0];
+      const col = !engine.canHold ? '#546e7a' : window.PIECE_COLORS[engine.holdPiece];
+      for (let r = 0; r < mat.length; r++) {
+        for (let c = 0; c < mat[r].length; c++) {
+          if (mat[r][c]) drawBlock(holdCtx, 0.8 + c, 0.8 + r, 22, col, 1.0);
+        }
+      }
     }
 
     nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-    const preview = engine.nextQueue.slice(0, 5);
-    preview.forEach((type, idx) => {
-      renderMiniPiece(nextCtx, type, 0.8, idx * 3.4 + 0.5, 20, false);
+    engine.nextQueue.slice(0, 5).forEach((type, idx) => {
+      const mat = window.TETROMINO_MATRICES[type][0];
+      const col = window.PIECE_COLORS[type];
+      for (let r = 0; r < mat.length; r++) {
+        for (let c = 0; c < mat[r].length; c++) {
+          if (mat[r][c]) drawBlock(nextCtx, 0.8 + c, idx * 3.4 + 0.5 + r, 20, col, 1.0);
+        }
+      }
     });
+
+    const m = engine.getLiveMetrics();
+    statApm.textContent = m.apm.toFixed(1);
+    statPps.textContent = m.pps.toFixed(2);
+    statLinesSent.textContent = `${m.linesCleared} / ${m.attackSent}`;
+    statRecv.textContent = `${m.garbageReceived}`;
+    statCombo.textContent = `${m.combo}x (Max ${m.maxCombo}x)`;
+    statB2b.textContent = `${m.b2b}x`;
+    garbageMeterFill.style.height = `${Math.min(100, (m.pendingGarbage / 20) * 100)}%`;
   }
 
   function drawOpponentBoard(opp) {
@@ -954,53 +1041,14 @@
     const cellSize = 18;
     oppCanvas.width = cols * cellSize;
     oppCanvas.height = rows * cellSize;
-
     oppCtx.clearRect(0, 0, oppCanvas.width, oppCanvas.height);
-
-    oppCtx.strokeStyle = 'rgba(255, 61, 87, 0.5)';
-    oppCtx.beginPath();
-    oppCtx.moveTo(0, 6 * cellSize);
-    oppCtx.lineTo(cols * cellSize, 6 * cellSize);
-    oppCtx.stroke();
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = opp.grid[r][c];
-        if (cell) {
-          drawBlock(oppCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0);
-        }
+        if (cell) drawBlock(oppCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0);
       }
     }
-
-    if (opp.activePiece && opp.activePiece.matrix) {
-      const p = opp.activePiece;
-      const color = window.PIECE_COLORS[p.type] || '#fff';
-      for (let r = 0; r < p.matrix.length; r++) {
-        for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) {
-            drawBlock(oppCtx, p.x + c, p.y + r, cellSize, color, 1.0);
-          }
-        }
-      }
-    }
-  }
-
-  function updateHUDTelemetry() {
-    const m = engine.getLiveMetrics();
-    statApm.textContent = m.apm.toFixed(1);
-    statPps.textContent = m.pps.toFixed(2);
-    statVs.textContent = m.vsScore.toFixed(1);
-    statLinesSent.textContent = `${m.linesCleared} / ${m.attackSent}`;
-
-    const totalGames = Math.max(1, sessionGamesCount + 1);
-    const avgRecv = ((sessionTotalReceived + m.garbageReceived) / totalGames).toFixed(1);
-    statRecv.textContent = `${m.garbageReceived} / ${avgRecv}`;
-
-    statCombo.textContent = `${m.combo}x (Max ${m.maxCombo}x)`;
-    statB2b.textContent = `${m.b2b}x`;
-
-    const meterPct = Math.min(100, (m.pendingGarbage / 20) * 100);
-    garbageMeterFill.style.height = `${meterPct}%`;
   }
 
   let lastFrameTime = performance.now();
@@ -1008,14 +1056,21 @@
     const dtMs = Math.min(100, now - lastFrameTime);
     lastFrameTime = now;
 
-    if (isAuthenticated) {
-      updateInputHandling(dtMs);
-      engine.update(dtMs);
-    }
+    if (activeScreen === 'arena') {
+      if (canControlBoard && !engine.gameOver) {
+        updateInput(dtMs);
+        engine.update(dtMs);
 
-    renderMainBoard();
-    renderHoldAndNext();
-    updateHUDTelemetry();
+        if (currentMode === 'apm_test') {
+          apmTestRemainingMs -= dtMs;
+          arenaTimerDisplay.textContent = `${Math.max(0, apmTestRemainingMs / 1000).toFixed(1)}s`;
+          if (apmTestRemainingMs <= 0) {
+            finishApmTest();
+          }
+        }
+      }
+      renderArena();
+    }
 
     requestAnimationFrame(gameLoop);
   }
