@@ -6,7 +6,7 @@
   <title>Project A² | Competitive Stacker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-theme="cyan">
   <!-- Dynamic Shuffling Background Container -->
   <div id="bg-stage">
     <div class="bg-layer active-bg"></div>
@@ -25,12 +25,12 @@
 
       <form id="auth-form" class="auth-form">
         <div class="auth-field">
-          <label for="auth-username">PILOT CALLSIGN (USERNAME)</label>
-          <input type="text" id="auth-username" maxlength="18" placeholder="Enter Callsign..." required autocomplete="username" />
+          <label for="auth-username">USERNAME</label>
+          <input type="text" id="auth-username" maxlength="18" placeholder="Enter Username..." required autocomplete="username" />
         </div>
 
         <div class="auth-field">
-          <label for="auth-password">ACCESS PASSCODE (PASSWORD)</label>
+          <label for="auth-password">PASSWORD</label>
           <input type="password" id="auth-password" maxlength="64" placeholder="Enter Password..." required autocomplete="current-password" />
         </div>
 
@@ -42,15 +42,15 @@
     </div>
   </div>
 
-  <!-- Top Navigation Bar (Persistent once logged in) -->
+  <!-- Top Navigation Bar -->
   <header id="top-bar" class="top-bar hidden">
     <div class="brand-group">
       <span class="brand"><span class="brand-accent">PROJECT</span> A<sup>2</sup></span>
-      <button id="return-hub-btn" class="btn btn-sm btn-primary hidden">⬅ RETURN TO HUB</button>
+      <button id="return-hub-btn" class="btn btn-sm btn-primary hidden">RETURN TO HUB</button>
     </div>
 
     <div class="pilot-level-strip">
-      <span id="nav-pilot-name" class="pilot-badge">PILOT</span>
+      <span id="nav-pilot-name" class="pilot-badge">PLAYER</span>
       <span id="nav-pilot-level" class="level-pill">LVL 1</span>
       <div class="xp-bar-wrap" title="Account XP Progress">
         <div id="nav-xp-fill" class="xp-bar-fill"></div>
@@ -59,10 +59,10 @@
     </div>
 
     <div class="media-controls">
-      <button id="toggle-chat-btn" class="btn btn-sm">💬 CHAT</button>
-      <button id="next-track-btn" class="btn btn-sm">⏭ MUSIC</button>
-      <button id="next-bg-btn" class="btn btn-sm">🖼 BG</button>
-      <button id="open-settings-btn" class="btn btn-sm">⚙ SETTINGS</button>
+      <button id="toggle-chat-btn" class="btn btn-sm">CHAT</button>
+      <button id="next-track-btn" class="btn btn-sm">MUSIC</button>
+      <button id="next-bg-btn" class="btn btn-sm">BG</button>
+      <button id="open-settings-btn" class="btn btn-sm">SETTINGS</button>
       <button id="logout-btn" class="btn btn-sm btn-danger">LOGOUT</button>
     </div>
   </header>
@@ -72,53 +72,52 @@
     <div class="hub-hero-header">
       <h1 class="hub-giant-title"><span class="brand-accent">PROJECT</span> A<sup>2</sup></h1>
       <div class="hub-nav-tabs">
-        <button id="hub-tab-play" class="btn mode-btn active">🎮 MODES & LEADERBOARDS</button>
-        <button id="hub-tab-stats" class="btn mode-btn">📊 PLAYER STATS DIRECTORY</button>
+        <button id="hub-tab-play" class="btn mode-btn active">MODES & LEADERBOARDS</button>
+        <button id="hub-tab-customize" class="btn mode-btn">SKINS & THEMES (UNLOCKS)</button>
+        <button id="hub-tab-stats" class="btn mode-btn">PLAYER STATS DIRECTORY</button>
       </div>
     </div>
 
-    <!-- HUB VIEW A: Modes & Top-5 Leaderboards -->
+    <!-- HUB VIEW A: Modes & Leaderboards -->
     <div id="hub-play-view" class="hub-grid">
       <!-- Singleplayer Column -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
             <h3>SINGLEPLAYER MODES</h3>
-            <span class="sub-hint">3s Countdown • XP & Leaderboards</span>
           </div>
           <div class="mode-cards-list">
             <div class="mode-select-card" id="launch-zen-4-btn">
               <div class="mc-title">4x26 ZEN MODE</div>
-              <div class="mc-desc">4-Wide endless tower practice. Every line cleared adds to the Zen Leaderboard!</div>
+              <div class="mc-desc">4-Wide endless tower practice. Every line cleared adds to the Zen Leaderboard.</div>
               <span class="badge">4x26 MATRIX</span>
             </div>
 
             <div class="mode-select-card" id="launch-zen-10-btn">
               <div class="mc-title">10x26</div>
-              <div class="mc-desc">Standard 10-column guideline matrix Zen mode. Lines count toward the Zen Leaderboard!</div>
+              <div class="mc-desc">Standard 10-column guideline matrix Zen mode. Lines count toward the Zen Leaderboard.</div>
               <span class="badge">10x26 MATRIX</span>
             </div>
 
             <div class="mode-select-card highlight-card" id="launch-apm-test-btn">
               <div class="mc-title">APM TEST (1:00 TIMED)</div>
-              <div class="mc-desc">1-Minute high-intensity attack sprint. Your recorded APM sets your official Leaderboard APM!</div>
-              <span class="badge gold-badge">⏱ 60 SECONDS • OFFICIAL APM</span>
+              <div class="mc-desc">1-Minute high-intensity attack sprint. Your recorded APM sets your official Leaderboard APM.</div>
+              <span class="badge gold-badge">60 SECONDS • OFFICIAL APM</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Multiplayer Column (4x26 Strictly) -->
+      <!-- Multiplayer & Live Spectator Column -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
-            <h3>MULTIPLAYER MODES (4x26)</h3>
-            <span class="sub-hint">Live Matchmaking & Lobbies</span>
+            <h3>MULTIPLAYER MODES</h3>
           </div>
           <div class="mode-cards-list">
             <div class="mode-select-card mp-card" id="join-1v1-queue-btn">
               <div class="mc-title">1v1 MATCHMAKING QUEUE</div>
-              <div class="mc-desc">Queue up! When 2 players are queued, both enter an isolated 4x26 Best-of-3 match.</div>
+              <div class="mc-desc">Queue up. When 2 players are queued, both enter an isolated Best-of-3 match with Sudden Death.</div>
               <div class="mc-status-row">
                 <span class="badge">BEST OF 3</span>
                 <span id="hub-1v1-queue-status" class="queue-pill">In Queue: 0</span>
@@ -132,22 +131,29 @@
 
             <div class="mode-select-card mp-card" id="join-ffa-lobby-btn">
               <div class="mc-title">FFA ARENA</div>
-              <div class="mc-desc">Free-For-All 4x26 battle. Starts automatically when 2 or more players join the lobby!</div>
+              <div class="mc-desc">Free-For-All battle with 4 Target Modes and Multi-Board view. Starts when 2+ players join.</div>
               <div class="mc-status-row">
                 <span class="badge">2+ PLAYERS</span>
                 <span id="hub-ffa-status" class="queue-pill">In Lobby: 0</span>
+              </div>
+            </div>
+
+            <!-- Live Matches Spectator List -->
+            <div class="spectate-section">
+              <div class="spectate-header">LIVE MATCHES (CLICK TO SPECTATE)</div>
+              <div id="live-matches-list" class="spectate-list">
+                <div class="sub-hint">No active matches right now.</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Top 5 Leaderboards Column -->
+      <!-- Leaderboards Column (Displays all players that fit) -->
       <div class="hub-column">
         <div class="panel-card leaderboard-card">
           <div class="card-header">
-            <h3>TOP 5 LEADERBOARDS</h3>
-            <span class="sub-hint">Top 5 Only</span>
+            <h3>LEADERBOARDS</h3>
           </div>
           <div class="lb-tabs">
             <button class="lb-tab active" data-tab="byApm">APM TEST</button>
@@ -161,19 +167,44 @@
       </div>
     </div>
 
-    <!-- HUB VIEW B: Every Player's Stats Directory -->
+    <!-- HUB VIEW B: Level-Unlocked Skins, Ghost Styles & Board Themes -->
+    <div id="hub-customize-view" class="hub-customize-view hidden">
+      <div class="panel-card">
+        <div class="card-header">
+          <h3>LEVEL-UNLOCKED BLOCK SKINS</h3>
+          <span class="sub-hint">Level up by clearing lines & completing matches</span>
+        </div>
+        <div id="skins-unlock-grid" class="unlock-grid"></div>
+      </div>
+
+      <div class="panel-card">
+        <div class="card-header">
+          <h3>LEVEL-UNLOCKED GHOST PIECE STYLES</h3>
+        </div>
+        <div id="ghosts-unlock-grid" class="unlock-grid"></div>
+      </div>
+
+      <div class="panel-card">
+        <div class="card-header">
+          <h3>LEVEL-UNLOCKED BOARD THEMES</h3>
+        </div>
+        <div id="themes-unlock-grid" class="unlock-grid"></div>
+      </div>
+    </div>
+
+    <!-- HUB VIEW C: Every Player's Stats Directory -->
     <div id="hub-stats-view" class="hub-stats-view hidden">
       <div class="panel-card directory-list-card">
         <div class="card-header">
-          <h3>ALL REGISTERED PILOTS</h3>
-          <input type="text" id="pilot-search-input" placeholder="Search pilot..." />
+          <h3>ALL REGISTERED PLAYERS</h3>
+          <input type="text" id="pilot-search-input" placeholder="Search player..." />
         </div>
         <div id="all-pilots-directory" class="scrollable-list"></div>
       </div>
 
       <div class="panel-card directory-detail-card">
         <div class="card-header">
-          <h3 id="inspected-pilot-title">SELECT A PILOT TO INSPECT</h3>
+          <h3 id="inspected-pilot-title">SELECT A PLAYER TO INSPECT</h3>
         </div>
         <div id="inspected-pilot-body" class="inspected-pilot-body">
           <p class="sub-hint">Click any player on the left to view their Level, XP, Official APM, Zen Lines, 1v1 & FFA records, and recent match log.</p>
@@ -184,13 +215,17 @@
 
   <!-- 3. ACTIVE GAME ARENA SCREEN -->
   <main id="arena-screen" class="arena-screen hidden">
-    <!-- Duel / Mode Header Banner -->
     <div id="arena-top-strip" class="duel-banner">
       <div class="duel-side">
         <span id="arena-mode-title">MODE</span>
+        <span id="sudden-death-badge" class="sd-badge hidden">SUDDEN DEATH 1.0x</span>
       </div>
       <div class="duel-center">
         <span id="arena-score-strip"></span>
+        <!-- Live APM Tug of War Bar for 1v1 & Spectating -->
+        <div id="tug-of-war-wrap" class="tug-of-war-wrap hidden">
+          <div id="tug-of-war-fill" class="tug-of-war-fill"></div>
+        </div>
       </div>
       <div class="duel-side">
         <span id="arena-timer-display" class="duel-score-pill hidden">60.0s</span>
@@ -199,12 +234,22 @@
       </div>
     </div>
 
+    <!-- FFA 4-Mode Target Selector Bar -->
+    <div id="ffa-target-bar" class="ffa-target-bar hidden">
+      <span class="target-label">TARGET MODE (KEYS 1-4 OR CLICK BOARD):</span>
+      <button class="btn btn-sm target-btn" data-target="payback">1: PAYBACK</button>
+      <button class="btn btn-sm target-btn" data-target="ko">2: KO (HIGHEST STACK)</button>
+      <button class="btn btn-sm target-btn" data-target="apm">3: HIGHEST APM</button>
+      <button class="btn btn-sm target-btn active" data-target="random">4: RANDOM</button>
+    </div>
+
     <div class="arena-stage">
-      <div class="playfield-wrapper">
-        <!-- Left HUD: Hold & Live Stats -->
+      <!-- Player Playfield Wrapper (Hidden when purely spectating) -->
+      <div id="player-playfield-wrapper" class="playfield-wrapper">
+        <!-- Left HUD: Hold, Live Stats & Action/Combo Popup Box Underneath Back-to-Back -->
         <div class="hud-left-col">
           <div class="hud-box hold-box">
-            <div class="hud-label">HOLD (C / SHIFT)</div>
+            <div class="hud-label">HOLD</div>
             <canvas id="hold-canvas" width="110" height="85"></canvas>
           </div>
 
@@ -233,6 +278,11 @@
               <span class="stat-title">BACK-TO-BACK</span>
               <span id="stat-b2b" class="stat-val">0x</span>
             </div>
+            <!-- Dedicated Combo & +Lines Popup Box underneath Back-to-Back -->
+            <div id="action-feed-card" class="stat-card action-feed-card">
+              <span class="stat-title">ACTION / ATTACK</span>
+              <span id="action-callout" class="action-feed-val">—</span>
+            </div>
           </div>
         </div>
 
@@ -241,10 +291,9 @@
           <div id="garbage-meter-fill" class="garbage-meter-fill"></div>
         </div>
 
-        <!-- Main Board Canvas -->
-        <div class="board-frame">
+        <!-- Main Board Canvas (Supports Board Shake & Lock Flash) -->
+        <div id="board-frame" class="board-frame">
           <canvas id="board-canvas" width="128" height="832"></canvas>
-          <div id="action-callout" class="action-callout"></div>
           <div id="overlay-banner" class="overlay-banner hidden">
             <div id="overlay-title">3</div>
             <div id="overlay-subtitle">GET READY</div>
@@ -254,21 +303,18 @@
         <!-- Next Queue -->
         <div class="hud-right-col">
           <div class="hud-box next-box">
-            <div class="hud-label">NEXT (7-BAG)</div>
+            <div class="hud-label">NEXT</div>
             <canvas id="next-canvas" width="110" height="380"></canvas>
           </div>
         </div>
+      </div>
 
-        <!-- Opponent Matrix Preview (Visible in 1v1 and FFA) -->
-        <div id="opponent-preview-panel" class="panel-card opponent-card hidden">
-          <div class="card-header">
-            <h3 id="opp-header-name">OPPONENT</h3>
-            <span id="opp-live-metrics" class="sub-hint">0.0 APM</span>
-          </div>
-          <div class="opponent-board-holder">
-            <canvas id="opponent-canvas" width="144" height="468"></canvas>
-          </div>
+      <!-- Multi-Board Opponent & Spectator Grid -->
+      <div id="multi-opponents-panel" class="multi-opponents-panel hidden">
+        <div class="card-header">
+          <h3 id="multi-opp-header">LIVE OPPONENTS</h3>
         </div>
+        <div id="multi-opponents-grid" class="multi-opponents-grid"></div>
       </div>
     </div>
   </main>
@@ -277,13 +323,13 @@
   <div id="post-match-screen" class="fullscreen-overlay hidden">
     <div class="summary-card">
       <div id="summary-mode-title" class="summary-title">MATCH COMPLETE</div>
-      <div id="summary-winner-banner" class="summary-winner">WINNER: PILOT</div>
+      <div id="summary-winner-banner" class="summary-winner">WINNER: PLAYER</div>
       <div class="summary-table-wrap">
         <table class="summary-table">
           <thead>
             <tr>
               <th>PLACE</th>
-              <th>PILOT</th>
+              <th>PLAYER</th>
               <th>APM</th>
               <th>PPS</th>
               <th>LINES</th>
@@ -305,7 +351,7 @@
   <aside id="chat-drawer" class="chat-drawer">
     <div class="card-header">
       <h3>Chat</h3>
-      <button id="close-chat-btn" class="btn btn-sm btn-danger" title="Close Chat">✕</button>
+      <button id="close-chat-btn" class="btn btn-sm btn-danger" title="Close Chat">X</button>
     </div>
     <div id="chat-messages" class="chat-messages"></div>
     <form id="chat-form" class="chat-input-row">
@@ -314,27 +360,14 @@
     </form>
   </aside>
 
-  <!-- 6. HANDLING & AUDIO SETTINGS MODAL -->
+  <!-- 6. SETTINGS MODAL (Audio, BG Shuffle, Board Shake/Flash & Keybind Remapper) -->
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-window">
       <div class="modal-header">
-        <h2>PROJECT A² SETTINGS</h2>
-        <button id="close-settings-btn" class="btn btn-sm btn-danger">✕</button>
+        <h2>SETTINGS</h2>
+        <button id="close-settings-btn" class="btn btn-sm btn-danger">X</button>
       </div>
       <div class="modal-body">
-        <div class="setting-group">
-          <label>DAS (Delayed Auto Shift): <span id="val-das">115</span> ms</label>
-          <input type="range" id="slider-das" min="16" max="250" value="115" />
-        </div>
-        <div class="setting-group">
-          <label>ARR (Auto Repeat Rate): <span id="val-arr">10</span> ms (0 = Instant)</label>
-          <input type="range" id="slider-arr" min="0" max="80" value="10" />
-        </div>
-        <div class="setting-group">
-          <label>SDF (Soft Drop Factor): <span id="val-sdf">40</span> (40 = Instant ∞)</label>
-          <input type="range" id="slider-sdf" min="5" max="40" value="40" />
-        </div>
-        <hr />
         <div class="setting-group">
           <label>Music Volume: <span id="val-music">40</span>%</label>
           <input type="range" id="slider-music" min="0" max="100" value="40" />
@@ -344,8 +377,22 @@
           <input type="range" id="slider-sfx" min="0" max="100" value="75" />
         </div>
         <div class="setting-group">
-          <label>Background Shuffle Interval: <span id="val-bg-interval">60</span>s</label>
-          <input type="range" id="slider-bg-interval" min="15" max="300" step="15" value="60" />
+          <label>Background Shuffle Interval: <span id="val-bg-interval">180</span>s</label>
+          <input type="range" id="slider-bg-interval" min="15" max="600" step="15" value="180" />
+        </div>
+
+        <div class="setting-row-checks">
+          <label><input type="checkbox" id="check-board-shake" checked /> Board Shake Physics</label>
+          <label><input type="checkbox" id="check-lock-flash" checked /> Piece Lock Flash</label>
+        </div>
+
+        <hr />
+        <div class="keybinds-section">
+          <div class="keybinds-header">
+            <span>KEYBIND REMAPPER (CLICK TO REBIND)</span>
+            <button type="button" id="reset-keybinds-btn" class="btn btn-sm">RESET DEFAULTS</button>
+          </div>
+          <div id="keybinds-list" class="keybinds-list"></div>
         </div>
       </div>
     </div>
