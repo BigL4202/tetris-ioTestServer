@@ -13,13 +13,19 @@
     <div class="bg-vignette"></div>
   </div>
 
+  <!-- GIANT ADMIN SHOUT OVERLAY BANNER -->
+  <div id="admin-shout-banner" class="admin-shout-banner hidden">
+    <div class="admin-shout-label">BROADCAST FROM ADMIN BigL_</div>
+    <div id="admin-shout-text" class="admin-shout-text">ANNOUNCEMENT</div>
+  </div>
+
   <!-- 1. DEDICATED LOGIN & REGISTRATION SCREEN -->
   <div id="auth-screen" class="fullscreen-overlay">
     <div class="auth-card">
       <div class="mega-title">
         <span class="brand-accent">PROJECT</span> A<sup>2</sup>
       </div>
-      <p class="auth-subtitle">Competitive Stacker • Account Leveling • Telemetry</p>
+      <p class="auth-subtitle">Competitive Stacker • Account Leveling • Tournaments</p>
 
       <div id="auth-error-box" class="auth-error hidden"></div>
 
@@ -51,6 +57,7 @@
 
     <div class="pilot-level-strip">
       <span id="nav-pilot-name" class="pilot-badge">PLAYER</span>
+      <span id="nav-admin-tag" class="badge gold-badge hidden">ADMIN</span>
       <span id="nav-pilot-level" class="level-pill">LVL 1</span>
       <div class="xp-bar-wrap" title="Account XP Progress">
         <div id="nav-xp-fill" class="xp-bar-fill"></div>
@@ -73,14 +80,16 @@
       <h1 class="hub-giant-title"><span class="brand-accent">PROJECT</span> A<sup>2</sup></h1>
       <div class="hub-nav-tabs">
         <button id="hub-tab-play" class="btn mode-btn active">MODES & LEADERBOARDS</button>
+        <button id="hub-tab-tourney" class="btn mode-btn">TOURNAMENTS</button>
         <button id="hub-tab-customize" class="btn mode-btn">CUSTOMIZATION</button>
         <button id="hub-tab-stats" class="btn mode-btn">PLAYER STATS DIRECTORY</button>
+        <button id="hub-tab-admin" class="btn mode-btn btn-warning hidden">ADMIN CONSOLE (BigL_)</button>
       </div>
     </div>
 
     <!-- HUB VIEW A: Active Players Bar on Left + Singleplayer + Multiplayer + Leaderboards -->
     <div id="hub-play-view" class="hub-grid">
-      <!-- Far-Left Column: Scrollable Active Players Bar (Click player -> Challenge to 1v1 button pops up underneath) -->
+      <!-- Far-Left Column: Scrollable Active Players Bar -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
@@ -111,7 +120,7 @@
 
             <div class="mode-select-card highlight-card" id="launch-apm-test-btn">
               <div class="mc-title">APM TEST (1:00 TIMED)</div>
-              <div class="mc-desc">1-Minute high-intensity attack sprint. Your recorded APM sets your official Leaderboard APM.</div>
+              <div class="mc-desc">1-Minute high-intensity attack sprint with live APM Graph. Sets your official Leaderboard APM.</div>
               <span class="badge gold-badge">60 SECONDS • OFFICIAL APM</span>
             </div>
           </div>
@@ -176,9 +185,69 @@
       </div>
     </div>
 
-    <!-- HUB VIEW B: CUSTOMIZATION (4 Columns: Left = Background Thumbnails, + Skins, Ghosts & Themes up to Level 100) -->
+    <!-- HUB VIEW B: TOURNAMENTS (Registration, Brackets, Queue Match & Admin Creator) -->
+    <div id="hub-tourney-view" class="hub-tourney-view hidden">
+      <div class="panel-card tourney-sidebar-card">
+        <div class="card-header">
+          <h3>TOURNAMENTS</h3>
+        </div>
+        <!-- Admin Tournament Creator Box (Visible only to BigL_) -->
+        <div id="admin-tourney-creator" class="admin-tourney-creator hidden">
+          <h4>CREATE NEW TOURNAMENT (BigL_)</h4>
+          <input type="text" id="t-create-name" placeholder="Tournament Title..." maxlength="36" />
+          <div class="t-form-row">
+            <label>Format:</label>
+            <select id="t-create-format" class="select-box">
+              <option value="single">Single Elimination</option>
+              <option value="double" selected>Double Elimination (GF Reset)</option>
+            </select>
+          </div>
+          <div class="t-form-row">
+            <label>Match Series:</label>
+            <select id="t-create-bo" class="select-box">
+              <option value="1">Best of 1</option>
+              <option value="3" selected>Best of 3</option>
+              <option value="5">Best of 5</option>
+            </select>
+          </div>
+          <div class="t-form-row">
+            <label>Seeding:</label>
+            <select id="t-create-seeding" class="select-box">
+              <option value="random" selected>Random Seeding (Default)</option>
+              <option value="apm">APM-Based Seeding</option>
+            </select>
+          </div>
+          <div class="t-form-row">
+            <label>Max Players:</label>
+            <input type="number" id="t-create-max" value="8" min="2" max="64" class="select-box" style="width:80px;" />
+          </div>
+          <div class="t-form-row">
+            <label>Registration Days:</label>
+            <input type="number" id="t-create-regdays" value="1" step="0.1" min="0.05" class="select-box" style="width:80px;" />
+          </div>
+          <div class="t-form-row">
+            <label>Days per Match:</label>
+            <input type="number" id="t-create-matchdays" value="1" step="0.1" min="0.05" class="select-box" style="width:80px;" />
+          </div>
+          <button id="t-create-submit-btn" class="btn btn-success btn-sm">CREATE TOURNAMENT</button>
+        </div>
+
+        <div id="tournaments-list" class="scrollable-list"></div>
+      </div>
+
+      <div class="panel-card tourney-bracket-card">
+        <div class="card-header">
+          <h3 id="selected-tourney-title">SELECT A TOURNAMENT</h3>
+          <div id="selected-tourney-actions" class="duel-side"></div>
+        </div>
+        <div id="selected-tourney-body" class="tourney-bracket-body">
+          <p class="sub-hint">Select a tournament on the left to register, view the live bracket, or click QUEUE TOURNAMENT MATCH.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUB VIEW C: CUSTOMIZATION (4 Columns: Left = Background Thumbnails, + Skins, Ghosts & Themes up to Level 100) -->
     <div id="hub-customize-view" class="hub-customize-view hidden">
-      <!-- 1st Column on Left: Background Thumbnails Selector (Shuffle Default or Lock Specific BG) -->
       <div class="panel-card">
         <div class="card-header">
           <h3>BACKGROUNDS</h3>
@@ -187,7 +256,6 @@
         <div id="bg-thumbnails-grid" class="bg-thumbnails-grid"></div>
       </div>
 
-      <!-- 2nd Column: Block Skins (Rewards every 10 levels up to LVL 100) -->
       <div class="panel-card">
         <div class="card-header">
           <h3>BLOCK SKINS (LVL 1 - 100)</h3>
@@ -195,7 +263,6 @@
         <div id="skins-unlock-grid" class="unlock-grid"></div>
       </div>
 
-      <!-- 3rd Column: Ghost Piece Styles (Rewards every 10 levels up to LVL 100) -->
       <div class="panel-card">
         <div class="card-header">
           <h3>GHOST STYLES (LVL 1 - 100)</h3>
@@ -203,7 +270,6 @@
         <div id="ghosts-unlock-grid" class="unlock-grid"></div>
       </div>
 
-      <!-- 4th Column: Board Themes (Rewards every 10 levels up to LVL 100) -->
       <div class="panel-card">
         <div class="card-header">
           <h3>BOARD THEMES (LVL 1 - 100)</h3>
@@ -212,7 +278,7 @@
       </div>
     </div>
 
-    <!-- HUB VIEW C: Every Player's Stats Directory -->
+    <!-- HUB VIEW D: Every Player's Stats Directory -->
     <div id="hub-stats-view" class="hub-stats-view hidden">
       <div class="panel-card directory-list-card">
         <div class="card-header">
@@ -228,6 +294,35 @@
         </div>
         <div id="inspected-pilot-body" class="inspected-pilot-body">
           <p class="sub-hint">Click any player on the left to view their Level, XP, Official APM, Zen Lines, 1v1 & FFA records, and recent match log.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUB VIEW E: BigL_ MASTER ADMIN CONSOLE -->
+    <div id="hub-admin-view" class="hub-stats-view hidden">
+      <div class="panel-card directory-list-card">
+        <div class="card-header">
+          <h3>ADMIN: GLOBAL CONTROLS & PLAYERS</h3>
+        </div>
+        <div class="admin-global-box">
+          <label>ADMIN SHOUT (BIG SCREEN BROADCAST):</label>
+          <div class="chat-input-row">
+            <input type="text" id="admin-shout-input" placeholder="Type message to display over all screens..." maxlength="120" />
+            <button id="admin-shout-btn" class="btn btn-warning btn-sm">SHOUT</button>
+          </div>
+          <div class="admin-lobby-controls">
+            <button id="admin-restart-ffa-btn" class="btn btn-danger btn-sm">FORCE RESTART FFA LOBBY</button>
+          </div>
+        </div>
+        <div id="admin-players-list" class="scrollable-list"></div>
+      </div>
+
+      <div class="panel-card directory-detail-card">
+        <div class="card-header">
+          <h3 id="admin-selected-user-title">ADMIN ACCOUNT, STAT & MODERATION EDITOR</h3>
+        </div>
+        <div id="admin-selected-user-body" class="inspected-pilot-body">
+          <p class="sub-hint">Select any account on the left to view their saved password, edit their Level/XP/APM/Zen Lines/Wins, or Ban / Timeout / Mute them.</p>
         </div>
       </div>
     </div>
@@ -318,6 +413,12 @@
             <div class="hud-label">NEXT</div>
             <canvas id="next-canvas" width="110" height="380"></canvas>
           </div>
+
+          <!-- Live In-Arena APM Graph Box (Visible in 1v1, FFA, and APM Test) -->
+          <div id="live-apm-graph-box" class="hud-box apm-graph-box hidden">
+            <div class="hud-label">LIVE APM GRAPH</div>
+            <canvas id="live-apm-canvas" width="136" height="90"></canvas>
+          </div>
         </div>
       </div>
 
@@ -330,7 +431,7 @@
     </div>
   </main>
 
-  <!-- 4. 5-SECOND POST-MATCH STATS SUMMARY OVERLAY (1v1 & FFA) -->
+  <!-- 4. 5-SECOND POST-MATCH STATS SUMMARY OVERLAY + APM GRAPH (1v1 & FFA) -->
   <div id="post-match-screen" class="fullscreen-overlay hidden">
     <div class="summary-card">
       <div id="summary-mode-title" class="summary-title">MATCH COMPLETE</div>
@@ -351,6 +452,10 @@
           </thead>
           <tbody id="summary-table-body"></tbody>
         </table>
+      </div>
+      <div class="summary-graph-wrap">
+        <div class="hud-label">MATCH APM TELEMETRY GRAPH</div>
+        <canvas id="summary-apm-canvas" width="640" height="120"></canvas>
       </div>
       <div id="summary-footer-text" class="summary-footer">
         Next round starting in <span id="summary-countdown-sec">5</span>s...
