@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-15T20:08:25.379Z",
+  "updatedAt": "2026-10-15T20:08:30.537Z",
   "lastLogin": "2026-10-15T20:03:19.913Z",
   "settings": {
     "das": 115,
@@ -29,7 +29,7 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "/resources/bg/bg2.jpg"
+    "lockedBg": "/resources/bg/bg9.jpg"
   },
   "stats": {
     "gamesPlayed": 5,
