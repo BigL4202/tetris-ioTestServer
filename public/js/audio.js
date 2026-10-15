@@ -3,47 +3,59 @@ class AudioManager {
     this.musicVolume = 0.40;
     this.sfxVolume = 0.75;
     this.musicTracks = [];
-    this.sfxFiles = new Map(); // canonicalName -> url
+    this.sfxFiles = new Map();
     this.currentMusicIndex = 0;
     this.musicElement = new Audio();
+    this.musicElement.crossOrigin = 'anonymous';
     this.musicElement.preload = 'auto';
-    this.unlocked = false;
+    this.isPlayingMusic = false;
 
-    // WebAudio API fallback synthesizer if /resources/sfx/ is empty or missing a specific cue
+    // Procedural Synthwave Fallback Sequencer if /resources/music/ has 0 files
+    this.synthTimer = null;
+    this.synthStep = 0;
+    this.synthPatternIndex = 0;
+    this.synthPatterns = [
+      [220, 261.63, 329.63, 440, 329.63, 261.63, 196.00, 246.94, 293.66, 392.00, 293.66, 246.94],
+      [174.61, 220, 261.63, 349.23, 261.63, 220, 164.81, 196.00, 246.94, 329.63, 246.94, 196.00],
+      [146.83, 220, 293.66, 349.23, 440, 349.23, 293.66, 220, 164.81, 246.94, 329.63, 392.00]
+    ];
+
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     this.ctx = AudioCtx ? new AudioCtx() : null;
 
     this.musicElement.addEventListener('ended', () => {
       this.nextTrack();
     });
+
+    this.musicElement.addEventListener('error', () => {
+      this.startSynthFallbackMusic();
+    });
+
+    const tryStartAudio = () => {
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+      if (!this.isPlayingMusic && this.musicVolume > 0) {
+        this.playCurrentMusic();
+      }
+    };
+
+    window.addEventListener('keydown', tryStartAudio);
+    window.addEventListener('pointerdown', tryStartAudio);
   }
 
   async init(resourceManifest) {
-    if (resourceManifest && Array.isArray(resourceManifest.music)) {
+    if (resourceManifest && Array.isArray(resourceManifest.music) && resourceManifest.music.length > 0) {
       this.musicTracks = this.shuffle([...resourceManifest.music]);
+      console.log('[Project A^2 Audio] Loaded Music Tracks:', this.musicTracks);
     }
     if (resourceManifest && Array.isArray(resourceManifest.sfx)) {
       resourceManifest.sfx.forEach(url => {
         const filename = decodeURIComponent(url.split('/').pop()).toLowerCase();
-        const baseName = filename.replace(/\.(wav|mp3|ogg)$/i, '');
+        const baseName = filename.replace(/\.(wav|mp3|ogg|m4a)$/i, '');
         this.sfxFiles.set(baseName, url);
       });
     }
-
-    // Unlock audio on first user interaction
-    const unlockHandler = () => {
-      if (!this.unlocked) {
-        this.unlocked = true;
-        if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
-        if (this.musicTracks.length > 0 && this.musicElement.paused) {
-          this.playCurrentMusic();
-        }
-      }
-    };
-    window.addEventListener('keydown', unlockHandler, { once: false });
-    window.addEventListener('pointerdown', unlockHandler, { once: false });
   }
 
   shuffle(arr) {
@@ -57,33 +69,97 @@ class AudioManager {
   setMusicVolume(val) {
     this.musicVolume = Math.max(0, Math.min(1, val));
     this.musicElement.volume = this.musicVolume;
+    if (this.musicVolume === 0 && this.synthTimer) {
+      this.stopSynthFallbackMusic();
+    }
   }
 
   setSfxVolume(val) {
     this.sfxVolume = Math.max(0, Math.min(1, val));
   }
 
+  stopSynthFallbackMusic() {
+    if (this.synthTimer) {
+      clearInterval(this.synthTimer);
+      this.synthTimer = null;
+    }
+  }
+
+  startSynthFallbackMusic() {
+    if (!this.ctx || this.musicVolume <= 0) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    this.stopSynthFallbackMusic();
+    this.isPlayingMusic = true;
+
+    const pattern = this.synthPatterns[this.synthPatternIndex % this.synthPatterns.length];
+    this.synthStep = 0;
+
+    this.synthTimer = setInterval(() => {
+      if (this.musicVolume <= 0 || !this.ctx || this.ctx.state !== 'running') return;
+      const freq = pattern[this.synthStep % pattern.length];
+      this.synthStep += 1;
+
+      try {
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = (this.synthStep % 4 === 0) ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        const noteVol = this.musicVolume * 0.08;
+        gain.gain.setValueAtTime(noteVol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.19);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } catch (e) {}
+    }, 210);
+  }
+
   playCurrentMusic() {
-    if (this.musicTracks.length === 0) return;
-    const trackUrl = this.musicTracks[this.currentMusicIndex % this.musicTracks.length];
-    this.musicElement.src = trackUrl;
-    this.musicElement.volume = this.musicVolume;
-    this.musicElement.play().catch(() => {});
+    if (this.musicVolume <= 0) return;
+
+    if (this.musicTracks.length > 0) {
+      this.stopSynthFallbackMusic();
+      const trackUrl = this.musicTracks[this.currentMusicIndex % this.musicTracks.length];
+      this.musicElement.src = trackUrl;
+      this.musicElement.volume = this.musicVolume;
+      this.musicElement.play()
+        .then(() => {
+          this.isPlayingMusic = true;
+        })
+        .catch(() => {
+          this.isPlayingMusic = false;
+        });
+    } else {
+      // No external mp3s found — start procedural synthwave loop so music always works
+      this.startSynthFallbackMusic();
+    }
   }
 
   nextTrack() {
-    if (this.musicTracks.length === 0) return;
-    this.currentMusicIndex = (this.currentMusicIndex + 1) % this.musicTracks.length;
-    if (this.currentMusicIndex === 0) {
-      this.musicTracks = this.shuffle(this.musicTracks);
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
     }
-    this.playCurrentMusic();
+    if (this.musicTracks.length > 0) {
+      this.currentMusicIndex = (this.currentMusicIndex + 1) % this.musicTracks.length;
+      if (this.currentMusicIndex === 0 && this.musicTracks.length > 1) {
+        this.musicTracks = this.shuffle(this.musicTracks);
+      }
+      this.playCurrentMusic();
+    } else {
+      this.synthPatternIndex = (this.synthPatternIndex + 1) % this.synthPatterns.length;
+      this.startSynthFallbackMusic();
+    }
   }
 
   playSFX(name, comboIndex = 1) {
     if (this.sfxVolume <= 0) return;
 
-    // Check if user dropped a matching file in /resources/sfx/
     const comboKey = name === 'combo' ? `combo_${Math.min(comboIndex, 16)}` : name;
     const matchedUrl = this.sfxFiles.get(comboKey) || this.sfxFiles.get(name);
 
@@ -94,7 +170,6 @@ class AudioManager {
       return;
     }
 
-    // Clean WebAudio synth fallback when file isn't in /resources/sfx/ yet
     if (!this.ctx) return;
     try {
       const now = this.ctx.currentTime;
