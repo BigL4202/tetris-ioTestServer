@@ -47,7 +47,7 @@ body {
   inset: 0;
   z-index: -2;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 30%, #0d2137 0%, #050811 100%);
+  background: #060a12;
 }
 
 .bg-layer {
@@ -69,6 +69,39 @@ body {
   inset: 0;
   background: radial-gradient(circle at center, rgba(6, 10, 20, 0.22) 0%, rgba(5, 8, 16, 0.8) 100%);
   pointer-events: none;
+}
+
+/* Giant Admin Shout Overlay Banner */
+.admin-shout-banner {
+  position: fixed;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: rgba(10, 16, 28, 0.96);
+  border: 3px solid var(--accent-gold);
+  border-radius: 12px;
+  padding: 20px 38px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(255, 202, 40, 0.65);
+  pointer-events: none;
+  max-width: 90vw;
+}
+
+.admin-shout-label {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--accent-cyan);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.admin-shout-text {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  text-shadow: 0 0 18px rgba(255, 202, 40, 0.45);
+  word-break: break-word;
 }
 
 /* Fullscreen Overlays */
@@ -257,7 +290,7 @@ body {
 }
 
 .hub-giant-title {
-  font-size: 2.9rem;
+  font-size: 2.8rem;
   font-weight: 900;
   letter-spacing: 4px;
   text-shadow: 0 0 24px rgba(0, 229, 255, 0.45);
@@ -265,10 +298,12 @@ body {
 
 .hub-nav-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-/* 4-Column Hub Grid: Active Players (Left) | Singleplayer | Multiplayer | Leaderboards */
+/* 4-Column Hub Grid */
 .hub-grid {
   flex: 1;
   display: grid;
@@ -315,7 +350,7 @@ body {
   color: var(--text-dim);
 }
 
-/* Active Players Sidebar List & Expandable Challenge Button */
+/* Active Players Sidebar List */
 .active-players-list {
   display: flex;
   flex-direction: column;
@@ -487,9 +522,113 @@ body {
   border-radius: 6px;
   padding: 7px 10px;
   font-size: 0.76rem;
+  gap: 6px;
 }
 
-/* 4-Column CUSTOMIZATION View (1st Col on Left = Background Thumbnails) */
+/* TOURNAMENTS VIEW & BRACKET TREE */
+.hub-tourney-view {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 16px;
+  min-height: 0;
+}
+
+.admin-tourney-creator {
+  padding: 12px;
+  background: rgba(255, 202, 40, 0.08);
+  border-bottom: 1px solid var(--accent-gold);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-tourney-creator h4 {
+  font-size: 0.76rem;
+  color: var(--accent-gold);
+}
+
+.t-form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.76rem;
+}
+
+.tourney-bracket-body {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bracket-section-title {
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 4px;
+}
+
+.bracket-rounds-row {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.bracket-round-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.bracket-round-header {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.bracket-match-node {
+  background: rgba(14, 24, 42, 0.92);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+}
+
+.bracket-match-node.live-match {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.35);
+}
+
+.bracket-slot {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  background: rgba(4, 8, 16, 0.65);
+  border-radius: 4px;
+}
+
+.bracket-slot.winner-slot {
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 800;
+}
+
+/* 4-Column CUSTOMIZATION View */
 .hub-customize-view {
   flex: 1;
   display: grid;
@@ -580,13 +719,30 @@ body {
   cursor: not-allowed;
 }
 
-/* Player Stats Directory View */
+/* Player Stats Directory & Admin View */
 .hub-stats-view {
   flex: 1;
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 16px;
   min-height: 0;
+}
+
+.admin-global-box {
+  padding: 12px;
+  background: rgba(255, 202, 40, 0.08);
+  border-bottom: 1px solid var(--accent-gold);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.admin-lobby-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .inspected-pilot-body {
@@ -784,6 +940,12 @@ body {
   align-items: center;
 }
 
+.apm-graph-box canvas {
+  background: rgba(4, 8, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
 .hud-label {
   font-size: 0.72rem;
   font-weight: 800;
@@ -967,28 +1129,34 @@ body {
   font-family: monospace;
 }
 
-/* 5-Second Post-Match Summary Table */
+.admin-inject-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+/* 5-Second Post-Match Summary Table & APM Graph */
 .summary-card {
-  width: 720px;
+  width: 740px;
   max-width: 95vw;
   background: rgba(10, 18, 32, 0.97);
   border: 2px solid var(--accent-gold);
   border-radius: 10px;
-  padding: 24px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   text-align: center;
 }
 
 .summary-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 900;
   color: var(--accent-cyan);
 }
 
 .summary-winner {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--accent-gold);
 }
@@ -996,17 +1164,27 @@ body {
 .summary-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .summary-table th, .summary-table td {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .summary-table th {
   color: var(--accent-cyan);
   font-weight: 800;
+}
+
+.summary-graph-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(4, 8, 16, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 8px;
 }
 
 .summary-footer {
@@ -1066,7 +1244,7 @@ body {
   flex: 1;
 }
 
-input[type="text"], .select-box {
+input[type="text"], input[type="number"], .select-box {
   background: rgba(4, 9, 18, 0.9);
   border: 1px solid var(--panel-border);
   color: var(--text-main);
