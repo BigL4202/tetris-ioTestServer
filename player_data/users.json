@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T19:48:31.227Z",
+    "updatedAt": "2026-10-15T19:50:01.095Z",
     "lastLogin": "2026-10-15T19:48:31.227Z",
     "settings": {
       "das": 115,
@@ -32,9 +32,9 @@
       }
     },
     "stats": {
-      "gamesPlayed": 1,
+      "gamesPlayed": 2,
       "ffaWins": 0,
-      "duelWins": 0,
+      "duelWins": 1,
       "duelLosses": 0,
       "maxCombo": 0,
       "totalLinesCleared": 2,
@@ -43,10 +43,10 @@
       "apmSamples": 1,
       "avgApm": 0,
       "totalReceivedSum": 0,
-      "receivedSamples": 1,
+      "receivedSamples": 2,
       "avgReceived": 0,
-      "xp": 6,
-      "level": 1,
+      "xp": 156,
+      "level": 2,
       "zenLines": 1,
       "apmTestBest": 0,
       "apmTestLast": 0
@@ -61,6 +61,16 @@
         "apm": 0,
         "maxCombo": 0,
         "garbageReceived": 0
+      },
+      {
+        "date": "2026-10-15T19:50:01.095Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "0-0",
+        "opponent": "Test1",
+        "apm": 0,
+        "lines": 0,
+        "maxCombo": 0
       }
     ]
   },
@@ -69,11 +79,11 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-15T19:49:16.889Z",
+    "updatedAt": "2026-10-15T19:50:01.104Z",
     "lastLogin": "2026-10-15T19:48:42.278Z",
     "settings": {
-      "musicVolume": 40,
-      "sfxVolume": 0,
+      "musicVolume": 0,
+      "sfxVolume": 40,
       "bgInterval": 180,
       "boardShake": true,
       "lockFlash": true,
@@ -93,33 +103,44 @@
       }
     },
     "stats": {
-      "xp": 0,
+      "xp": 75,
       "level": 1,
-      "gamesPlayed": 0,
+      "gamesPlayed": 1,
       "zenLines": 0,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 0,
       "duelWins": 0,
-      "duelLosses": 0,
+      "duelLosses": 1,
       "maxCombo": 0,
-      "totalLinesCleared": 0,
+      "totalLinesCleared": 3,
       "totalAttackSent": 0,
       "totalReceivedSum": 0,
-      "receivedSamples": 0,
+      "receivedSamples": 1,
       "avgReceived": 0
     },
-    "matchHistory": []
+    "matchHistory": [
+      {
+        "date": "2026-10-15T19:50:01.104Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "0-0",
+        "opponent": "BigL_",
+        "apm": 0,
+        "lines": 3,
+        "maxCombo": 0
+      }
+    ]
   },
   "test2": {
     "username": "Test2",
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:57.768Z",
-    "updatedAt": "2026-10-15T19:48:57.768Z",
+    "updatedAt": "2026-10-15T19:49:24.491Z",
     "lastLogin": "2026-10-15T19:48:57.768Z",
     "settings": {
-      "musicVolume": 40,
+      "musicVolume": 0,
       "sfxVolume": 75,
       "bgInterval": 180,
       "boardShake": true,
