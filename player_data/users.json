@@ -4,8 +4,8 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T20:16:49.481Z",
-    "lastLogin": "2026-10-15T20:03:19.913Z",
+    "updatedAt": "2026-10-15T21:30:42.817Z",
+    "lastLogin": "2026-10-15T21:29:33.593Z",
     "settings": {
       "das": 115,
       "arr": 10,
@@ -30,7 +30,7 @@
         "hold": "ShiftLeft",
         "restart": "KeyR"
       },
-      "lockedBg": "/resources/bg/bg1.jpg"
+      "lockedBg": "/resources/bg/bg2.jpg"
     },
     "stats": {
       "gamesPlayed": 11,
@@ -50,7 +50,8 @@
       "level": 5,
       "zenLines": 27,
       "apmTestBest": 163,
-      "apmTestLast": 163
+      "apmTestLast": 163,
+      "tournamentWins": 0
     },
     "matchHistory": [
       {
@@ -147,7 +148,13 @@
         "lines": 0,
         "maxCombo": 0
       }
-    ]
+    ],
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    }
   },
   "test1": {
     "username": "Test1",
@@ -193,7 +200,8 @@
       "totalAttackSent": 24,
       "totalReceivedSum": 51,
       "receivedSamples": 6,
-      "avgReceived": 8.5
+      "avgReceived": 8.5,
+      "tournamentWins": 0
     },
     "matchHistory": [
       {
@@ -248,7 +256,13 @@
         "lines": 0,
         "maxCombo": 0
       }
-    ]
+    ],
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    }
   },
   "test2": {
     "username": "Test2",
@@ -294,7 +308,8 @@
       "totalAttackSent": 10,
       "totalReceivedSum": 0,
       "receivedSamples": 6,
-      "avgReceived": 0
+      "avgReceived": 0,
+      "tournamentWins": 0
     },
     "matchHistory": [
       {
@@ -345,6 +360,12 @@
         "lines": 2,
         "maxCombo": 1
       }
-    ]
+    ],
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    }
   }
 }
