@@ -4,8 +4,8 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T18:53:00.086Z",
-    "lastLogin": "2026-10-15T18:53:00.086Z",
+    "updatedAt": "2026-10-15T19:09:45.744Z",
+    "lastLogin": "2026-10-15T19:04:18.949Z",
     "settings": {
       "das": 115,
       "arr": 10,
@@ -28,7 +28,12 @@
       "avgApm": 0,
       "totalReceivedSum": 0,
       "receivedSamples": 1,
-      "avgReceived": 0
+      "avgReceived": 0,
+      "xp": 0,
+      "level": 1,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0
     },
     "matchHistory": [
       {
