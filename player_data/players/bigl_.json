@@ -3,18 +3,18 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-15T19:39:21.052Z",
-  "lastLogin": "2026-10-15T19:38:03.514Z",
+  "updatedAt": "2026-10-15T20:03:33.502Z",
+  "lastLogin": "2026-10-15T20:03:19.913Z",
   "settings": {
     "das": 115,
     "arr": 10,
     "sdf": 40,
-    "musicVolume": 40,
-    "sfxVolume": 0,
+    "musicVolume": 0,
+    "sfxVolume": 40,
     "bgInterval": 60,
     "preferredCols": 4,
     "boardShake": true,
-    "lockFlash": true,
+    "lockFlash": false,
     "blockSkin": "bevel",
     "ghostStyle": "fill",
     "boardTheme": "cyan",
@@ -28,24 +28,25 @@
       "hardDrop": "Space",
       "hold": "ShiftLeft",
       "restart": "KeyR"
-    }
+    },
+    "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 1,
+    "gamesPlayed": 3,
     "ffaWins": 0,
-    "duelWins": 0,
+    "duelWins": 1,
     "duelLosses": 0,
     "maxCombo": 0,
-    "totalLinesCleared": 2,
+    "totalLinesCleared": 3,
     "totalAttackSent": 0,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
     "totalReceivedSum": 0,
-    "receivedSamples": 1,
+    "receivedSamples": 3,
     "avgReceived": 0,
-    "xp": 6,
-    "level": 1,
+    "xp": 210,
+    "level": 2,
     "zenLines": 1,
     "apmTestBest": 0,
     "apmTestLast": 0
@@ -60,6 +61,24 @@
       "apm": 0,
       "maxCombo": 0,
       "garbageReceived": 0
+    },
+    {
+      "date": "2026-10-15T19:50:01.095Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "0-0",
+      "opponent": "Test1",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T19:50:42.087Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 0,
+      "lines": 1,
+      "maxCombo": 0
     }
   ]
 }
