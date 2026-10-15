@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-theme="cyan">
-  <!-- Dynamic Shuffling Background Container -->
+  <!-- Dynamic Shuffling / Locked Background Container -->
   <div id="bg-stage">
     <div class="bg-layer active-bg"></div>
     <div class="bg-vignette"></div>
@@ -73,13 +73,23 @@
       <h1 class="hub-giant-title"><span class="brand-accent">PROJECT</span> A<sup>2</sup></h1>
       <div class="hub-nav-tabs">
         <button id="hub-tab-play" class="btn mode-btn active">MODES & LEADERBOARDS</button>
-        <button id="hub-tab-customize" class="btn mode-btn">SKINS & THEMES (UNLOCKS)</button>
+        <button id="hub-tab-customize" class="btn mode-btn">CUSTOMIZATION</button>
         <button id="hub-tab-stats" class="btn mode-btn">PLAYER STATS DIRECTORY</button>
       </div>
     </div>
 
-    <!-- HUB VIEW A: Modes & Leaderboards -->
+    <!-- HUB VIEW A: Active Players Bar on Left + Singleplayer + Multiplayer + Leaderboards -->
     <div id="hub-play-view" class="hub-grid">
+      <!-- Far-Left Column: Scrollable Active Players Bar (Click player -> Challenge to 1v1 button pops up underneath) -->
+      <div class="hub-column">
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>ACTIVE PLAYERS (<span id="active-players-count">0</span>)</h3>
+          </div>
+          <div id="active-players-bar" class="scrollable-list active-players-list"></div>
+        </div>
+      </div>
+
       <!-- Singleplayer Column -->
       <div class="hub-column">
         <div class="panel-card">
@@ -108,7 +118,7 @@
         </div>
       </div>
 
-      <!-- Multiplayer & Live Spectator Column -->
+      <!-- Multiplayer Column -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
@@ -131,14 +141,13 @@
 
             <div class="mode-select-card mp-card" id="join-ffa-lobby-btn">
               <div class="mc-title">FFA ARENA</div>
-              <div class="mc-desc">Free-For-All battle with 4 Target Modes and Multi-Board view. Starts when 2+ players join.</div>
+              <div class="mc-desc">Free-For-All battle. Last player standing wins, and the lobby automatically restarts after 5s!</div>
               <div class="mc-status-row">
                 <span class="badge">2+ PLAYERS</span>
                 <span id="hub-ffa-status" class="queue-pill">In Lobby: 0</span>
               </div>
             </div>
 
-            <!-- Live Matches Spectator List -->
             <div class="spectate-section">
               <div class="spectate-header">LIVE MATCHES (CLICK TO SPECTATE)</div>
               <div id="live-matches-list" class="spectate-list">
@@ -149,7 +158,7 @@
         </div>
       </div>
 
-      <!-- Leaderboards Column (Displays all players that fit) -->
+      <!-- Leaderboards Column -->
       <div class="hub-column">
         <div class="panel-card leaderboard-card">
           <div class="card-header">
@@ -167,26 +176,37 @@
       </div>
     </div>
 
-    <!-- HUB VIEW B: Level-Unlocked Skins, Ghost Styles & Board Themes -->
+    <!-- HUB VIEW B: CUSTOMIZATION (4 Columns: Left = Background Thumbnails, + Skins, Ghosts & Themes up to Level 100) -->
     <div id="hub-customize-view" class="hub-customize-view hidden">
+      <!-- 1st Column on Left: Background Thumbnails Selector (Shuffle Default or Lock Specific BG) -->
       <div class="panel-card">
         <div class="card-header">
-          <h3>LEVEL-UNLOCKED BLOCK SKINS</h3>
-          <span class="sub-hint">Level up by clearing lines & completing matches</span>
+          <h3>BACKGROUNDS</h3>
+          <span class="sub-hint">Shuffle or Lock</span>
+        </div>
+        <div id="bg-thumbnails-grid" class="bg-thumbnails-grid"></div>
+      </div>
+
+      <!-- 2nd Column: Block Skins (Rewards every 10 levels up to LVL 100) -->
+      <div class="panel-card">
+        <div class="card-header">
+          <h3>BLOCK SKINS (LVL 1 - 100)</h3>
         </div>
         <div id="skins-unlock-grid" class="unlock-grid"></div>
       </div>
 
+      <!-- 3rd Column: Ghost Piece Styles (Rewards every 10 levels up to LVL 100) -->
       <div class="panel-card">
         <div class="card-header">
-          <h3>LEVEL-UNLOCKED GHOST PIECE STYLES</h3>
+          <h3>GHOST STYLES (LVL 1 - 100)</h3>
         </div>
         <div id="ghosts-unlock-grid" class="unlock-grid"></div>
       </div>
 
+      <!-- 4th Column: Board Themes (Rewards every 10 levels up to LVL 100) -->
       <div class="panel-card">
         <div class="card-header">
-          <h3>LEVEL-UNLOCKED BOARD THEMES</h3>
+          <h3>BOARD THEMES (LVL 1 - 100)</h3>
         </div>
         <div id="themes-unlock-grid" class="unlock-grid"></div>
       </div>
@@ -222,7 +242,6 @@
       </div>
       <div class="duel-center">
         <span id="arena-score-strip"></span>
-        <!-- Live APM Tug of War Bar for 1v1 & Spectating -->
         <div id="tug-of-war-wrap" class="tug-of-war-wrap hidden">
           <div id="tug-of-war-fill" class="tug-of-war-fill"></div>
         </div>
@@ -234,7 +253,6 @@
       </div>
     </div>
 
-    <!-- FFA 4-Mode Target Selector Bar -->
     <div id="ffa-target-bar" class="ffa-target-bar hidden">
       <span class="target-label">TARGET MODE (KEYS 1-4 OR CLICK BOARD):</span>
       <button class="btn btn-sm target-btn" data-target="payback">1: PAYBACK</button>
@@ -244,9 +262,7 @@
     </div>
 
     <div class="arena-stage">
-      <!-- Player Playfield Wrapper (Hidden when purely spectating) -->
       <div id="player-playfield-wrapper" class="playfield-wrapper">
-        <!-- Left HUD: Hold, Live Stats & Action/Combo Popup Box Underneath Back-to-Back -->
         <div class="hud-left-col">
           <div class="hud-box hold-box">
             <div class="hud-label">HOLD</div>
@@ -278,7 +294,6 @@
               <span class="stat-title">BACK-TO-BACK</span>
               <span id="stat-b2b" class="stat-val">0x</span>
             </div>
-            <!-- Dedicated Combo & +Lines Popup Box underneath Back-to-Back -->
             <div id="action-feed-card" class="stat-card action-feed-card">
               <span class="stat-title">ACTION / ATTACK</span>
               <span id="action-callout" class="action-feed-val">—</span>
@@ -286,12 +301,10 @@
           </div>
         </div>
 
-        <!-- Incoming Garbage Meter -->
         <div class="garbage-meter-container">
           <div id="garbage-meter-fill" class="garbage-meter-fill"></div>
         </div>
 
-        <!-- Main Board Canvas (Supports Board Shake & Lock Flash) -->
         <div id="board-frame" class="board-frame">
           <canvas id="board-canvas" width="128" height="832"></canvas>
           <div id="overlay-banner" class="overlay-banner hidden">
@@ -300,7 +313,6 @@
           </div>
         </div>
 
-        <!-- Next Queue -->
         <div class="hud-right-col">
           <div class="hud-box next-box">
             <div class="hud-label">NEXT</div>
@@ -309,7 +321,6 @@
         </div>
       </div>
 
-      <!-- Multi-Board Opponent & Spectator Grid -->
       <div id="multi-opponents-panel" class="multi-opponents-panel hidden">
         <div class="card-header">
           <h3 id="multi-opp-header">LIVE OPPONENTS</h3>
@@ -341,13 +352,22 @@
           <tbody id="summary-table-body"></tbody>
         </table>
       </div>
-      <div class="summary-footer">
-        Returning to Project A² Hub in <span id="summary-countdown-sec">5</span>s...
+      <div id="summary-footer-text" class="summary-footer">
+        Next round starting in <span id="summary-countdown-sec">5</span>s...
       </div>
     </div>
   </div>
 
-  <!-- 5. CLOSABLE "Chat" DRAWER WITH TOP-RIGHT X BUTTON -->
+  <!-- 5. BOTTOM-LEFT INCOMING 1v1 CHALLENGE POPUP -->
+  <div id="challenge-toast" class="challenge-toast hidden">
+    <div id="challenge-toast-text" class="challenge-toast-text">Player has challenged you to 1v1</div>
+    <div class="challenge-toast-actions">
+      <button id="accept-direct-challenge-btn" class="btn btn-success btn-sm">ACCEPT</button>
+      <button id="deny-direct-challenge-btn" class="btn btn-danger btn-sm">DENY</button>
+    </div>
+  </div>
+
+  <!-- 6. CLOSABLE "Chat" DRAWER WITH TOP-RIGHT X BUTTON -->
   <aside id="chat-drawer" class="chat-drawer">
     <div class="card-header">
       <h3>Chat</h3>
@@ -360,7 +380,7 @@
     </form>
   </aside>
 
-  <!-- 6. SETTINGS MODAL (Audio, BG Shuffle, Board Shake/Flash & Keybind Remapper) -->
+  <!-- 7. SETTINGS MODAL -->
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-window">
       <div class="modal-header">
