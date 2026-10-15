@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T18:39:34.089Z",
+    "updatedAt": "2026-10-15T18:39:46.145Z",
     "lastLogin": "2026-10-15T18:39:21.158Z",
     "settings": {
       "das": 115,
@@ -13,7 +13,7 @@
       "musicVolume": 40,
       "sfxVolume": 75,
       "bgInterval": 60,
-      "preferredCols": 4
+      "preferredCols": 10
     },
     "stats": {
       "gamesPlayed": 0,
