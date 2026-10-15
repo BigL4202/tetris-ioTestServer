@@ -1,9 +1,19 @@
 // ============================================================================
-// MAIN APPLICATION CONTROLLER: RENDERER, INPUT (DAS/ARR/SDF), & WEBSOCKET UI
+// PROJECT A^2 MAIN CONTROLLER: AUTHENTICATION, RENDERER, INPUT & WEBSOCKET
 // ============================================================================
 
 (function () {
-  // DOM Elements
+  // Auth Screen Elements
+  const authScreen = document.getElementById('auth-screen');
+  const authForm = document.getElementById('auth-form');
+  const authUsernameInput = document.getElementById('auth-username');
+  const authPasswordInput = document.getElementById('auth-password');
+  const registerSubmitBtn = document.getElementById('register-submit-btn');
+  const authErrorBox = document.getElementById('auth-error-box');
+  const activePilotNameEl = document.getElementById('active-pilot-name');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Canvas & HUD Elements
   const boardCanvas = document.getElementById('board-canvas');
   const boardCtx = boardCanvas.getContext('2d');
   const holdCanvas = document.getElementById('hold-canvas');
@@ -15,8 +25,6 @@
 
   const matrixBadge = document.getElementById('matrix-badge');
   const matrixSelect = document.getElementById('matrix-select');
-  const usernameInput = document.getElementById('username-input');
-  const saveProfileBtn = document.getElementById('save-profile-btn');
   const modeZenBtn = document.getElementById('mode-zen-btn');
   const modeFfaBtn = document.getElementById('mode-ffa-btn');
   const restartBtn = document.getElementById('restart-btn');
@@ -65,17 +73,17 @@
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
 
-  // Handling & Settings
   const handling = {
-    das: Number(localStorage.getItem('tetrio_das') || 115),
-    arr: Number(localStorage.getItem('tetrio_arr') || 10),
-    sdf: Number(localStorage.getItem('tetrio_sdf') || 40)
+    das: Number(localStorage.getItem('a2_das') || 115),
+    arr: Number(localStorage.getItem('a2_arr') || 10),
+    sdf: Number(localStorage.getItem('a2_sdf') || 40)
   };
 
   let myId = null;
-  let myUsername = localStorage.getItem('tetrio_username') || '';
-  let currentMode = 'zen'; // 'zen', 'ffa', 'duel'
-  let currentCols = 4; // Defaults to 4x26 per prompt
+  let myUsername = '';
+  let isAuthenticated = false;
+  let currentMode = 'zen';
+  let currentCols = 4;
   let activeLeaderboardTab = 'byApm';
   let cachedLeaderboards = { byApm: [], byWins: [], byCombo: [], byDuels: [] };
   let sessionGamesCount = 0;
@@ -83,10 +91,9 @@
 
   let activeIncomingChallenge = null;
   let challengeCountdownTimer = null;
-  let opponentState = null;
   let ws = null;
 
-  // Instantiate Core Engine
+  // Instantiate Core Stacker Engine
   const engine = new window.StackerEngine(currentCols, 26, 20, {
     onSfx: (name, comboIdx) => window.AudioController.playSFX(name, comboIdx),
     onCallout: (text) => showCallout(text),
@@ -98,7 +105,7 @@
     onTopOut: (stats) => {
       sessionGamesCount += 1;
       sessionTotalReceived += stats.garbageReceived;
-      if (ws && ws.readyState === WebSocket.OPEN) {
+      if (ws && ws.readyState === WebSocket.OPEN && isAuthenticated) {
         ws.send(JSON.stringify({ type: 'player_topout', stats }));
       }
       if (currentMode !== 'duel') {
@@ -110,7 +117,7 @@
     onSync: () => sendBoardSync()
   });
 
-  // Fetch /api/resources to initialize dynamic music, SFX, and backgrounds
+  // Load Resources (/api/resources)
   fetch('/api/resources')
     .then(r => r.json())
     .then(manifest => {
@@ -123,7 +130,119 @@
     });
 
   // ============================================================================
-  // WEBSOCKET CLIENT SETUP
+  // DEDICATED LOGIN & REGISTRATION FLOW
+  // ============================================================================
+
+  function showAuthError(msg) {
+    authErrorBox.textContent = msg;
+    authErrorBox.classList.remove('hidden');
+  }
+
+  async function submitAuth(endpoint) {
+    authErrorBox.classList.add('hidden');
+    const username = authUsernameInput.value.trim();
+    const password = authPasswordInput.value;
+
+    if (!username || !password) {
+      showAuthError('Please enter both a Callsign and Password.');
+      return;
+    }
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        showAuthError(data.error || 'Authentication failed.');
+        return;
+      }
+
+      completePilotLogin(data.user);
+    } catch (err) {
+      showAuthError('Network error communicating with Project A² server.');
+    }
+  }
+
+  function completePilotLogin(userObj) {
+    isAuthenticated = true;
+    myUsername = userObj.username;
+    activePilotNameEl.textContent = myUsername;
+    authScreen.classList.add('hidden');
+
+    // Apply user's saved handling settings from player_data
+    if (userObj.settings) {
+      if (typeof userObj.settings.das === 'number') {
+        handling.das = userObj.settings.das;
+        document.getElementById('slider-das').value = handling.das;
+        document.getElementById('val-das').textContent = handling.das;
+      }
+      if (typeof userObj.settings.arr === 'number') {
+        handling.arr = userObj.settings.arr;
+        document.getElementById('slider-arr').value = handling.arr;
+        document.getElementById('val-arr').textContent = handling.arr;
+      }
+      if (typeof userObj.settings.sdf === 'number') {
+        handling.sdf = userObj.settings.sdf;
+        document.getElementById('slider-sdf').value = handling.sdf;
+        document.getElementById('val-sdf').textContent = handling.sdf;
+      }
+      if (userObj.settings.preferredCols === 4 || userObj.settings.preferredCols === 10) {
+        currentCols = userObj.settings.preferredCols;
+        matrixSelect.value = String(currentCols);
+        updateMatrixBadge();
+      }
+    }
+
+    engine.reset(Date.now(), currentCols);
+    window.AudioController.playCurrentMusic();
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'auth_bind',
+        username: myUsername,
+        boardCols: currentCols
+      }));
+    }
+  }
+
+  authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    submitAuth('/api/auth/login');
+  });
+
+  registerSubmitBtn.addEventListener('click', () => {
+    submitAuth('/api/auth/register');
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    isAuthenticated = false;
+    myUsername = '';
+    authPasswordInput.value = '';
+    authScreen.classList.remove('hidden');
+  });
+
+  function pushSettingsToServer() {
+    if (!isAuthenticated || !myUsername) return;
+    fetch('/api/auth/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: myUsername,
+        settings: {
+          das: handling.das,
+          arr: handling.arr,
+          sdf: handling.sdf,
+          preferredCols: currentCols
+        }
+      })
+    }).catch(() => {});
+  }
+
+  // ============================================================================
+  // WEBSOCKET CONNECTION
   // ============================================================================
 
   function connectWebSocket() {
@@ -131,12 +250,11 @@
     ws = new WebSocket(`${proto}//${window.location.host}`);
 
     ws.addEventListener('open', () => {
-      if (myUsername) {
+      if (isAuthenticated && myUsername) {
         ws.send(JSON.stringify({
-          type: 'set_profile',
+          type: 'auth_bind',
           username: myUsername,
-          boardCols: currentCols,
-          mode: currentMode
+          boardCols: currentCols
         }));
       }
     });
@@ -152,12 +270,6 @@
       switch (msg.type) {
         case 'welcome':
           myId = msg.id;
-          if (!myUsername) {
-            myUsername = msg.username;
-            usernameInput.value = myUsername;
-          } else {
-            usernameInput.value = myUsername;
-          }
           if (msg.leaderboards) {
             cachedLeaderboards = msg.leaderboards;
             renderLeaderboard();
@@ -166,8 +278,7 @@
 
         case 'profile_updated':
           myUsername = msg.username;
-          usernameInput.value = myUsername;
-          localStorage.setItem('tetrio_username', myUsername);
+          activePilotNameEl.textContent = myUsername;
           break;
 
         case 'online_list':
@@ -202,12 +313,12 @@
         case 'challenge_expired':
         case 'challenge_cleared':
           clearChallengeUI();
-          if (msg.text) appendChatMessage('SYSTEM', msg.text, 'system');
+          if (msg.text) appendChatMessage('PROJECT A²', msg.text, 'system');
           break;
 
         case 'challenge_declined':
           clearChallengeUI();
-          appendChatMessage('SYSTEM', `${msg.byName} declined your 1v1 challenge.`, 'system');
+          appendChatMessage('PROJECT A²', `${msg.byName} declined your 1v1 challenge.`, 'system');
           break;
 
         case 'duel_init':
@@ -273,7 +384,6 @@
           break;
 
         case 'opponent_sync':
-          opponentState = msg;
           document.getElementById('opp-header-name').textContent = `VS: ${msg.username}`;
           document.getElementById('opp-live-metrics').textContent = `${msg.apm || 0} APM | ${msg.pps || 0} PPS`;
           drawOpponentBoard(msg);
@@ -289,7 +399,7 @@
   connectWebSocket();
 
   function sendBoardSync() {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !isAuthenticated) return;
     if (currentMode !== 'duel' && currentMode !== 'ffa') return;
     const metrics = engine.getLiveMetrics();
     ws.send(JSON.stringify({
@@ -309,15 +419,14 @@
     }));
   }
 
-  // Periodic telemetry sync during multiplayer
   setInterval(() => {
-    if (!engine.gameOver && (currentMode === 'duel' || currentMode === 'ffa')) {
+    if (isAuthenticated && !engine.gameOver && (currentMode === 'duel' || currentMode === 'ffa')) {
       sendBoardSync();
     }
   }, 250);
 
   // ============================================================================
-  // UI HELPERS: ONLINE LIST, CHALLENGES, LEADERBOARDS, CHAT
+  // UI HELPERS
   // ============================================================================
 
   function clearChallengeUI() {
@@ -387,7 +496,7 @@
     const rows = cachedLeaderboards[activeLeaderboardTab] || [];
 
     if (rows.length === 0) {
-      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No records yet — complete a round!</span></div>`;
+      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No pilots recorded yet!</span></div>`;
       return;
     }
 
@@ -396,13 +505,13 @@
       div.className = 'lb-row';
       let metricStr = '';
       if (activeLeaderboardTab === 'byApm') {
-        metricStr = `${r.avgApm.toFixed(1)} APM`;
+        metricStr = `${Number(r.avgApm || 0).toFixed(1)} APM`;
       } else if (activeLeaderboardTab === 'byWins') {
-        metricStr = `${r.ffaWins + r.duelWins} Wins`;
+        metricStr = `${(r.ffaWins || 0) + (r.duelWins || 0)} Wins`;
       } else if (activeLeaderboardTab === 'byCombo') {
-        metricStr = `${r.maxCombo}x Combo`;
+        metricStr = `${r.maxCombo || 0}x Combo`;
       } else if (activeLeaderboardTab === 'byDuels') {
-        metricStr = `${r.duelWins}W - ${r.duelLosses}L (${r.avgApm.toFixed(1)} APM)`;
+        metricStr = `${r.duelWins || 0}W - ${r.duelLosses || 0}L (${Number(r.avgApm || 0).toFixed(1)} APM)`;
       }
 
       div.innerHTML = `
@@ -470,20 +579,8 @@
   updateMatrixBadge();
 
   // ============================================================================
-  // UI EVENT LISTENERS
+  // CONTROLS & UI EVENTS
   // ============================================================================
-
-  saveProfileBtn.addEventListener('click', () => {
-    const val = usernameInput.value.trim();
-    if (val && ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({
-        type: 'set_profile',
-        username: val,
-        boardCols: currentCols,
-        mode: currentMode
-      }));
-    }
-  });
 
   matrixSelect.addEventListener('change', () => {
     if (currentMode === 'duel') return;
@@ -491,10 +588,10 @@
     updateMatrixBadge();
     hideOverlay();
     engine.reset(Date.now(), currentCols);
+    pushSettingsToServer();
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type: 'set_profile',
-        username: myUsername,
         boardCols: currentCols,
         mode: currentMode
       }));
@@ -509,7 +606,7 @@
     hideOverlay();
     engine.reset(Date.now(), currentCols);
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'set_profile', username: myUsername, boardCols: currentCols, mode: 'zen' }));
+      ws.send(JSON.stringify({ type: 'set_profile', boardCols: currentCols, mode: 'zen' }));
     }
   });
 
@@ -521,7 +618,7 @@
     hideOverlay();
     engine.reset(Date.now(), currentCols);
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: 'set_profile', username: myUsername, boardCols: currentCols, mode: 'ffa' }));
+      ws.send(JSON.stringify({ type: 'set_profile', boardCols: currentCols, mode: 'ffa' }));
     }
   });
 
@@ -577,7 +674,6 @@
     chatInput.blur();
   });
 
-  // Media & Settings Modal
   document.getElementById('next-track-btn').addEventListener('click', () => {
     window.AudioController.nextTrack();
   });
@@ -592,6 +688,7 @@
   });
   document.getElementById('close-settings-btn').addEventListener('click', () => {
     settingsModal.classList.add('hidden');
+    pushSettingsToServer();
   });
 
   const bindSlider = (sliderId, labelId, initialVal, onChange) => {
@@ -607,37 +704,38 @@
 
   bindSlider('slider-das', 'val-das', handling.das, v => {
     handling.das = v;
-    localStorage.setItem('tetrio_das', v);
+    localStorage.setItem('a2_das', v);
   });
   bindSlider('slider-arr', 'val-arr', handling.arr, v => {
     handling.arr = v;
-    localStorage.setItem('tetrio_arr', v);
+    localStorage.setItem('a2_arr', v);
   });
   bindSlider('slider-sdf', 'val-sdf', handling.sdf, v => {
     handling.sdf = v;
-    localStorage.setItem('tetrio_sdf', v);
+    localStorage.setItem('a2_sdf', v);
   });
   bindSlider('slider-music', 'val-music', 40, v => window.AudioController.setMusicVolume(v / 100));
   bindSlider('slider-sfx', 'val-sfx', 75, v => window.AudioController.setSfxVolume(v / 100));
   bindSlider('slider-bg-interval', 'val-bg-interval', 60, v => window.BackgroundController.setShuffleInterval(v));
 
   // ============================================================================
-  // PRECISION INPUT HANDLING (DAS, ARR, SDF)
+  // INPUT HANDLING
   // ============================================================================
 
   const keysDown = new Set();
-  let moveDir = 0; // -1 left, 1 right
+  let moveDir = 0;
   let dasTimer = 0;
   let arrTimer = 0;
   let softDropTimer = 0;
 
-  function isTypingInInput() {
+  function isBlockingInput() {
+    if (!isAuthenticated) return true;
     const el = document.activeElement;
     return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
   }
 
   window.addEventListener('keydown', (e) => {
-    if (isTypingInInput()) return;
+    if (isBlockingInput()) return;
 
     if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
       e.preventDefault();
@@ -661,15 +759,15 @@
         break;
       case 'ArrowUp':
       case 'KeyX':
-        engine.rotate(1); // CW
+        engine.rotate(1);
         break;
       case 'KeyZ':
       case 'ControlLeft':
       case 'ControlRight':
-        engine.rotate(3); // CCW
+        engine.rotate(3);
         break;
       case 'KeyA':
-        engine.rotate(2); // 180
+        engine.rotate(2);
         break;
       case 'Space':
         engine.hardDrop();
@@ -712,14 +810,12 @@
   });
 
   function updateInputHandling(dtMs) {
-    if (engine.gameOver || isTypingInInput()) return;
+    if (engine.gameOver || isBlockingInput()) return;
 
-    // Horizontal DAS & ARR
     if (moveDir !== 0) {
       dasTimer += dtMs;
       if (dasTimer >= handling.das) {
         if (handling.arr === 0) {
-          // Instant 0ms ARR slides piece all the way to the wall
           while (engine.moveHorizontal(moveDir)) {}
         } else {
           arrTimer += dtMs;
@@ -731,10 +827,9 @@
       }
     }
 
-    // Soft Drop Factor (SDF)
     if (keysDown.has('ArrowDown')) {
       if (handling.sdf >= 40) {
-        engine.softDrop(true); // Instant sonic drop
+        engine.softDrop(true);
       } else {
         softDropTimer += dtMs;
         const stepMs = Math.max(8, engine.gravityInterval / handling.sdf);
@@ -749,7 +844,7 @@
   }
 
   // ============================================================================
-  // CANVAS RENDERING (MAIN 4x26 / 10x26 BOARD, HOLD, NEXT, OPPONENT)
+  // CANVAS RENDERING
   // ============================================================================
 
   function drawBlock(ctx, x, y, size, color, alpha = 1.0) {
@@ -757,8 +852,6 @@
     ctx.globalAlpha = alpha;
     ctx.fillStyle = color;
     ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-
-    // Subtle top-left highlight for crisp TETR.IO block bevel
     ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.fillRect(x * size + 1, y * size + 1, size - 2, 3);
     ctx.restore();
@@ -767,15 +860,13 @@
   function renderMainBoard() {
     const cellSize = 32;
     const cols = engine.cols;
-    const rows = engine.rows; // 26
+    const rows = engine.rows;
 
     boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
 
-    // 1. Shade the 6 hidden buffer rows (y = 0..5) vs 20 visible rows (y = 6..25)
     boardCtx.fillStyle = 'rgba(255, 30, 70, 0.06)';
     boardCtx.fillRect(0, 0, cols * cellSize, engine.bufferRows * cellSize);
 
-    // Grid lines
     boardCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
     boardCtx.lineWidth = 1;
     for (let r = 0; r <= rows; r++) {
@@ -791,7 +882,6 @@
       boardCtx.stroke();
     }
 
-    // Skyline danger divider at row 6 (separating 6 buffer rows from 20 playfield rows)
     boardCtx.strokeStyle = 'rgba(255, 61, 87, 0.75)';
     boardCtx.lineWidth = 2;
     boardCtx.beginPath();
@@ -799,7 +889,6 @@
     boardCtx.lineTo(cols * cellSize, engine.bufferRows * cellSize);
     boardCtx.stroke();
 
-    // 2. Locked Grid Cells
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = engine.grid[r][c];
@@ -809,13 +898,11 @@
       }
     }
 
-    // 3. Ghost Piece & Active Piece
     if (engine.activePiece && !engine.gameOver) {
       const p = engine.activePiece;
       const ghostY = engine.getGhostY();
       const pColor = window.PIECE_COLORS[p.type];
 
-      // Ghost Piece
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
           if (p.matrix[r][c]) {
@@ -824,7 +911,6 @@
         }
       }
 
-      // Active Piece
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
           if (p.matrix[r][c]) {
@@ -871,7 +957,6 @@
 
     oppCtx.clearRect(0, 0, oppCanvas.width, oppCanvas.height);
 
-    // Skyline line at row 6
     oppCtx.strokeStyle = 'rgba(255, 61, 87, 0.5)';
     oppCtx.beginPath();
     oppCtx.moveTo(0, 6 * cellSize);
@@ -918,17 +1003,15 @@
     garbageMeterFill.style.height = `${meterPct}%`;
   }
 
-  // ============================================================================
-  // MAIN 60FPS GAME LOOP
-  // ============================================================================
-
   let lastFrameTime = performance.now();
   function gameLoop(now) {
     const dtMs = Math.min(100, now - lastFrameTime);
     lastFrameTime = now;
 
-    updateInputHandling(dtMs);
-    engine.update(dtMs);
+    if (isAuthenticated) {
+      updateInputHandling(dtMs);
+      engine.update(dtMs);
+    }
 
     renderMainBoard();
     renderHoldAndNext();
