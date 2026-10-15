@@ -114,7 +114,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-15T20:10:18.795Z",
+    "updatedAt": "2026-10-15T20:10:29.927Z",
     "lastLogin": "2026-10-15T20:05:36.432Z",
     "settings": {
       "musicVolume": 0,
@@ -139,21 +139,21 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "xp": 409,
+      "xp": 549,
       "level": 3,
-      "gamesPlayed": 4,
+      "gamesPlayed": 5,
       "zenLines": 0,
       "apmTestBest": 0,
       "apmTestLast": 0,
-      "ffaWins": 0,
+      "ffaWins": 1,
       "duelWins": 0,
       "duelLosses": 2,
       "maxCombo": 8,
       "totalLinesCleared": 38,
       "totalAttackSent": 24,
       "totalReceivedSum": 51,
-      "receivedSamples": 4,
-      "avgReceived": 12.8
+      "receivedSamples": 5,
+      "avgReceived": 10.2
     },
     "matchHistory": [
       {
@@ -188,6 +188,14 @@
         "date": "2026-10-15T20:10:18.795Z",
         "mode": "FFA",
         "result": "TOP OUT",
+        "apm": 0,
+        "lines": 0,
+        "maxCombo": 0
+      },
+      {
+        "date": "2026-10-15T20:10:29.927Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
         "apm": 0,
         "lines": 0,
         "maxCombo": 0
