@@ -51,7 +51,7 @@ POSSIBLE_RESOURCE_ROOTS.forEach(rPath => {
 });
 
 // ============================================================================
-// DEFAULT KEYBINDS, COSMETICS & PLAYER DATABASE
+// DEFAULT KEYBINDS, COSMETICS & PLAYER DATABASE (player_data/ persistence)
 // ============================================================================
 
 const DEFAULT_KEYBINDS = {
@@ -74,10 +74,11 @@ function hashPassword(password) {
 
 function calculateLevel(xp) {
   const safeXp = Math.max(0, Number(xp) || 0);
-  return Math.floor(Math.sqrt(safeXp / 100)) + 1;
+  return Math.min(100, Math.floor(Math.sqrt(safeXp / 80)) + 1);
 }
 
 function normalizeUserRecord(u) {
+  if (!u || typeof u !== 'object') u = {};
   if (!u.settings) u.settings = {};
   u.settings.musicVolume = typeof u.settings.musicVolume === 'number' ? u.settings.musicVolume : 40;
   u.settings.sfxVolume = typeof u.settings.sfxVolume === 'number' ? u.settings.sfxVolume : 75;
@@ -87,24 +88,25 @@ function normalizeUserRecord(u) {
   u.settings.blockSkin = u.settings.blockSkin || 'bevel';
   u.settings.ghostStyle = u.settings.ghostStyle || 'fill';
   u.settings.boardTheme = u.settings.boardTheme || 'cyan';
+  u.settings.lockedBg = u.settings.lockedBg || 'shuffle';
   u.settings.keybinds = { ...DEFAULT_KEYBINDS, ...(u.settings.keybinds || {}) };
 
   if (!u.stats) u.stats = {};
-  u.stats.xp = Number(u.stats.xp) || 0;
+  u.stats.xp = Math.max(0, Number(u.stats.xp) || 0);
   u.stats.level = calculateLevel(u.stats.xp);
-  u.stats.gamesPlayed = Number(u.stats.gamesPlayed) || 0;
-  u.stats.zenLines = Number(u.stats.zenLines) || 0;
-  u.stats.apmTestBest = Number(u.stats.apmTestBest) || 0;
-  u.stats.apmTestLast = Number(u.stats.apmTestLast) || 0;
-  u.stats.ffaWins = Number(u.stats.ffaWins) || 0;
-  u.stats.duelWins = Number(u.stats.duelWins) || 0;
-  u.stats.duelLosses = Number(u.stats.duelLosses) || 0;
-  u.stats.maxCombo = Number(u.stats.maxCombo) || 0;
-  u.stats.totalLinesCleared = Number(u.stats.totalLinesCleared) || 0;
-  u.stats.totalAttackSent = Number(u.stats.totalAttackSent) || 0;
-  u.stats.totalReceivedSum = Number(u.stats.totalReceivedSum) || 0;
-  u.stats.receivedSamples = Number(u.stats.receivedSamples) || 0;
-  u.stats.avgReceived = Number(u.stats.avgReceived) || 0;
+  u.stats.gamesPlayed = Math.max(0, Number(u.stats.gamesPlayed) || 0);
+  u.stats.zenLines = Math.max(0, Number(u.stats.zenLines) || 0);
+  u.stats.apmTestBest = Math.max(0, Number(u.stats.apmTestBest) || 0);
+  u.stats.apmTestLast = Math.max(0, Number(u.stats.apmTestLast) || 0);
+  u.stats.ffaWins = Math.max(0, Number(u.stats.ffaWins) || 0);
+  u.stats.duelWins = Math.max(0, Number(u.stats.duelWins) || 0);
+  u.stats.duelLosses = Math.max(0, Number(u.stats.duelLosses) || 0);
+  u.stats.maxCombo = Math.max(0, Number(u.stats.maxCombo) || 0);
+  u.stats.totalLinesCleared = Math.max(0, Number(u.stats.totalLinesCleared) || 0);
+  u.stats.totalAttackSent = Math.max(0, Number(u.stats.totalAttackSent) || 0);
+  u.stats.totalReceivedSum = Math.max(0, Number(u.stats.totalReceivedSum) || 0);
+  u.stats.receivedSamples = Math.max(0, Number(u.stats.receivedSamples) || 0);
+  u.stats.avgReceived = Math.max(0, Number(u.stats.avgReceived) || 0);
   if (!Array.isArray(u.matchHistory)) u.matchHistory = [];
   return u;
 }
@@ -126,6 +128,7 @@ function createNewUserRecord(username, rawPassword) {
       blockSkin: 'bevel',
       ghostStyle: 'fill',
       boardTheme: 'cyan',
+      lockedBg: 'shuffle',
       keybinds: { ...DEFAULT_KEYBINDS }
     },
     stats: {
@@ -149,21 +152,35 @@ function createNewUserRecord(username, rawPassword) {
   });
 }
 
+// Load both users.json and any individual player_data/players/*.json files
 function loadLocalUsersDB() {
   try {
     if (fs.existsSync(USERS_DB_FILE)) {
       const raw = fs.readFileSync(USERS_DB_FILE, 'utf8');
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(raw || '{}');
       for (const k of Object.keys(parsed)) {
         usersDB[k.toLowerCase()] = normalizeUserRecord(parsed[k]);
       }
-      console.log(`[Project A^2] Loaded ${Object.keys(usersDB).length} profiles from player_data/users.json`);
-    } else {
-      fs.writeFileSync(USERS_DB_FILE, JSON.stringify({}, null, 2), 'utf8');
     }
+    if (fs.existsSync(INDIVIDUAL_PLAYERS_DIR)) {
+      const files = fs.readdirSync(INDIVIDUAL_PLAYERS_DIR).filter(f => f.endsWith('.json'));
+      for (const file of files) {
+        try {
+          const singleRaw = fs.readFileSync(path.join(INDIVIDUAL_PLAYERS_DIR, file), 'utf8');
+          const singleObj = normalizeUserRecord(JSON.parse(singleRaw));
+          if (singleObj && singleObj.username) {
+            const key = singleObj.username.toLowerCase();
+            if (!usersDB[key] || (singleObj.stats.xp || 0) >= (usersDB[key].stats.xp || 0)) {
+              usersDB[key] = singleObj;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+    fs.writeFileSync(USERS_DB_FILE, JSON.stringify(usersDB, null, 2), 'utf8');
+    console.log(`[Project A^2] Loaded ${Object.keys(usersDB).length} profiles from local player_data/`);
   } catch (err) {
-    console.error('[Project A^2] Error reading users.json:', err.message);
-    usersDB = {};
+    console.error('[Project A^2] Error reading local player_data:', err.message);
   }
 }
 
@@ -211,11 +228,13 @@ async function pullUsersFromGitHubOnBoot() {
       if (remoteUsers && typeof remoteUsers === 'object') {
         for (const k of Object.keys(remoteUsers)) {
           const low = k.toLowerCase();
-          if (!usersDB[low]) {
-            usersDB[low] = normalizeUserRecord(remoteUsers[k]);
+          const remNorm = normalizeUserRecord(remoteUsers[k]);
+          if (!usersDB[low] || (remNorm.stats.xp || 0) > (usersDB[low].stats.xp || 0)) {
+            usersDB[low] = remNorm;
           }
         }
         fs.writeFileSync(USERS_DB_FILE, JSON.stringify(usersDB, null, 2), 'utf8');
+        console.log(`[Project A^2] Synced ${Object.keys(usersDB).length} profiles with GitHub player_data/users.json`);
       }
     }
   } catch (e) {}
@@ -247,7 +266,7 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data') {
   githubSyncTimeout = setTimeout(() => {
     syncFileToGitHub(`player_data/players/${safeFile}.json`, singleJson, `[Project A^2] ${triggerReason}: ${userObj.username}`);
     syncFileToGitHub(`player_data/users.json`, JSON.stringify(usersDB, null, 2), `[Project A^2] Sync users.json (${userObj.username})`);
-  }, 2000);
+  }, 1500);
 }
 
 function sanitizeUserForClient(u) {
@@ -347,6 +366,18 @@ app.post('/api/auth/login', (req, res) => {
   return res.json({
     ok: true,
     user: sanitizeUserForClient(existing),
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
+  });
+});
+
+app.get('/api/auth/profile/:username', (req, res) => {
+  const key = String(req.params.username || '').trim().toLowerCase();
+  const u = usersDB[key];
+  if (!u) return res.status(404).json({ error: 'Player not found' });
+  res.json({
+    ok: true,
+    user: sanitizeUserForClient(u),
     leaderboards: getCompiledLeaderboards(),
     allPlayers: getAllPublicPlayerProfiles()
   });
@@ -484,32 +515,32 @@ app.get('*', (req, res) => {
 });
 
 // ============================================================================
-// MULTIPLAYER QUEUES, SPECTATOR STREAMING & SUDDEN DEATH ENGINE
+// MULTIPLAYER QUEUES, DIRECT 1v1 CHALLENGES, SPECTATORS & FFA AUTO-RESTART
 // ============================================================================
 
-const players = new Map();
+const players = new Map(); // ws -> Session
 const queue1v1 = [];
 const duelRooms = new Map(); // roomId -> DuelRoomObject
+const directChallenges = new Map(); // challengeId -> { id, fromId, fromName, toId, toName, timer }
 
 const ffaLobby = {
   players: new Map(), // playerId -> SlotObj
-  spectators: new Set(), // playerIds watching FFA
-  state: 'waiting', // 'waiting', 'countdown', 'playing'
+  spectators: new Set(),
+  state: 'waiting', // 'waiting', 'countdown', 'playing', 'summary'
   countdownTimer: null,
+  restartTimer: null,
   roundStartTime: 0
 };
 
 function computeSuddenDeathMultiplier(startTimeMs) {
   if (!startTimeMs || startTimeMs <= 0) return 1.0;
   const elapsedSec = (Date.now() - startTimeMs) / 1000;
-  // Margin Time starts at 60 seconds and increases by +0.2x every 15 seconds up to 3.0x
   if (elapsedSec < 60) return 1.0;
   const steps = Math.floor((elapsedSec - 60) / 15) + 1;
   return Math.min(3.0, Number((1.0 + steps * 0.2).toFixed(1)));
 }
 
 function computeHighestOccupiedRowHeight(grid) {
-  // Returns stack height from bottom (0 = empty, 26 = topped out)
   if (!Array.isArray(grid)) return 0;
   const totalRows = grid.length;
   for (let r = 0; r < totalRows; r++) {
@@ -524,6 +555,7 @@ function ensureUserRecord(username) {
   const key = username.toLowerCase();
   if (!usersDB[key]) {
     usersDB[key] = createNewUserRecord(username, 'default123');
+    saveUserAndSync(usersDB[key], 'Auto-Created Player Profile');
   }
   return normalizeUserRecord(usersDB[key]);
 }
@@ -560,6 +592,17 @@ function getPlayerById(playerId) {
   return null;
 }
 
+function clearPlayerDirectChallenges(playerId) {
+  for (const [cid, ch] of directChallenges.entries()) {
+    if (ch.fromId === playerId || ch.toId === playerId) {
+      clearTimeout(ch.timer);
+      directChallenges.delete(cid);
+      sendToPlayer(ch.fromId, { type: 'challenge_cleared', challengeId: cid });
+      sendToPlayer(ch.toId, { type: 'challenge_cleared', challengeId: cid });
+    }
+  }
+}
+
 function getActiveSpectatableMatches() {
   const list = [];
   for (const [roomId, room] of duelRooms.entries()) {
@@ -593,6 +636,7 @@ function broadcastHubState() {
       username: p.username,
       level: u.stats.level,
       mode: p.mode,
+      inDuel: p.mode === 'duel',
       apm: u.stats.apmTestBest,
       zenLines: u.stats.zenLines,
       duelWins: u.stats.duelWins,
@@ -659,6 +703,12 @@ function tryMatchmake1v1() {
 }
 
 function startDuelBo3Room(p1, p2) {
+  // Pull both players out of any current queue, Zen, or FFA lobby
+  removeFromQueuesAndSpectators(p1.id);
+  removeFromQueuesAndSpectators(p2.id);
+  clearPlayerDirectChallenges(p1.id);
+  clearPlayerDirectChallenges(p2.id);
+
   const roomId = `duel_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   p1.mode = 'duel';
@@ -861,6 +911,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 
   const overPayload = {
     type: 'match_summary_5s',
+    returnToHub: true,
     modeTitle: `1v1 BEST OF 3 RESULT (${scoreStr})`,
     winnerName: winnerSlot.username,
     players: summaryPlayers,
@@ -883,7 +934,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 }
 
 // ============================================================================
-// FFA LOBBY ENGINE (Multi-Board Sync, 4 Target Modes, Sudden Death, Spectators)
+// FFA LOBBY ENGINE (Last Player Standing Wins & Auto-Restarts Without Kicking)
 // ============================================================================
 
 function broadcastFfaRoom(payload) {
@@ -895,44 +946,60 @@ function broadcastFfaRoom(payload) {
   }
 }
 
+function startFfaCountdown() {
+  if (ffaLobby.players.size < 2) {
+    ffaLobby.state = 'waiting';
+    broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
+    broadcastHubState();
+    return;
+  }
+
+  ffaLobby.state = 'countdown';
+  ffaLobby.roundStartTime = 0;
+  const seed = Math.floor(Math.random() * 2147483647);
+
+  for (const [, slot] of ffaLobby.players.entries()) {
+    slot.alive = true;
+    slot.apm = 0;
+    slot.pps = 0;
+    slot.linesCleared = 0;
+    slot.attackSent = 0;
+    slot.garbageReceived = 0;
+    slot.maxCombo = 0;
+    slot.stackHeight = 0;
+    slot.lastAttackerId = null;
+    slot.grid = null;
+    slot.activePiece = null;
+    slot.pendingGarbage = 0;
+  }
+
+  broadcastFfaRoom({
+    type: 'ffa_countdown_start',
+    seed,
+    playerCount: ffaLobby.players.size
+  });
+
+  if (ffaLobby.countdownTimer) clearTimeout(ffaLobby.countdownTimer);
+  ffaLobby.countdownTimer = setTimeout(() => {
+    if (ffaLobby.players.size >= 2) {
+      ffaLobby.state = 'playing';
+      ffaLobby.roundStartTime = Date.now();
+      broadcastHubState();
+    } else {
+      ffaLobby.state = 'waiting';
+      broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
+      broadcastHubState();
+    }
+  }, 3000);
+  broadcastHubState();
+}
+
 function evaluateFfaLobbyState() {
   const count = ffaLobby.players.size;
 
   if (ffaLobby.state === 'waiting') {
     if (count >= 2) {
-      ffaLobby.state = 'countdown';
-      ffaLobby.roundStartTime = 0;
-      const seed = Math.floor(Math.random() * 2147483647);
-      for (const [, slot] of ffaLobby.players.entries()) {
-        slot.alive = true;
-        slot.apm = 0;
-        slot.pps = 0;
-        slot.linesCleared = 0;
-        slot.attackSent = 0;
-        slot.garbageReceived = 0;
-        slot.maxCombo = 0;
-        slot.stackHeight = 0;
-        slot.lastAttackerId = null;
-      }
-
-      broadcastFfaRoom({
-        type: 'ffa_countdown_start',
-        seed,
-        playerCount: count
-      });
-
-      if (ffaLobby.countdownTimer) clearTimeout(ffaLobby.countdownTimer);
-      ffaLobby.countdownTimer = setTimeout(() => {
-        if (ffaLobby.players.size >= 2) {
-          ffaLobby.state = 'playing';
-          ffaLobby.roundStartTime = Date.now();
-          broadcastHubState();
-        } else {
-          ffaLobby.state = 'waiting';
-          broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
-          broadcastHubState();
-        }
-      }, 3000);
+      startFfaCountdown();
     } else {
       broadcastFfaRoom({ type: 'ffa_waiting', playerCount: count });
     }
@@ -943,6 +1010,7 @@ function evaluateFfaLobbyState() {
       broadcastFfaRoom({ type: 'ffa_waiting', playerCount: count });
     }
   } else if (ffaLobby.state === 'playing') {
+    // If players disconnected or topped out leaving <= 1 player alive, end immediately
     checkFfaMatchEnd();
   }
   broadcastHubState();
@@ -957,7 +1025,6 @@ function selectFfaTarget(senderSlot, targetMode, manualTargetId) {
   }
   if (aliveOpponents.length === 0) return null;
 
-  // If player clicked a specific opponent mini-board and they are alive
   if (manualTargetId) {
     const manual = aliveOpponents.find(o => o.id === manualTargetId);
     if (manual) return manual;
@@ -971,14 +1038,10 @@ function selectFfaTarget(senderSlot, targetMode, manualTargetId) {
       }
       return aliveOpponents[Math.floor(Math.random() * aliveOpponents.length)];
     }
-    case 'ko': {
-      // Highest stack height closest to topping out
+    case 'ko':
       return [...aliveOpponents].sort((a, b) => (b.stackHeight || 0) - (a.stackHeight || 0))[0];
-    }
-    case 'apm': {
-      // Highest APM leader
+    case 'apm':
       return [...aliveOpponents].sort((a, b) => (b.apm || 0) - (a.apm || 0))[0];
-    }
     case 'random':
     default:
       return aliveOpponents[Math.floor(Math.random() * aliveOpponents.length)];
@@ -992,8 +1055,9 @@ function checkFfaMatchEnd() {
     if (slot.alive) aliveSlots.push(slot);
   }
 
+  // As soon as 1 player (or 0) is left standing, that player wins and the game is over!
   if (aliveSlots.length <= 1) {
-    ffaLobby.state = 'waiting';
+    ffaLobby.state = 'summary';
     ffaLobby.roundStartTime = 0;
     const winnerSlot = aliveSlots[0] || Array.from(ffaLobby.players.values())[0];
 
@@ -1033,12 +1097,13 @@ function checkFfaMatchEnd() {
 
     summaryPlayers.sort((a, b) => b.score - a.score || b.apm - a.apm);
 
+    // Send 5-second summary to all FFA players WITHOUT kicking them back to Hub (returnToHub: false)
     for (const [pid] of ffaLobby.players.entries()) {
       const pObj = getPlayerById(pid);
-      if (pObj) pObj.mode = 'hub';
       sendToPlayer(pid, {
         type: 'match_summary_5s',
-        modeTitle: 'FFA MATCH RESULTS',
+        returnToHub: false,
+        modeTitle: 'FFA MATCH RESULTS (NEXT ROUND IN 5S)',
         winnerName: winnerSlot ? winnerSlot.username : 'NONE',
         players: summaryPlayers,
         updatedUser: pObj ? sanitizeUserForClient(ensureUserRecord(pObj.username)) : null
@@ -1046,23 +1111,39 @@ function checkFfaMatchEnd() {
     }
 
     for (const specId of ffaLobby.spectators) {
-      const sp = getPlayerById(specId);
-      if (sp) sp.mode = 'hub';
       sendToPlayer(specId, {
         type: 'match_summary_5s',
-        modeTitle: 'FFA MATCH RESULTS',
+        returnToHub: false,
+        modeTitle: 'FFA MATCH RESULTS (NEXT ROUND IN 5S)',
         winnerName: winnerSlot ? winnerSlot.username : 'NONE',
         players: summaryPlayers
       });
     }
 
     if (winnerSlot) {
-      systemChatBroadcast(`[FFA VICTORY] ${winnerSlot.username} won the FFA match!`, 'duel-win');
+      systemChatBroadcast(`[FFA VICTORY] ${winnerSlot.username} is the last player standing and wins the FFA match!`, 'duel-win');
     }
 
-    ffaLobby.players.clear();
-    ffaLobby.spectators.clear();
     broadcastHubState();
+
+    // Automatically restart the FFA lobby after the 5-second summary screen!
+    if (ffaLobby.restartTimer) clearTimeout(ffaLobby.restartTimer);
+    ffaLobby.restartTimer = setTimeout(() => {
+      // Prune any disconnected sockets before restarting
+      for (const [pid] of ffaLobby.players.entries()) {
+        const pObj = getPlayerById(pid);
+        if (!pObj || pObj.mode !== 'ffa') {
+          ffaLobby.players.delete(pid);
+        }
+      }
+      if (ffaLobby.players.size >= 2) {
+        startFfaCountdown();
+      } else {
+        ffaLobby.state = 'waiting';
+        broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
+        broadcastHubState();
+      }
+    }, 5000);
   }
 }
 
@@ -1136,6 +1217,60 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      // Direct 1v1 Challenge from Active Players Bar
+      case 'send_direct_challenge': {
+        if (!p.authenticated || p.mode === 'duel') return;
+        const target = getPlayerById(msg.targetId);
+        if (!target || target.id === p.id || !target.authenticated || target.mode === 'duel') return;
+
+        // Limit 1 outgoing challenge per player
+        for (const [, ch] of directChallenges.entries()) {
+          if (ch.fromId === p.id) return;
+        }
+
+        const cid = `ch_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        const timer = setTimeout(() => {
+          if (directChallenges.has(cid)) {
+            directChallenges.delete(cid);
+            sendToPlayer(p.id, { type: 'challenge_cleared', challengeId: cid });
+            sendToPlayer(target.id, { type: 'challenge_cleared', challengeId: cid });
+          }
+        }, 60000);
+
+        directChallenges.set(cid, {
+          id: cid,
+          fromId: p.id,
+          fromName: p.username,
+          toId: target.id,
+          toName: target.username,
+          timer
+        });
+
+        sendToPlayer(target.id, {
+          type: 'direct_challenge_received',
+          challengeId: cid,
+          fromId: p.id,
+          fromName: p.username
+        });
+        break;
+      }
+
+      case 'respond_direct_challenge': {
+        const ch = directChallenges.get(msg.challengeId);
+        if (!ch || ch.toId !== p.id) return;
+        clearTimeout(ch.timer);
+        directChallenges.delete(ch.id);
+
+        const challenger = getPlayerById(ch.fromId);
+        if (!challenger || !msg.accept || challenger.mode === 'duel' || p.mode === 'duel') {
+          if (challenger) sendToPlayer(challenger.id, { type: 'challenge_cleared', challengeId: ch.id });
+          return;
+        }
+
+        startDuelBo3Room(challenger, p);
+        break;
+      }
+
       case 'join_1v1_queue': {
         if (!p.authenticated || p.mode === 'duel') return;
         removeFromQueuesAndSpectators(p.id);
@@ -1162,7 +1297,7 @@ wss.on('connection', (ws) => {
         ffaLobby.players.set(p.id, {
           id: p.id,
           username: p.username,
-          alive: true,
+          alive: ffaLobby.state !== 'playing',
           apm: 0,
           pps: 0,
           linesCleared: 0,
@@ -1333,7 +1468,6 @@ wss.on('connection', (ws) => {
 
             sendToPlayer(oppSlot.id, syncPayload);
 
-            // Stream both boards to any spectators watching this 1v1
             if (room.spectators.size > 0) {
               const specPayload = {
                 type: 'spectator_boards_sync',
@@ -1481,6 +1615,7 @@ wss.on('connection', (ws) => {
     const p = players.get(ws);
     if (!p) return;
 
+    clearPlayerDirectChallenges(p.id);
     removeFromQueuesAndSpectators(p.id);
 
     if (p.mode === 'duel' && p.duelRoomId) {
