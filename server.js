@@ -51,8 +51,20 @@ POSSIBLE_RESOURCE_ROOTS.forEach(rPath => {
 });
 
 // ============================================================================
-// PLAYER DATABASE, ACCOUNT LEVELS & GITHUB REPO SYNC
+// DEFAULT KEYBINDS, COSMETICS & PLAYER DATABASE
 // ============================================================================
+
+const DEFAULT_KEYBINDS = {
+  moveLeft: 'ArrowLeft',
+  moveRight: 'ArrowRight',
+  rotateCW: 'ArrowUp',
+  rotateCCW: 'KeyZ',
+  rotate180: 'KeyA',
+  softDrop: 'ArrowDown',
+  hardDrop: 'Space',
+  hold: 'ShiftLeft',
+  restart: 'KeyR'
+};
 
 let usersDB = {};
 
@@ -66,9 +78,17 @@ function calculateLevel(xp) {
 }
 
 function normalizeUserRecord(u) {
-  if (!u.settings) {
-    u.settings = { das: 115, arr: 10, sdf: 40, musicVolume: 40, sfxVolume: 75, bgInterval: 60 };
-  }
+  if (!u.settings) u.settings = {};
+  u.settings.musicVolume = typeof u.settings.musicVolume === 'number' ? u.settings.musicVolume : 40;
+  u.settings.sfxVolume = typeof u.settings.sfxVolume === 'number' ? u.settings.sfxVolume : 75;
+  u.settings.bgInterval = typeof u.settings.bgInterval === 'number' ? u.settings.bgInterval : 180;
+  u.settings.boardShake = typeof u.settings.boardShake === 'boolean' ? u.settings.boardShake : true;
+  u.settings.lockFlash = typeof u.settings.lockFlash === 'boolean' ? u.settings.lockFlash : true;
+  u.settings.blockSkin = u.settings.blockSkin || 'bevel';
+  u.settings.ghostStyle = u.settings.ghostStyle || 'fill';
+  u.settings.boardTheme = u.settings.boardTheme || 'cyan';
+  u.settings.keybinds = { ...DEFAULT_KEYBINDS, ...(u.settings.keybinds || {}) };
+
   if (!u.stats) u.stats = {};
   u.stats.xp = Number(u.stats.xp) || 0;
   u.stats.level = calculateLevel(u.stats.xp);
@@ -98,12 +118,15 @@ function createNewUserRecord(username, rawPassword) {
     updatedAt: new Date().toISOString(),
     lastLogin: new Date().toISOString(),
     settings: {
-      das: 115,
-      arr: 10,
-      sdf: 40,
       musicVolume: 40,
       sfxVolume: 75,
-      bgInterval: 60
+      bgInterval: 180,
+      boardShake: true,
+      lockFlash: true,
+      blockSkin: 'bevel',
+      ghostStyle: 'fill',
+      boardTheme: 'cyan',
+      keybinds: { ...DEFAULT_KEYBINDS }
     },
     stats: {
       xp: 0,
@@ -243,7 +266,6 @@ function getAllPublicPlayerProfiles() {
   return Object.values(usersDB).map(u => sanitizeUserForClient(u)).sort((a, b) => b.stats.xp - a.stats.xp);
 }
 
-// Top 5 Leaderboards Only
 function getCompiledLeaderboards() {
   const allUsers = Object.values(usersDB).map(u => {
     normalizeUserRecord(u);
@@ -262,14 +284,14 @@ function getCompiledLeaderboards() {
   });
 
   return {
-    byApm: [...allUsers].sort((a, b) => b.apm - a.apm).slice(0, 5),
-    byZen: [...allUsers].sort((a, b) => b.zenLines - a.zenLines).slice(0, 5),
-    byWins: [...allUsers].sort((a, b) => b.wins - a.wins).slice(0, 5),
-    byCombo: [...allUsers].sort((a, b) => b.maxCombo - a.maxCombo).slice(0, 5),
+    byApm: [...allUsers].sort((a, b) => b.apm - a.apm),
+    byZen: [...allUsers].sort((a, b) => b.zenLines - a.zenLines),
+    byWins: [...allUsers].sort((a, b) => b.wins - a.wins),
+    byCombo: [...allUsers].sort((a, b) => b.maxCombo - a.maxCombo),
     byDuels: [...allUsers].sort((a, b) => {
       if (b.duelWins !== a.duelWins) return b.duelWins - a.duelWins;
       return a.duelLosses - b.duelLosses;
-    }).slice(0, 5)
+    })
   };
 }
 
@@ -294,7 +316,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   const newUser = createNewUserRecord(rawName, rawPass);
-  saveUserAndSync(newUser, 'New Pilot Registered');
+  saveUserAndSync(newUser, 'New Player Registered');
 
   return res.json({
     ok: true,
@@ -311,7 +333,7 @@ app.post('/api/auth/login', (req, res) => {
 
   const existing = usersDB[key];
   if (!existing) {
-    return res.status(404).json({ error: 'Pilot not found. Click REGISTER to create account.' });
+    return res.status(404).json({ error: 'Player not found. Click REGISTER to create account.' });
   }
 
   const incomingHash = hashPassword(rawPass);
@@ -320,7 +342,7 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   existing.lastLogin = new Date().toISOString();
-  saveUserAndSync(existing, 'Pilot Login');
+  saveUserAndSync(existing, 'Player Login');
 
   return res.json({
     ok: true,
@@ -333,11 +355,18 @@ app.post('/api/auth/login', (req, res) => {
 app.post('/api/auth/settings', (req, res) => {
   const rawName = String(req.body.username || '').trim().toLowerCase();
   const user = usersDB[rawName];
-  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (!user) return res.status(404).json({ error: 'Player not found' });
 
   if (req.body.settings && typeof req.body.settings === 'object') {
-    user.settings = { ...user.settings, ...req.body.settings };
-    saveUserAndSync(user, 'Updated Settings');
+    user.settings = {
+      ...user.settings,
+      ...req.body.settings,
+      keybinds: {
+        ...user.settings.keybinds,
+        ...(req.body.settings.keybinds || {})
+      }
+    };
+    saveUserAndSync(user, 'Updated Settings & Customization');
   }
   return res.json({ ok: true, settings: user.settings });
 });
@@ -455,18 +484,41 @@ app.get('*', (req, res) => {
 });
 
 // ============================================================================
-// MULTIPLAYER QUEUES (1v1 BO3 QUEUE & 2+ PLAYER FFA LOBBY)
+// MULTIPLAYER QUEUES, SPECTATOR STREAMING & SUDDEN DEATH ENGINE
 // ============================================================================
 
-const players = new Map(); // ws -> PlayerSession
-const queue1v1 = []; // array of playerIds waiting for 1v1 BO3
+const players = new Map();
+const queue1v1 = [];
 const duelRooms = new Map(); // roomId -> DuelRoomObject
 
 const ffaLobby = {
-  players: new Map(), // playerId -> { id, username, alive, apm, pps, linesCleared, attackSent, garbageReceived, maxCombo }
+  players: new Map(), // playerId -> SlotObj
+  spectators: new Set(), // playerIds watching FFA
   state: 'waiting', // 'waiting', 'countdown', 'playing'
-  countdownTimer: null
+  countdownTimer: null,
+  roundStartTime: 0
 };
+
+function computeSuddenDeathMultiplier(startTimeMs) {
+  if (!startTimeMs || startTimeMs <= 0) return 1.0;
+  const elapsedSec = (Date.now() - startTimeMs) / 1000;
+  // Margin Time starts at 60 seconds and increases by +0.2x every 15 seconds up to 3.0x
+  if (elapsedSec < 60) return 1.0;
+  const steps = Math.floor((elapsedSec - 60) / 15) + 1;
+  return Math.min(3.0, Number((1.0 + steps * 0.2).toFixed(1)));
+}
+
+function computeHighestOccupiedRowHeight(grid) {
+  // Returns stack height from bottom (0 = empty, 26 = topped out)
+  if (!Array.isArray(grid)) return 0;
+  const totalRows = grid.length;
+  for (let r = 0; r < totalRows; r++) {
+    if (Array.isArray(grid[r]) && grid[r].some(cell => cell !== null)) {
+      return totalRows - r;
+    }
+  }
+  return 0;
+}
 
 function ensureUserRecord(username) {
   const key = username.toLowerCase();
@@ -508,6 +560,29 @@ function getPlayerById(playerId) {
   return null;
 }
 
+function getActiveSpectatableMatches() {
+  const list = [];
+  for (const [roomId, room] of duelRooms.entries()) {
+    if (room.active) {
+      list.push({
+        id: roomId,
+        type: 'duel',
+        label: `1v1 BO3: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
+        spectatorCount: room.spectators.size
+      });
+    }
+  }
+  if (ffaLobby.players.size >= 2 || ffaLobby.state === 'playing') {
+    list.push({
+      id: 'ffa_main',
+      type: 'ffa',
+      label: `FFA Arena (${ffaLobby.players.size} Players • ${ffaLobby.state.toUpperCase()})`,
+      spectatorCount: ffaLobby.spectators.size
+    });
+  }
+  return list;
+}
+
 function broadcastHubState() {
   const onlineList = [];
   for (const [, p] of players.entries()) {
@@ -531,6 +606,7 @@ function broadcastHubState() {
     queue1v1Count: queue1v1.length,
     ffaPlayerCount: ffaLobby.players.size,
     ffaState: ffaLobby.state,
+    activeMatches: getActiveSpectatableMatches(),
     leaderboards: getCompiledLeaderboards(),
     allPlayers: getAllPublicPlayerProfiles()
   });
@@ -546,14 +622,18 @@ function systemChatBroadcast(text, style = 'system') {
   });
 }
 
-function removeFromQueues(playerId) {
+function removeFromQueuesAndSpectators(playerId) {
   const qIdx = queue1v1.indexOf(playerId);
-  if (qIdx !== -1) {
-    queue1v1.splice(qIdx, 1);
-  }
+  if (qIdx !== -1) queue1v1.splice(qIdx, 1);
+
   if (ffaLobby.players.has(playerId)) {
     ffaLobby.players.delete(playerId);
     evaluateFfaLobbyState();
+  }
+
+  ffaLobby.spectators.delete(playerId);
+  for (const [, room] of duelRooms.entries()) {
+    room.spectators.delete(playerId);
   }
 }
 
@@ -562,7 +642,6 @@ function removeFromQueues(playerId) {
 // ============================================================================
 
 function tryMatchmake1v1() {
-  // Clean disconnected players from queue
   for (let i = queue1v1.length - 1; i >= 0; i--) {
     if (!getPlayerById(queue1v1[i])) queue1v1.splice(i, 1);
   }
@@ -589,11 +668,13 @@ function startDuelBo3Room(p1, p2) {
 
   const room = {
     id: roomId,
-    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0 },
-    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0 },
+    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0 },
+    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0 },
+    spectators: new Set(),
     round: 1,
     active: true,
-    roundInProgress: false
+    roundInProgress: false,
+    roundStartTime: 0
   };
 
   duelRooms.set(roomId, room);
@@ -622,9 +703,9 @@ function startDuelRoundWithCountdown(roomId) {
   room.p1.alive = true;
   room.p2.alive = true;
   room.roundInProgress = false;
+  room.roundStartTime = 0;
   const seed = Math.floor(Math.random() * 2147483647);
 
-  // Tell both clients to begin their 3-second countdown
   const cdPayload = {
     type: 'duel_round_countdown',
     roomId: room.id,
@@ -636,11 +717,15 @@ function startDuelRoundWithCountdown(roomId) {
 
   sendToPlayer(room.p1.id, cdPayload);
   sendToPlayer(room.p2.id, cdPayload);
+  for (const specId of room.spectators) {
+    sendToPlayer(specId, cdPayload);
+  }
 
   setTimeout(() => {
     const r = duelRooms.get(roomId);
     if (r && r.active) {
       r.roundInProgress = true;
+      r.roundStartTime = Date.now();
     }
   }, 3000);
 }
@@ -666,7 +751,6 @@ function handleDuelTopOut(roomId, loserId, finalStats = {}) {
     loserSlot.maxCombo = Math.max(loserSlot.maxCombo, finalStats.maxCombo || 0);
   }
 
-  // Best of 3: First to 2 wins
   if (winnerSlot.score >= 2) {
     concludeDuelMatch(room, winnerSlot, loserSlot, 'COMPLETED');
   } else {
@@ -681,6 +765,9 @@ function handleDuelTopOut(roomId, loserId, finalStats = {}) {
     };
     sendToPlayer(room.p1.id, roundMsg);
     sendToPlayer(room.p2.id, roundMsg);
+    for (const specId of room.spectators) {
+      sendToPlayer(specId, roundMsg);
+    }
 
     room.round += 1;
     setTimeout(() => startDuelRoundWithCountdown(room.id), 2500);
@@ -694,7 +781,6 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 
   const scoreStr = `${winnerSlot.score}-${loserSlot.score}`;
 
-  // Update Winner DB Record
   const winUser = ensureUserRecord(winnerSlot.username);
   winUser.stats.gamesPlayed += 1;
   winUser.stats.duelWins += 1;
@@ -716,7 +802,6 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   });
   awardXpAndSave(winUser, 150 + winnerSlot.linesCleared * 5, '1v1 BO3 Win');
 
-  // Update Loser DB Record
   const loseUser = ensureUserRecord(loserSlot.username);
   loseUser.stats.gamesPlayed += 1;
   loseUser.stats.duelLosses += 1;
@@ -785,6 +870,11 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 
   sendToPlayer(room.p1.id, overPayload);
   sendToPlayer(room.p2.id, overPayload);
+  for (const specId of room.spectators) {
+    const sp = getPlayerById(specId);
+    if (sp) sp.mode = 'hub';
+    sendToPlayer(specId, overPayload);
+  }
 
   systemChatBroadcast(`[1v1 BO3 VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
 
@@ -793,12 +883,15 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 }
 
 // ============================================================================
-// FFA LOBBY ENGINE (Requires 2+ Players to Start, 3s Countdown, 5s Summary)
+// FFA LOBBY ENGINE (Multi-Board Sync, 4 Target Modes, Sudden Death, Spectators)
 // ============================================================================
 
 function broadcastFfaRoom(payload) {
   for (const [pid] of ffaLobby.players.entries()) {
     sendToPlayer(pid, payload);
+  }
+  for (const specId of ffaLobby.spectators) {
+    sendToPlayer(specId, payload);
   }
 }
 
@@ -808,6 +901,7 @@ function evaluateFfaLobbyState() {
   if (ffaLobby.state === 'waiting') {
     if (count >= 2) {
       ffaLobby.state = 'countdown';
+      ffaLobby.roundStartTime = 0;
       const seed = Math.floor(Math.random() * 2147483647);
       for (const [, slot] of ffaLobby.players.entries()) {
         slot.alive = true;
@@ -817,6 +911,8 @@ function evaluateFfaLobbyState() {
         slot.attackSent = 0;
         slot.garbageReceived = 0;
         slot.maxCombo = 0;
+        slot.stackHeight = 0;
+        slot.lastAttackerId = null;
       }
 
       broadcastFfaRoom({
@@ -829,6 +925,7 @@ function evaluateFfaLobbyState() {
       ffaLobby.countdownTimer = setTimeout(() => {
         if (ffaLobby.players.size >= 2) {
           ffaLobby.state = 'playing';
+          ffaLobby.roundStartTime = Date.now();
           broadcastHubState();
         } else {
           ffaLobby.state = 'waiting';
@@ -851,6 +948,43 @@ function evaluateFfaLobbyState() {
   broadcastHubState();
 }
 
+function selectFfaTarget(senderSlot, targetMode, manualTargetId) {
+  const aliveOpponents = [];
+  for (const [, slot] of ffaLobby.players.entries()) {
+    if (slot.id !== senderSlot.id && slot.alive) {
+      aliveOpponents.push(slot);
+    }
+  }
+  if (aliveOpponents.length === 0) return null;
+
+  // If player clicked a specific opponent mini-board and they are alive
+  if (manualTargetId) {
+    const manual = aliveOpponents.find(o => o.id === manualTargetId);
+    if (manual) return manual;
+  }
+
+  switch (targetMode) {
+    case 'payback': {
+      if (senderSlot.lastAttackerId) {
+        const attacker = aliveOpponents.find(o => o.id === senderSlot.lastAttackerId);
+        if (attacker) return attacker;
+      }
+      return aliveOpponents[Math.floor(Math.random() * aliveOpponents.length)];
+    }
+    case 'ko': {
+      // Highest stack height closest to topping out
+      return [...aliveOpponents].sort((a, b) => (b.stackHeight || 0) - (a.stackHeight || 0))[0];
+    }
+    case 'apm': {
+      // Highest APM leader
+      return [...aliveOpponents].sort((a, b) => (b.apm || 0) - (a.apm || 0))[0];
+    }
+    case 'random':
+    default:
+      return aliveOpponents[Math.floor(Math.random() * aliveOpponents.length)];
+  }
+}
+
 function checkFfaMatchEnd() {
   if (ffaLobby.state !== 'playing') return;
   const aliveSlots = [];
@@ -860,6 +994,7 @@ function checkFfaMatchEnd() {
 
   if (aliveSlots.length <= 1) {
     ffaLobby.state = 'waiting';
+    ffaLobby.roundStartTime = 0;
     const winnerSlot = aliveSlots[0] || Array.from(ffaLobby.players.values())[0];
 
     const summaryPlayers = Array.from(ffaLobby.players.values()).map(s => {
@@ -910,11 +1045,23 @@ function checkFfaMatchEnd() {
       });
     }
 
+    for (const specId of ffaLobby.spectators) {
+      const sp = getPlayerById(specId);
+      if (sp) sp.mode = 'hub';
+      sendToPlayer(specId, {
+        type: 'match_summary_5s',
+        modeTitle: 'FFA MATCH RESULTS',
+        winnerName: winnerSlot ? winnerSlot.username : 'NONE',
+        players: summaryPlayers
+      });
+    }
+
     if (winnerSlot) {
       systemChatBroadcast(`[FFA VICTORY] ${winnerSlot.username} won the FFA match!`, 'duel-win');
     }
 
     ffaLobby.players.clear();
+    ffaLobby.spectators.clear();
     broadcastHubState();
   }
 }
@@ -929,10 +1076,12 @@ wss.on('connection', (ws) => {
   const session = {
     id: playerId,
     ws,
-    username: `Guest_${Math.floor(1000 + Math.random() * 9000)}`,
+    username: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
     authenticated: false,
     mode: 'hub',
-    duelRoomId: null
+    duelRoomId: null,
+    ffaTargetMode: 'random',
+    manualTargetId: null
   };
 
   players.set(ws, session);
@@ -941,7 +1090,8 @@ wss.on('connection', (ws) => {
     type: 'welcome',
     id: playerId,
     leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
+    allPlayers: getAllPublicPlayerProfiles(),
+    activeMatches: getActiveSpectatableMatches()
   }));
 
   ws.on('message', (raw) => {
@@ -986,10 +1136,9 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      // Join 1v1 Queue (Best of 3, 4x26 only)
       case 'join_1v1_queue': {
         if (!p.authenticated || p.mode === 'duel') return;
-        removeFromQueues(p.id);
+        removeFromQueuesAndSpectators(p.id);
         p.mode = 'queue_1v1';
         queue1v1.push(p.id);
         ws.send(JSON.stringify({ type: 'queued_1v1', count: queue1v1.length }));
@@ -998,17 +1147,18 @@ wss.on('connection', (ws) => {
       }
 
       case 'leave_1v1_queue': {
-        removeFromQueues(p.id);
+        removeFromQueuesAndSpectators(p.id);
         p.mode = 'hub';
         broadcastHubState();
         break;
       }
 
-      // Join FFA Lobby (4x26 only, waits for 2+ players)
       case 'join_ffa_lobby': {
         if (!p.authenticated || p.mode === 'duel') return;
-        removeFromQueues(p.id);
+        removeFromQueuesAndSpectators(p.id);
         p.mode = 'ffa';
+        p.ffaTargetMode = 'random';
+        p.manualTargetId = null;
         ffaLobby.players.set(p.id, {
           id: p.id,
           username: p.username,
@@ -1018,9 +1168,56 @@ wss.on('connection', (ws) => {
           linesCleared: 0,
           attackSent: 0,
           garbageReceived: 0,
-          maxCombo: 0
+          maxCombo: 0,
+          stackHeight: 0,
+          lastAttackerId: null,
+          grid: null,
+          activePiece: null,
+          pendingGarbage: 0
         });
         evaluateFfaLobbyState();
+        break;
+      }
+
+      case 'set_ffa_target': {
+        if (msg.targetMode && ['payback', 'ko', 'apm', 'random'].includes(msg.targetMode)) {
+          p.ffaTargetMode = msg.targetMode;
+          p.manualTargetId = null;
+        }
+        if (msg.manualTargetId) {
+          p.manualTargetId = String(msg.manualTargetId);
+        }
+        break;
+      }
+
+      case 'spectate_match': {
+        if (!p.authenticated) return;
+        removeFromQueuesAndSpectators(p.id);
+        const matchId = String(msg.matchId || '');
+        if (matchId === 'ffa_main') {
+          p.mode = 'spectate_ffa';
+          ffaLobby.spectators.add(p.id);
+          ws.send(JSON.stringify({
+            type: 'spectate_init',
+            matchType: 'ffa',
+            title: `SPECTATING FFA ARENA (${ffaLobby.players.size} PLAYERS)`
+          }));
+          broadcastHubState();
+        } else if (duelRooms.has(matchId)) {
+          const room = duelRooms.get(matchId);
+          p.mode = 'spectate_duel';
+          room.spectators.add(p.id);
+          ws.send(JSON.stringify({
+            type: 'spectate_init',
+            matchType: 'duel',
+            roomId: room.id,
+            title: `SPECTATING 1v1: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
+            p1: { id: room.p1.id, username: room.p1.username, score: room.p1.score },
+            p2: { id: room.p2.id, username: room.p2.username, score: room.p2.score },
+            round: room.round
+          }));
+          broadcastHubState();
+        }
         break;
       }
 
@@ -1033,14 +1230,13 @@ wss.on('connection', (ws) => {
             concludeDuelMatch(room, winnerSlot, loserSlot, 'DISCONNECT_FORFEIT');
           }
         } else {
-          removeFromQueues(p.id);
+          removeFromQueuesAndSpectators(p.id);
           p.mode = 'hub';
           broadcastHubState();
         }
         break;
       }
 
-      // Singleplayer Zen Line Clear Progress (4x26 Zen or 10x26 Zen)
       case 'zen_lines_add': {
         if (!p.authenticated) return;
         const added = Math.max(0, Number(msg.lines) || 0);
@@ -1060,7 +1256,6 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      // Singleplayer 1-Minute APM Test Result
       case 'apm_test_complete': {
         if (!p.authenticated) return;
         const recordedApm = Number(Number(msg.apm || 0).toFixed(1));
@@ -1095,7 +1290,6 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      // Live Multiplayer Board & Stats Sync
       case 'board_sync': {
         if (p.mode === 'duel' && p.duelRoomId) {
           const room = duelRooms.get(p.duelRoomId);
@@ -1108,16 +1302,63 @@ wss.on('connection', (ws) => {
             slot.attackSent = msg.attackSent || 0;
             slot.garbageReceived = msg.garbageReceived || 0;
             slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
+            slot.grid = msg.grid;
+            slot.activePiece = msg.activePiece;
+            slot.pendingGarbage = msg.pendingGarbage || 0;
 
-            sendToPlayer(oppSlot.id, {
-              type: 'opponent_sync',
-              fromId: p.id,
-              username: p.username,
-              grid: msg.grid,
-              activePiece: msg.activePiece,
-              apm: msg.apm,
-              pps: msg.pps
-            });
+            const sdMult = computeSuddenDeathMultiplier(room.roundStartTime);
+
+            const syncPayload = {
+              type: 'multi_opponent_sync',
+              suddenDeathMultiplier: sdMult,
+              tugOfWar: {
+                p1Name: room.p1.username,
+                p1Apm: room.p1.apm,
+                p2Name: room.p2.username,
+                p2Apm: room.p2.apm
+              },
+              opponents: [
+                {
+                  id: slot.id,
+                  username: slot.username,
+                  alive: slot.alive,
+                  grid: slot.grid,
+                  activePiece: slot.activePiece,
+                  apm: slot.apm,
+                  pps: slot.pps,
+                  pendingGarbage: slot.pendingGarbage
+                }
+              ]
+            };
+
+            sendToPlayer(oppSlot.id, syncPayload);
+
+            // Stream both boards to any spectators watching this 1v1
+            if (room.spectators.size > 0) {
+              const specPayload = {
+                type: 'spectator_boards_sync',
+                suddenDeathMultiplier: sdMult,
+                tugOfWar: {
+                  p1Name: room.p1.username,
+                  p1Apm: room.p1.apm,
+                  p2Name: room.p2.username,
+                  p2Apm: room.p2.apm
+                },
+                boards: [room.p1, room.p2].map(b => ({
+                  id: b.id,
+                  username: b.username,
+                  alive: b.alive,
+                  grid: b.grid,
+                  activePiece: b.activePiece,
+                  apm: b.apm,
+                  pps: b.pps,
+                  pendingGarbage: b.pendingGarbage
+                }))
+              };
+              for (const specId of room.spectators) {
+                sendToPlayer(specId, specPayload);
+              }
+            }
           }
         } else if (p.mode === 'ffa' && ffaLobby.players.has(p.id)) {
           const slot = ffaLobby.players.get(p.id);
@@ -1127,18 +1368,52 @@ wss.on('connection', (ws) => {
           slot.attackSent = msg.attackSent || 0;
           slot.garbageReceived = msg.garbageReceived || 0;
           slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
+          slot.grid = msg.grid;
+          slot.activePiece = msg.activePiece;
+          slot.pendingGarbage = msg.pendingGarbage || 0;
+          slot.stackHeight = computeHighestOccupiedRowHeight(msg.grid);
+
+          const sdMult = computeSuddenDeathMultiplier(ffaLobby.roundStartTime);
+          const allSlots = Array.from(ffaLobby.players.values());
 
           for (const [otherId] of ffaLobby.players.entries()) {
-            if (otherId !== p.id) {
-              sendToPlayer(otherId, {
-                type: 'opponent_sync',
-                fromId: p.id,
-                username: p.username,
-                grid: msg.grid,
-                activePiece: msg.activePiece,
-                apm: msg.apm,
-                pps: msg.pps
-              });
+            const others = allSlots
+              .filter(s => s.id !== otherId)
+              .map(s => ({
+                id: s.id,
+                username: s.username,
+                alive: s.alive,
+                grid: s.grid,
+                activePiece: s.activePiece,
+                apm: s.apm,
+                pps: s.pps,
+                pendingGarbage: s.pendingGarbage
+              }));
+
+            sendToPlayer(otherId, {
+              type: 'multi_opponent_sync',
+              suddenDeathMultiplier: sdMult,
+              opponents: others
+            });
+          }
+
+          if (ffaLobby.spectators.size > 0) {
+            const specPayload = {
+              type: 'spectator_boards_sync',
+              suddenDeathMultiplier: sdMult,
+              boards: allSlots.map(s => ({
+                id: s.id,
+                username: s.username,
+                alive: s.alive,
+                grid: s.grid,
+                activePiece: s.activePiece,
+                apm: s.apm,
+                pps: s.pps,
+                pendingGarbage: s.pendingGarbage
+              }))
+            };
+            for (const specId of ffaLobby.spectators) {
+              sendToPlayer(specId, specPayload);
             }
           }
         }
@@ -1146,23 +1421,36 @@ wss.on('connection', (ws) => {
       }
 
       case 'send_garbage': {
-        const lines = Number(msg.lines) || 0;
-        if (lines <= 0) return;
+        const baseLines = Number(msg.lines) || 0;
+        if (baseLines <= 0) return;
 
         if (p.mode === 'duel' && p.duelRoomId) {
           const room = duelRooms.get(p.duelRoomId);
           if (room && room.active && room.roundInProgress) {
+            const mult = computeSuddenDeathMultiplier(room.roundStartTime);
+            const scaledLines = Math.max(1, Math.round(baseLines * mult));
             const targetId = room.p1.id === p.id ? room.p2.id : room.p1.id;
-            sendToPlayer(targetId, { type: 'receive_garbage', lines, fromName: p.username });
+            sendToPlayer(targetId, {
+              type: 'receive_garbage',
+              lines: scaledLines,
+              fromName: p.username,
+              multiplier: mult
+            });
           }
-        } else if (p.mode === 'ffa' && ffaLobby.state === 'playing') {
-          const targets = [];
-          for (const [otherId, slot] of ffaLobby.players.entries()) {
-            if (otherId !== p.id && slot.alive) targets.push(otherId);
-          }
-          if (targets.length > 0) {
-            const chosenId = targets[Math.floor(Math.random() * targets.length)];
-            sendToPlayer(chosenId, { type: 'receive_garbage', lines, fromName: p.username });
+        } else if (p.mode === 'ffa' && ffaLobby.state === 'playing' && ffaLobby.players.has(p.id)) {
+          const senderSlot = ffaLobby.players.get(p.id);
+          const mult = computeSuddenDeathMultiplier(ffaLobby.roundStartTime);
+          const scaledLines = Math.max(1, Math.round(baseLines * mult));
+          const targetSlot = selectFfaTarget(senderSlot, p.ffaTargetMode, p.manualTargetId);
+
+          if (targetSlot) {
+            targetSlot.lastAttackerId = p.id;
+            sendToPlayer(targetSlot.id, {
+              type: 'receive_garbage',
+              lines: scaledLines,
+              fromName: p.username,
+              multiplier: mult
+            });
           }
         }
         break;
@@ -1193,7 +1481,7 @@ wss.on('connection', (ws) => {
     const p = players.get(ws);
     if (!p) return;
 
-    removeFromQueues(p.id);
+    removeFromQueuesAndSpectators(p.id);
 
     if (p.mode === 'duel' && p.duelRoomId) {
       const room = duelRooms.get(p.duelRoomId);
