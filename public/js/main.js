@@ -1,8 +1,55 @@
 // ============================================================================
-// PROJECT A^2 CONTROLLER: HUB, LEVELING, 1:00 APM TEST, 1v1 BO3, FFA & STATS
+// PROJECT A^2 CONTROLLER: SPECTATOR, FFA MULTI-BOARD, SKINS, KEYBINDS & SHAKE
 // ============================================================================
 
 (function () {
+  // Level-Unlocked Cosmetics Catalog
+  const UNLOCKABLE_SKINS = [
+    { id: 'bevel', name: 'Glossy Bevel', reqLevel: 1, desc: 'Classic highlighted 3D stacker blocks' },
+    { id: 'flat', name: 'Flat Minimalist', reqLevel: 2, desc: 'Clean solid-color tournament blocks' },
+    { id: 'neon', name: 'Neon Wireframe', reqLevel: 4, desc: 'Hollow glowing cyber-grid blocks' },
+    { id: 'pixel', name: 'Retro Pixel', reqLevel: 6, desc: '8-bit arcade inner-framed blocks' },
+    { id: 'mono', name: 'Monochrome High-Contrast', reqLevel: 10, desc: 'Pure white/cyan high-speed visibility blocks' }
+  ];
+
+  const UNLOCKABLE_GHOSTS = [
+    { id: 'fill', name: 'Translucent Fill', reqLevel: 1, desc: 'Standard shaded ghost piece' },
+    { id: 'outline', name: 'Neon Outline', reqLevel: 3, desc: 'Crisp hollow border ghost piece' },
+    { id: 'crosshair', name: 'Target Crosshair', reqLevel: 7, desc: 'Corner-bracket precision ghost piece' }
+  ];
+
+  const UNLOCKABLE_THEMES = [
+    { id: 'cyan', name: 'Cyan Core', reqLevel: 1, desc: 'Default Project A² neon cyan border & accents' },
+    { id: 'crimson', name: 'Crimson Pulse', reqLevel: 3, desc: 'High-alert red arena border & accents' },
+    { id: 'gold', name: 'Solar Gold', reqLevel: 5, desc: 'Championship gold arena border & accents' },
+    { id: 'emerald', name: 'Emerald Matrix', reqLevel: 8, desc: 'Bioluminescent green arena border & accents' },
+    { id: 'violet', name: 'Violet Void', reqLevel: 12, desc: 'Deep-space purple arena border & accents' }
+  ];
+
+  const DEFAULT_KEYBINDS = {
+    moveLeft: 'ArrowLeft',
+    moveRight: 'ArrowRight',
+    rotateCW: 'ArrowUp',
+    rotateCCW: 'KeyZ',
+    rotate180: 'KeyA',
+    softDrop: 'ArrowDown',
+    hardDrop: 'Space',
+    hold: 'ShiftLeft',
+    restart: 'KeyR'
+  };
+
+  const KEYBIND_LABELS = {
+    moveLeft: 'Move Left',
+    moveRight: 'Move Right',
+    rotateCW: 'Rotate CW',
+    rotateCCW: 'Rotate CCW',
+    rotate180: 'Rotate 180',
+    softDrop: 'Soft Drop',
+    hardDrop: 'Hard Drop',
+    hold: 'Hold Piece',
+    restart: 'Quick Restart'
+  };
+
   // Screens & Navigation
   const authScreen = document.getElementById('auth-screen');
   const topBar = document.getElementById('top-bar');
@@ -19,7 +66,7 @@
   const authErrorBox = document.getElementById('auth-error-box');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // Pilot Level Strip
+  // Player Level Strip
   const navPilotName = document.getElementById('nav-pilot-name');
   const navPilotLevel = document.getElementById('nav-pilot-level');
   const navXpFill = document.getElementById('nav-xp-fill');
@@ -27,8 +74,10 @@
 
   // Hub Elements
   const hubTabPlay = document.getElementById('hub-tab-play');
+  const hubTabCustomize = document.getElementById('hub-tab-customize');
   const hubTabStats = document.getElementById('hub-tab-stats');
   const hubPlayView = document.getElementById('hub-play-view');
+  const hubCustomizeView = document.getElementById('hub-customize-view');
   const hubStatsView = document.getElementById('hub-stats-view');
 
   const launchZen4Btn = document.getElementById('launch-zen-4-btn');
@@ -40,6 +89,7 @@
   const joinFfaLobbyBtn = document.getElementById('join-ffa-lobby-btn');
   const hub1v1QueueStatus = document.getElementById('hub-1v1-queue-status');
   const hubFfaStatus = document.getElementById('hub-ffa-status');
+  const liveMatchesList = document.getElementById('live-matches-list');
 
   // Leaderboards & Player Stats Directory
   const lbContentEl = document.getElementById('leaderboard-content');
@@ -51,20 +101,28 @@
 
   // Arena Elements
   const arenaModeTitle = document.getElementById('arena-mode-title');
+  const suddenDeathBadge = document.getElementById('sudden-death-badge');
   const arenaScoreStrip = document.getElementById('arena-score-strip');
+  const tugOfWarWrap = document.getElementById('tug-of-war-wrap');
+  const tugOfWarFill = document.getElementById('tug-of-war-fill');
   const arenaTimerDisplay = document.getElementById('arena-timer-display');
   const arenaRestartBtn = document.getElementById('arena-restart-btn');
   const arenaLeaveBtn = document.getElementById('arena-leave-btn');
-  const opponentPreviewPanel = document.getElementById('opponent-preview-panel');
+  const ffaTargetBar = document.getElementById('ffa-target-bar');
+  const targetBtns = document.querySelectorAll('.target-btn');
 
+  const playerPlayfieldWrapper = document.getElementById('player-playfield-wrapper');
+  const multiOpponentsPanel = document.getElementById('multi-opponents-panel');
+  const multiOppHeader = document.getElementById('multi-opp-header');
+  const multiOpponentsGrid = document.getElementById('multi-opponents-grid');
+
+  const boardFrame = document.getElementById('board-frame');
   const boardCanvas = document.getElementById('board-canvas');
   const boardCtx = boardCanvas.getContext('2d');
   const holdCanvas = document.getElementById('hold-canvas');
   const holdCtx = holdCanvas.getContext('2d');
   const nextCanvas = document.getElementById('next-canvas');
   const nextCtx = nextCanvas.getContext('2d');
-  const oppCanvas = document.getElementById('opponent-canvas');
-  const oppCtx = oppCanvas.getContext('2d');
 
   const statApm = document.getElementById('stat-apm');
   const statPps = document.getElementById('stat-pps');
@@ -73,12 +131,13 @@
   const statCombo = document.getElementById('stat-combo');
   const statB2b = document.getElementById('stat-b2b');
   const garbageMeterFill = document.getElementById('garbage-meter-fill');
+  const actionFeedCard = document.getElementById('action-feed-card');
   const actionCallout = document.getElementById('action-callout');
   const overlayBanner = document.getElementById('overlay-banner');
   const overlayTitle = document.getElementById('overlay-title');
   const overlaySubtitle = document.getElementById('overlay-subtitle');
 
-  // Chat Drawer Elements ("Chat" + top-right X button)
+  // Chat Drawer Elements
   const chatDrawer = document.getElementById('chat-drawer');
   const toggleChatBtn = document.getElementById('toggle-chat-btn');
   const closeChatBtn = document.getElementById('close-chat-btn');
@@ -86,19 +145,33 @@
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
 
-  const handling = {
-    das: Number(localStorage.getItem('a2_das') || 115),
-    arr: Number(localStorage.getItem('a2_arr') || 10),
-    sdf: Number(localStorage.getItem('a2_sdf') || 40)
+  // Settings & Customization State
+  const handling = { das: 115, arr: 10, sdf: 40 };
+  const userPrefs = {
+    boardShake: true,
+    lockFlash: true,
+    blockSkin: 'bevel',
+    ghostStyle: 'fill',
+    boardTheme: 'cyan',
+    keybinds: { ...DEFAULT_KEYBINDS }
   };
+
+  let listeningKeybindAction = null;
+
+  // Board Shake Spring Physics State
+  let shakeOffsetX = 0;
+  let shakeOffsetY = 0;
+  let shakeVelX = 0;
+  let shakeVelY = 0;
 
   let myId = null;
   let myUserObj = null;
   let isAuthenticated = false;
-  let activeScreen = 'auth'; // 'auth', 'hub', 'arena'
-  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'duel', 'ffa'
+  let activeScreen = 'auth';
+  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'duel', 'ffa', 'spectate'
   let currentCols = 4;
-  let canControlBoard = false; // False during 3s countdown or waiting for FFA players
+  let canControlBoard = false;
+  let selectedManualTargetId = null;
 
   let countdownInterval = null;
   let apmTestRemainingMs = 60000;
@@ -112,6 +185,7 @@
   const engine = new window.StackerEngine(4, 26, 20, {
     onSfx: (name, comboIdx) => window.AudioController.playSFX(name, comboIdx),
     onCallout: (text) => showCallout(text),
+    onBoardImpulse: (vx, vy, isDamage) => triggerBoardImpulse(vx, vy, isDamage),
     onSendGarbage: (lines) => {
       if (ws && ws.readyState === WebSocket.OPEN && (currentMode === 'duel' || currentMode === 'ffa')) {
         ws.send(JSON.stringify({ type: 'send_garbage', lines }));
@@ -127,9 +201,8 @@
       } else if (currentMode === 'apm_test') {
         finishApmTest();
       } else {
-        // Zen modes auto-report any remaining lines
         flushZenLines();
-        showOverlay('TOP OUT', 'Press R or click RESTART for a new 3s countdown');
+        showOverlay('TOP OUT', 'Press Restart Key or click RESTART');
       }
     },
     onSync: () => {
@@ -153,7 +226,47 @@
     });
 
   // ============================================================================
-  // AUTHENTICATION & LEVEL BAR HYDRATION
+  // BOARD SHAKE PHYSICS & LOCK FLASH HELPERS
+  // ============================================================================
+
+  function triggerBoardImpulse(ix, iy, isDamage = false) {
+    if (!userPrefs.boardShake) return;
+    shakeVelX += ix;
+    shakeVelY += iy;
+    if (isDamage && boardFrame) {
+      boardFrame.classList.add('damage-flash');
+      setTimeout(() => boardFrame.classList.remove('damage-flash'), 160);
+    }
+  }
+
+  function updateBoardShakePhysics(dtMs) {
+    if (!userPrefs.boardShake) {
+      boardFrame.style.transform = 'translate(0px, 0px)';
+      return;
+    }
+    const dt = Math.min(0.05, dtMs / 1000);
+    const stiffness = 180;
+    const damping = 16;
+
+    const ax = -stiffness * shakeOffsetX - damping * shakeVelX;
+    const ay = -stiffness * shakeOffsetY - damping * shakeVelY;
+
+    shakeVelX += ax * dt * 12;
+    shakeVelY += ay * dt * 12;
+    shakeOffsetX += shakeVelX * dt * 12;
+    shakeOffsetY += shakeVelY * dt * 12;
+
+    if (Math.abs(shakeOffsetX) < 0.08 && Math.abs(shakeOffsetY) < 0.08 && Math.abs(shakeVelX) < 0.08 && Math.abs(shakeVelY) < 0.08) {
+      shakeOffsetX = 0;
+      shakeOffsetY = 0;
+      boardFrame.style.transform = 'translate(0px, 0px)';
+    } else {
+      boardFrame.style.transform = `translate(${shakeOffsetX.toFixed(1)}px, ${shakeOffsetY.toFixed(1)}px)`;
+    }
+  }
+
+  // ============================================================================
+  // AUTHENTICATION, LEVEL BAR & CUSTOMIZATION HYDRATION
   // ============================================================================
 
   function showAuthError(msg) {
@@ -166,7 +279,7 @@
     const username = authUsernameInput.value.trim();
     const password = authPasswordInput.value;
     if (!username || !password) {
-      showAuthError('Enter both a Callsign and Password.');
+      showAuthError('Enter both a Username and Password.');
       return;
     }
 
@@ -205,21 +318,64 @@
     navXpText.textContent = `${xp} XP`;
   }
 
+  function applyUserSettingsFromProfile(settings) {
+    if (!settings) return;
+    if (typeof settings.bgInterval === 'number') {
+      window.BackgroundController.setShuffleInterval(settings.bgInterval);
+      document.getElementById('slider-bg-interval').value = settings.bgInterval;
+      document.getElementById('val-bg-interval').textContent = settings.bgInterval;
+    }
+    if (typeof settings.musicVolume === 'number') {
+      window.AudioController.setMusicVolume(settings.musicVolume / 100);
+      document.getElementById('slider-music').value = settings.musicVolume;
+      document.getElementById('val-music').textContent = settings.musicVolume;
+    }
+    if (typeof settings.sfxVolume === 'number') {
+      window.AudioController.setSfxVolume(settings.sfxVolume / 100);
+      document.getElementById('slider-sfx').value = settings.sfxVolume;
+      document.getElementById('val-sfx').textContent = settings.sfxVolume;
+    }
+    userPrefs.boardShake = settings.boardShake !== false;
+    userPrefs.lockFlash = settings.lockFlash !== false;
+    document.getElementById('check-board-shake').checked = userPrefs.boardShake;
+    document.getElementById('check-lock-flash').checked = userPrefs.lockFlash;
+
+    userPrefs.blockSkin = settings.blockSkin || 'bevel';
+    userPrefs.ghostStyle = settings.ghostStyle || 'fill';
+    userPrefs.boardTheme = settings.boardTheme || 'cyan';
+    document.body.setAttribute('data-theme', userPrefs.boardTheme);
+
+    userPrefs.keybinds = { ...DEFAULT_KEYBINDS, ...(settings.keybinds || {}) };
+    renderKeybindsModalList();
+    renderUnlockGrids();
+  }
+
+  function saveUserSettingsToServer() {
+    if (!isAuthenticated || !myUserObj) return;
+    fetch('/api/auth/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: myUserObj.username,
+        settings: {
+          musicVolume: Math.round(window.AudioController.musicVolume * 100),
+          sfxVolume: Math.round(window.AudioController.sfxVolume * 100),
+          bgInterval: window.BackgroundController.intervalSec,
+          boardShake: userPrefs.boardShake,
+          lockFlash: userPrefs.lockFlash,
+          blockSkin: userPrefs.blockSkin,
+          ghostStyle: userPrefs.ghostStyle,
+          boardTheme: userPrefs.boardTheme,
+          keybinds: userPrefs.keybinds
+        }
+      })
+    }).catch(() => {});
+  }
+
   function completeLogin(userObj) {
     isAuthenticated = true;
     updateTopLevelBar(userObj);
-
-    if (userObj.settings) {
-      handling.das = userObj.settings.das ?? 115;
-      handling.arr = userObj.settings.arr ?? 10;
-      handling.sdf = userObj.settings.sdf ?? 40;
-      document.getElementById('slider-das').value = handling.das;
-      document.getElementById('val-das').textContent = handling.das;
-      document.getElementById('slider-arr').value = handling.arr;
-      document.getElementById('val-arr').textContent = handling.arr;
-      document.getElementById('slider-sdf').value = handling.sdf;
-      document.getElementById('val-sdf').textContent = handling.sdf;
-    }
+    applyUserSettingsFromProfile(userObj.settings);
 
     authScreen.classList.add('hidden');
     topBar.classList.remove('hidden');
@@ -252,7 +408,90 @@
   });
 
   // ============================================================================
-  // HUB NAVIGATION, TOP-5 LEADERBOARDS & PLAYER STATS DIRECTORY
+  // LEVEL-UNLOCKED SKINS, GHOSTS & BOARD THEMES UI
+  // ============================================================================
+
+  function renderUnlockGrids() {
+    const myLvl = (myUserObj && myUserObj.stats && myUserObj.stats.level) ? myUserObj.stats.level : 1;
+
+    const buildGrid = (containerId, catalog, currentId, onSelect) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      catalog.forEach(item => {
+        const unlocked = myLvl >= item.reqLevel;
+        const equipped = currentId === item.id;
+        const div = document.createElement('div');
+        div.className = `unlock-item ${equipped ? 'equipped' : ''} ${!unlocked ? 'locked' : ''}`;
+        div.innerHTML = `
+          <div>
+            <strong>${escapeHtml(item.name)}</strong>
+            <div class="sub-hint">${escapeHtml(item.desc)}</div>
+          </div>
+          <span class="badge ${equipped ? 'gold-badge' : ''}">
+            ${equipped ? 'EQUIPPED' : (unlocked ? `UNLOCKED (LVL ${item.reqLevel})` : `LOCKED (REQ LVL ${item.reqLevel})`)}
+          </span>
+        `;
+        if (unlocked) {
+          div.addEventListener('click', () => {
+            onSelect(item.id);
+            saveUserSettingsToServer();
+            renderUnlockGrids();
+          });
+        }
+        container.appendChild(div);
+      });
+    };
+
+    buildGrid('skins-unlock-grid', UNLOCKABLE_SKINS, userPrefs.blockSkin, id => { userPrefs.blockSkin = id; });
+    buildGrid('ghosts-unlock-grid', UNLOCKABLE_GHOSTS, userPrefs.ghostStyle, id => { userPrefs.ghostStyle = id; });
+    buildGrid('themes-unlock-grid', UNLOCKABLE_THEMES, userPrefs.boardTheme, id => {
+      userPrefs.boardTheme = id;
+      document.body.setAttribute('data-theme', id);
+    });
+  }
+
+  // ============================================================================
+  // KEYBIND REMAPPER UI IN SETTINGS
+  // ============================================================================
+
+  function renderKeybindsModalList() {
+    const listEl = document.getElementById('keybinds-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    Object.keys(KEYBIND_LABELS).forEach(actionKey => {
+      const row = document.createElement('div');
+      row.className = 'keybind-row';
+      const isListening = listeningKeybindAction === actionKey;
+      const currentCode = userPrefs.keybinds[actionKey] || DEFAULT_KEYBINDS[actionKey];
+
+      row.innerHTML = `
+        <span>${KEYBIND_LABELS[actionKey]}</span>
+        <button type="button" class="btn btn-sm keybind-btn ${isListening ? 'listening' : ''}">
+          ${isListening ? 'PRESS ANY KEY...' : currentCode}
+        </button>
+      `;
+
+      row.querySelector('button').addEventListener('click', () => {
+        listeningKeybindAction = actionKey;
+        renderKeybindsModalList();
+      });
+
+      listEl.appendChild(row);
+    });
+  }
+
+  document.getElementById('reset-keybinds-btn').addEventListener('click', () => {
+    userPrefs.keybinds = { ...DEFAULT_KEYBINDS };
+    listeningKeybindAction = null;
+    renderKeybindsModalList();
+    saveUserSettingsToServer();
+  });
+
+  // ============================================================================
+  // HUB NAVIGATION, FULL LEADERBOARDS, SPECTATOR LIST & PLAYER STATS
   // ============================================================================
 
   function navigateToHub() {
@@ -267,30 +506,57 @@
     hubScreen.classList.remove('hidden');
 
     renderLeaderboard();
-    renderPilotsDirectory();
+    renderPlayersDirectory();
+    renderUnlockGrids();
   }
 
-  hubTabPlay.addEventListener('click', () => {
-    hubTabPlay.classList.add('active');
-    hubTabStats.classList.remove('active');
-    hubPlayView.classList.remove('hidden');
-    hubStatsView.classList.add('hidden');
+  function switchHubTab(activeBtn, activeView) {
+    [hubTabPlay, hubTabCustomize, hubTabStats].forEach(b => b.classList.remove('active'));
+    [hubPlayView, hubCustomizeView, hubStatsView].forEach(v => v.classList.add('hidden'));
+    activeBtn.classList.add('active');
+    activeView.classList.remove('hidden');
+  }
+
+  hubTabPlay.addEventListener('click', () => switchHubTab(hubTabPlay, hubPlayView));
+  hubTabCustomize.addEventListener('click', () => {
+    switchHubTab(hubTabCustomize, hubCustomizeView);
+    renderUnlockGrids();
+  });
+  hubTabStats.addEventListener('click', () => {
+    switchHubTab(hubTabStats, hubStatsView);
+    renderPlayersDirectory();
   });
 
-  hubTabStats.addEventListener('click', () => {
-    hubTabStats.classList.add('active');
-    hubTabPlay.classList.remove('active');
-    hubStatsView.classList.remove('hidden');
-    hubPlayView.classList.add('hidden');
-    renderPilotsDirectory();
-  });
+  function renderLiveSpectateMatches(matches) {
+    if (!liveMatchesList) return;
+    liveMatchesList.innerHTML = '';
+    if (!Array.isArray(matches) || matches.length === 0) {
+      liveMatchesList.innerHTML = `<div class="sub-hint">No active matches right now.</div>`;
+      return;
+    }
+
+    matches.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'spectate-row';
+      row.innerHTML = `
+        <span>${escapeHtml(m.label)}</span>
+        <button class="btn btn-sm btn-primary">SPECTATE (${m.spectatorCount || 0})</button>
+      `;
+      row.querySelector('button').addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'spectate_match', matchId: m.id }));
+        }
+      });
+      liveMatchesList.appendChild(row);
+    });
+  }
 
   function renderLeaderboard() {
     lbContentEl.innerHTML = '';
-    const rows = (cachedLeaderboards[activeLeaderboardTab] || []).slice(0, 5);
+    const rows = cachedLeaderboards[activeLeaderboardTab] || [];
 
     if (rows.length === 0) {
-      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No Top-5 records yet!</span></div>`;
+      lbContentEl.innerHTML = `<div class="lb-row"><span class="lb-user">No records yet.</span></div>`;
       return;
     }
 
@@ -328,7 +594,7 @@
     });
   });
 
-  function renderPilotsDirectory() {
+  function renderPlayersDirectory() {
     const filter = (pilotSearchInput.value || '').trim().toLowerCase();
     allPilotsDirectory.innerHTML = '';
 
@@ -341,17 +607,17 @@
           <strong>${escapeHtml(p.username)}</strong>
           <div class="sub-hint">LVL ${p.stats.level} (${p.stats.xp} XP) • ${p.stats.apmTestBest.toFixed(1)} APM</div>
         </div>
-        <span class="badge">VIEW STATS ➔</span>
+        <span class="badge">VIEW STATS</span>
       `;
-      row.addEventListener('click', () => inspectPilotProfile(p));
+      row.addEventListener('click', () => inspectPlayerProfile(p));
       allPilotsDirectory.appendChild(row);
     });
   }
 
-  pilotSearchInput.addEventListener('input', renderPilotsDirectory);
+  pilotSearchInput.addEventListener('input', renderPlayersDirectory);
 
-  function inspectPilotProfile(p) {
-    inspectedPilotTitle.textContent = `PILOT DOSSIER: ${p.username.toUpperCase()} (LVL ${p.stats.level})`;
+  function inspectPlayerProfile(p) {
+    inspectedPilotTitle.textContent = `PLAYER STATS: ${p.username.toUpperCase()} (LVL ${p.stats.level})`;
     const s = p.stats;
     const historyHtml = (p.matchHistory || []).slice().reverse().slice(0, 10).map(m => `
       <tr>
@@ -385,14 +651,27 @@
   }
 
   // ============================================================================
-  // GAME MODE LAUNCHERS & 3-SECOND COUNTDOWN ENGINE
+  // GAME MODE LAUNCHERS, FFA TARGETING & 3-SECOND COUNTDOWN ENGINE
   // ============================================================================
+
+  function setFfaTargetModeUI(mode) {
+    selectedManualTargetId = null;
+    targetBtns.forEach(b => {
+      b.classList.toggle('active', b.dataset.target === mode);
+    });
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'set_ffa_target', targetMode: mode }));
+    }
+  }
+
+  targetBtns.forEach(btn => {
+    btn.addEventListener('click', () => setFfaTargetModeUI(btn.dataset.target));
+  });
 
   function configureBoardDimensions(cols) {
     currentCols = cols;
-    const frame = document.querySelector('.board-frame');
-    if (frame) {
-      frame.style.aspectRatio = `${cols} / 26`;
+    if (boardFrame) {
+      boardFrame.style.aspectRatio = `${cols} / 26`;
     }
     boardCanvas.width = cols * 32;
     boardCanvas.height = 26 * 32;
@@ -404,15 +683,17 @@
     configureBoardDimensions(cols);
     engine.reset(seed, cols);
     lastReportedZenLines = 0;
+    actionCallout.textContent = '—';
+    suddenDeathBadge.classList.add('hidden');
 
     let count = 3;
-    showOverlay('3', 'GET READY...');
+    showOverlay('3', 'GET READY');
     window.AudioController.playSFX('move');
 
     countdownInterval = setInterval(() => {
       count -= 1;
       if (count > 0) {
-        showOverlay(String(count), 'GET READY...');
+        showOverlay(String(count), 'GET READY');
         window.AudioController.playSFX('move');
       } else if (count === 0) {
         showOverlay('GO!', '');
@@ -438,6 +719,21 @@
 
     arenaModeTitle.textContent = titleText;
     arenaScoreStrip.textContent = '';
+    suddenDeathBadge.classList.add('hidden');
+    tugOfWarWrap.classList.add('hidden');
+    multiOpponentsGrid.innerHTML = '';
+
+    if (modeKey === 'spectate') {
+      playerPlayfieldWrapper.classList.add('hidden');
+      multiOpponentsPanel.classList.remove('hidden');
+      multiOppHeader.textContent = 'LIVE SPECTATOR FEED';
+      arenaRestartBtn.classList.add('hidden');
+      ffaTargetBar.classList.add('hidden');
+      arenaTimerDisplay.classList.add('hidden');
+      return;
+    }
+
+    playerPlayfieldWrapper.classList.remove('hidden');
 
     if (modeKey === 'apm_test') {
       apmTestRemainingMs = 60000;
@@ -447,11 +743,19 @@
       arenaTimerDisplay.classList.add('hidden');
     }
 
+    if (modeKey === 'ffa') {
+      ffaTargetBar.classList.remove('hidden');
+      setFfaTargetModeUI('random');
+    } else {
+      ffaTargetBar.classList.add('hidden');
+    }
+
     if (modeKey === 'duel' || modeKey === 'ffa') {
-      opponentPreviewPanel.classList.remove('hidden');
+      multiOpponentsPanel.classList.remove('hidden');
+      multiOppHeader.textContent = modeKey === 'ffa' ? 'FFA OPPONENTS (CLICK TO TARGET)' : 'OPPONENT MATRIX';
       arenaRestartBtn.classList.add('hidden');
     } else {
-      opponentPreviewPanel.classList.add('hidden');
+      multiOpponentsPanel.classList.add('hidden');
       arenaRestartBtn.classList.remove('hidden');
     }
 
@@ -480,7 +784,7 @@
     arenaTimerDisplay.textContent = '0.0s';
     const m = engine.getLiveMetrics();
     window.AudioController.playSFX('win');
-    showOverlay(`${m.apm.toFixed(1)} APM`, '1-Minute APM Test Recorded to Leaderboard! Press R to try again.');
+    showOverlay(`${m.apm.toFixed(1)} APM`, 'Recorded to Leaderboard. Press Restart Key to retry.');
 
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
@@ -492,20 +796,10 @@
     }
   }
 
-  // Singleplayer Mode Buttons
-  launchZen4Btn.addEventListener('click', () => {
-    enterArenaMode('zen4', '4x26 ZEN MODE', 4);
-  });
+  launchZen4Btn.addEventListener('click', () => enterArenaMode('zen4', '4x26 ZEN MODE', 4));
+  launchZen10Btn.addEventListener('click', () => enterArenaMode('zen10', '10x26', 10));
+  launchApmTestBtn.addEventListener('click', () => enterArenaMode('apm_test', 'APM TEST (1:00)', 4));
 
-  launchZen10Btn.addEventListener('click', () => {
-    enterArenaMode('zen10', '10x26 ZEN MODE', 10);
-  });
-
-  launchApmTestBtn.addEventListener('click', () => {
-    enterArenaMode('apm_test', 'APM TEST (1:00 SPRINT)', 4);
-  });
-
-  // Multiplayer Queue & FFA Buttons
   join1v1QueueBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'join_1v1_queue' }));
@@ -522,9 +816,9 @@
 
   joinFfaLobbyBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      enterArenaMode('ffa', 'FFA ARENA (4x26)', 4);
+      enterArenaMode('ffa', 'FFA ARENA', 4);
       canControlBoard = false;
-      showOverlay('WAITING FOR PLAYERS TO JOIN', 'FFA starts automatically when 2 or more players are in the lobby...');
+      showOverlay('WAITING FOR PLAYERS', 'FFA starts when 2+ players join');
       ws.send(JSON.stringify({ type: 'join_ffa_lobby' }));
     }
   });
@@ -542,14 +836,14 @@
   arenaLeaveBtn.addEventListener('click', leaveCurrentArenaOrQueue);
 
   arenaRestartBtn.addEventListener('click', () => {
-    if (currentMode === 'duel' || currentMode === 'ffa') return;
+    if (currentMode === 'duel' || currentMode === 'ffa' || currentMode === 'spectate') return;
     flushZenLines();
     if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
     startThreeSecondCountdown(Date.now(), currentCols);
   });
 
   // ============================================================================
-  // 5-SECOND POST-MATCH STATS SUMMARY SCREEN (1v1 & FFA)
+  // 5-SECOND POST-MATCH STATS SUMMARY SCREEN
   // ============================================================================
 
   function displayFiveSecondMatchSummary(msg) {
@@ -594,8 +888,89 @@
   }
 
   // ============================================================================
-  // WEBSOCKET CLIENT
+  // WEBSOCKET CLIENT & MULTI-BOARD RENDERING
   // ============================================================================
+
+  function updateSuddenDeathAndTugUI(sdMult, tug) {
+    if (sdMult && sdMult > 1.0) {
+      suddenDeathBadge.textContent = `SUDDEN DEATH ${sdMult.toFixed(1)}x`;
+      suddenDeathBadge.classList.remove('hidden');
+    } else {
+      suddenDeathBadge.classList.add('hidden');
+    }
+
+    if (tug) {
+      tugOfWarWrap.classList.remove('hidden');
+      const total = (tug.p1Apm || 0) + (tug.p2Apm || 0);
+      const p1Pct = total <= 0 ? 50 : Math.min(92, Math.max(8, (tug.p1Apm / total) * 100));
+      tugOfWarFill.style.width = `${p1Pct}%`;
+    }
+  }
+
+  function renderMultiBoardsGrid(boardsList) {
+    if (!Array.isArray(boardsList)) return;
+    multiOpponentsGrid.innerHTML = '';
+
+    boardsList.forEach(b => {
+      const card = document.createElement('div');
+      card.className = `opp-mini-card ${selectedManualTargetId === b.id ? 'targeted' : ''}`;
+      card.innerHTML = `
+        <div class="opp-mini-header">${escapeHtml(b.username)} ${b.alive === false ? '(KO)' : ''}</div>
+        <div class="opp-mini-sub">${Number(b.apm || 0).toFixed(1)} APM | ${Number(b.pps || 0).toFixed(2)} PPS</div>
+        <canvas width="72" height="468"></canvas>
+      `;
+
+      if (currentMode === 'ffa') {
+        card.addEventListener('click', () => {
+          selectedManualTargetId = b.id;
+          targetBtns.forEach(btn => btn.classList.remove('active'));
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'set_ffa_target', manualTargetId: b.id }));
+          }
+          renderMultiBoardsGrid(boardsList);
+        });
+      }
+
+      const c = card.querySelector('canvas');
+      const ctx = c.getContext('2d');
+      if (b.grid) {
+        const rows = b.grid.length;
+        const cols = b.grid[0] ? b.grid[0].length : 4;
+        const cellSize = 18;
+        c.width = cols * cellSize;
+        c.height = rows * cellSize;
+
+        ctx.strokeStyle = 'rgba(255, 61, 87, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(0, 6 * cellSize);
+        ctx.lineTo(cols * cellSize, 6 * cellSize);
+        ctx.stroke();
+
+        for (let r = 0; r < rows; r++) {
+          for (let colIdx = 0; colIdx < cols; colIdx++) {
+            const cell = b.grid[r][colIdx];
+            if (cell) {
+              drawStyledBlock(ctx, colIdx, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0, userPrefs.blockSkin);
+            }
+          }
+        }
+
+        if (b.activePiece && b.activePiece.matrix) {
+          const p = b.activePiece;
+          const pCol = window.PIECE_COLORS[p.type] || '#fff';
+          for (let r = 0; r < p.matrix.length; r++) {
+            for (let colIdx = 0; colIdx < p.matrix[r].length; colIdx++) {
+              if (p.matrix[r][colIdx]) {
+                drawStyledBlock(ctx, p.x + colIdx, p.y + r, cellSize, pCol, 1.0, userPrefs.blockSkin);
+              }
+            }
+          }
+        }
+      }
+
+      multiOpponentsGrid.appendChild(card);
+    });
+  }
 
   function connectWebSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -620,22 +995,27 @@
           myId = msg.id;
           if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
           if (msg.allPlayers) cachedAllPlayers = msg.allPlayers;
+          if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
           break;
 
         case 'profile_synced':
-          if (msg.user) updateTopLevelBar(msg.user);
+          if (msg.user) {
+            updateTopLevelBar(msg.user);
+            renderUnlockGrids();
+          }
           break;
 
         case 'hub_sync':
           hub1v1QueueStatus.textContent = `In Queue: ${msg.queue1v1Count || 0}`;
           hubFfaStatus.textContent = `In Lobby: ${msg.ffaPlayerCount || 0}`;
+          if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
           if (msg.leaderboards) {
             cachedLeaderboards = msg.leaderboards;
             if (activeScreen === 'hub') renderLeaderboard();
           }
           if (msg.allPlayers) {
             cachedAllPlayers = msg.allPlayers;
-            if (activeScreen === 'hub') renderPilotsDirectory();
+            if (activeScreen === 'hub') renderPlayersDirectory();
           }
           break;
 
@@ -643,43 +1023,60 @@
           appendChatMessage(msg.sender, msg.text, msg.style);
           break;
 
-        // 1v1 Best of 3 Matchmaking Events
         case 'duel_init':
           queueWaitingBanner.classList.add('hidden');
           enterArenaMode('duel', `1v1 BEST OF 3 • ${msg.p1.username} vs ${msg.p2.username}`, 4);
-          arenaScoreStrip.textContent = `${msg.p1.username} (0) — (0) ${msg.p2.username} | ROUND 1`;
+          arenaScoreStrip.textContent = `${msg.p1.username} (0) - (0) ${msg.p2.username} | ROUND 1`;
+          tugOfWarWrap.classList.remove('hidden');
           break;
 
         case 'duel_round_countdown':
-          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} — ${msg.p2Score} | ROUND ${msg.round} (BEST OF 3)`;
-          startThreeSecondCountdown(msg.seed, 4);
+          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score} | ROUND ${msg.round} (BEST OF 3)`;
+          if (currentMode === 'duel') {
+            startThreeSecondCountdown(msg.seed, 4);
+          }
           break;
 
         case 'duel_round_result':
           canControlBoard = false;
-          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} — ${msg.p2Score}`;
-          if (msg.roundWinnerId === myId) {
-            window.AudioController.playSFX('win');
-            showOverlay(`ROUND ${msg.round} WON!`, `Score: ${msg.p1Score} - ${msg.p2Score}`);
-          } else {
-            window.AudioController.playSFX('lose');
-            showOverlay(`ROUND ${msg.round} LOST`, `${msg.roundWinnerName} won the round`);
+          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score}`;
+          if (currentMode === 'duel') {
+            if (msg.roundWinnerId === myId) {
+              window.AudioController.playSFX('win');
+              showOverlay(`ROUND ${msg.round} WON`, `Score: ${msg.p1Score} - ${msg.p2Score}`);
+            } else {
+              window.AudioController.playSFX('lose');
+              showOverlay(`ROUND ${msg.round} LOST`, `${msg.roundWinnerName} won the round`);
+            }
           }
           break;
 
-        // FFA Waiting vs Countdown Events
         case 'ffa_waiting':
           if (currentMode === 'ffa') {
             canControlBoard = false;
-            showOverlay('WAITING FOR PLAYERS TO JOIN', `Players in Lobby: ${msg.playerCount} / 2+ required to start`);
+            showOverlay('WAITING FOR PLAYERS', `In Lobby: ${msg.playerCount} / 2+ required`);
           }
           break;
 
         case 'ffa_countdown_start':
           if (currentMode === 'ffa') {
-            arenaScoreStrip.textContent = `${msg.playerCount} PILOTS ALIVE`;
+            arenaScoreStrip.textContent = `${msg.playerCount} PLAYERS ALIVE`;
             startThreeSecondCountdown(msg.seed, 4);
           }
+          break;
+
+        case 'spectate_init':
+          enterArenaMode('spectate', msg.title || 'LIVE SPECTATOR MODE', 4);
+          break;
+
+        case 'multi_opponent_sync':
+          updateSuddenDeathAndTugUI(msg.suddenDeathMultiplier, msg.tugOfWar);
+          renderMultiBoardsGrid(msg.opponents || []);
+          break;
+
+        case 'spectator_boards_sync':
+          updateSuddenDeathAndTugUI(msg.suddenDeathMultiplier, msg.tugOfWar);
+          renderMultiBoardsGrid(msg.boards || []);
           break;
 
         case 'match_summary_5s':
@@ -695,12 +1092,6 @@
 
         case 'receive_garbage':
           if (canControlBoard) engine.queueIncomingGarbage(msg.lines);
-          break;
-
-        case 'opponent_sync':
-          document.getElementById('opp-header-name').textContent = `VS: ${msg.username}`;
-          document.getElementById('opp-live-metrics').textContent = `${Number(msg.apm || 0).toFixed(1)} APM`;
-          drawOpponentBoard(msg);
           break;
       }
     });
@@ -725,7 +1116,8 @@
       linesCleared: m.linesCleared,
       attackSent: m.attackSent,
       garbageReceived: m.garbageReceived,
-      maxCombo: m.maxCombo
+      maxCombo: m.maxCombo,
+      pendingGarbage: m.pendingGarbage
     }));
   }
 
@@ -736,16 +1128,11 @@
   }, 250);
 
   // ============================================================================
-  // CHAT DRAWER ("Chat" + Close X Button) & SETTINGS
+  // CHAT DRAWER, SIDE ACTION FEED & SETTINGS
   // ============================================================================
 
-  closeChatBtn.addEventListener('click', () => {
-    chatDrawer.classList.add('hidden');
-  });
-
-  toggleChatBtn.addEventListener('click', () => {
-    chatDrawer.classList.toggle('hidden');
-  });
+  closeChatBtn.addEventListener('click', () => chatDrawer.classList.add('hidden'));
+  toggleChatBtn.addEventListener('click', () => chatDrawer.classList.toggle('hidden'));
 
   chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -775,11 +1162,14 @@
   let calloutTimeout = null;
   function showCallout(text) {
     actionCallout.textContent = text;
-    actionCallout.style.opacity = '1';
+    if (actionFeedCard) {
+      actionFeedCard.classList.add('pulse');
+      setTimeout(() => actionFeedCard.classList.remove('pulse'), 180);
+    }
     if (calloutTimeout) clearTimeout(calloutTimeout);
     calloutTimeout = setTimeout(() => {
-      actionCallout.style.opacity = '0';
-    }, 1000);
+      actionCallout.textContent = '—';
+    }, 2200);
   }
 
   function showOverlay(title, subtitle) {
@@ -796,21 +1186,31 @@
   document.getElementById('next-bg-btn').addEventListener('click', () => window.BackgroundController.applyNextBackground());
 
   const settingsModal = document.getElementById('settings-modal');
-  document.getElementById('open-settings-btn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+  document.getElementById('open-settings-btn').addEventListener('click', () => {
+    listeningKeybindAction = null;
+    renderKeybindsModalList();
+    settingsModal.classList.remove('hidden');
+  });
   document.getElementById('close-settings-btn').addEventListener('click', () => {
+    listeningKeybindAction = null;
     settingsModal.classList.add('hidden');
-    if (isAuthenticated && myUserObj) {
-      fetch('/api/auth/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: myUserObj.username, settings: handling })
-      }).catch(() => {});
-    }
+    saveUserSettingsToServer();
+  });
+
+  document.getElementById('check-board-shake').addEventListener('change', (e) => {
+    userPrefs.boardShake = e.target.checked;
+    saveUserSettingsToServer();
+  });
+
+  document.getElementById('check-lock-flash').addEventListener('change', (e) => {
+    userPrefs.lockFlash = e.target.checked;
+    saveUserSettingsToServer();
   });
 
   const bindSlider = (sliderId, labelId, initialVal, onChange) => {
     const s = document.getElementById(sliderId);
     const l = document.getElementById(labelId);
+    if (!s || !l) return;
     s.value = initialVal;
     l.textContent = initialVal;
     s.addEventListener('input', () => {
@@ -819,15 +1219,12 @@
     });
   };
 
-  bindSlider('slider-das', 'val-das', handling.das, v => { handling.das = v; localStorage.setItem('a2_das', v); });
-  bindSlider('slider-arr', 'val-arr', handling.arr, v => { handling.arr = v; localStorage.setItem('a2_arr', v); });
-  bindSlider('slider-sdf', 'val-sdf', handling.sdf, v => { handling.sdf = v; localStorage.setItem('a2_sdf', v); });
   bindSlider('slider-music', 'val-music', 40, v => window.AudioController.setMusicVolume(v / 100));
   bindSlider('slider-sfx', 'val-sfx', 75, v => window.AudioController.setSfxVolume(v / 100));
-  bindSlider('slider-bg-interval', 'val-bg-interval', 60, v => window.BackgroundController.setShuffleInterval(v));
+  bindSlider('slider-bg-interval', 'val-bg-interval', 180, v => window.BackgroundController.setShuffleInterval(v));
 
   // ============================================================================
-  // INPUT HANDLING & 60FPS GAME LOOP
+  // CUSTOM KEYBIND INPUT HANDLING & 60FPS GAME LOOP
   // ============================================================================
 
   const keysDown = new Set();
@@ -842,15 +1239,37 @@
   }
 
   window.addEventListener('keydown', (e) => {
+    // Capture key if user is remapping a keybind in Settings
+    if (listeningKeybindAction) {
+      e.preventDefault();
+      if (e.code !== 'Escape') {
+        userPrefs.keybinds[listeningKeybindAction] = e.code;
+        saveUserSettingsToServer();
+      }
+      listeningKeybindAction = null;
+      renderKeybindsModalList();
+      return;
+    }
+
     if (isTyping() || activeScreen !== 'arena') return;
 
-    if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
+    const kb = userPrefs.keybinds;
+    if (Object.values(kb).includes(e.code)) {
       e.preventDefault();
     }
+
+    // FFA 1-4 Target Switching Hotkeys
+    if (currentMode === 'ffa') {
+      if (e.code === 'Digit1') { setFfaTargetModeUI('payback'); return; }
+      if (e.code === 'Digit2') { setFfaTargetModeUI('ko'); return; }
+      if (e.code === 'Digit3') { setFfaTargetModeUI('apm'); return; }
+      if (e.code === 'Digit4') { setFfaTargetModeUI('random'); return; }
+    }
+
     if (e.repeat) return;
     keysDown.add(e.code);
 
-    if (e.code === 'KeyR' && currentMode !== 'duel' && currentMode !== 'ffa') {
+    if (e.code === kb.restart && currentMode !== 'duel' && currentMode !== 'ffa' && currentMode !== 'spectate') {
       flushZenLines();
       if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
       startThreeSecondCountdown(Date.now(), currentCols);
@@ -859,51 +1278,40 @@
 
     if (!canControlBoard || engine.gameOver) return;
 
-    switch (e.code) {
-      case 'ArrowLeft':
-        moveDir = -1; dasTimer = 0; arrTimer = 0;
-        engine.moveHorizontal(-1);
-        break;
-      case 'ArrowRight':
-        moveDir = 1; dasTimer = 0; arrTimer = 0;
-        engine.moveHorizontal(1);
-        break;
-      case 'ArrowUp':
-      case 'KeyX':
-        engine.rotate(1);
-        break;
-      case 'KeyZ':
-      case 'ControlLeft':
-      case 'ControlRight':
-        engine.rotate(3);
-        break;
-      case 'KeyA':
-        engine.rotate(2);
-        break;
-      case 'Space':
-        engine.hardDrop();
-        break;
-      case 'ShiftLeft':
-      case 'ShiftRight':
-      case 'KeyC':
-        engine.hold();
-        break;
+    if (e.code === kb.moveLeft) {
+      moveDir = -1; dasTimer = 0; arrTimer = 0;
+      engine.moveHorizontal(-1);
+    } else if (e.code === kb.moveRight) {
+      moveDir = 1; dasTimer = 0; arrTimer = 0;
+      engine.moveHorizontal(1);
+    } else if (e.code === kb.rotateCW) {
+      engine.rotate(1);
+    } else if (e.code === kb.rotateCCW) {
+      engine.rotate(3);
+    } else if (e.code === kb.rotate180) {
+      engine.rotate(2);
+    } else if (e.code === kb.hardDrop) {
+      engine.hardDrop();
+    } else if (e.code === kb.hold) {
+      engine.hold();
     }
   });
 
   window.addEventListener('keyup', (e) => {
     keysDown.delete(e.code);
-    if (e.code === 'ArrowLeft' && moveDir === -1) {
-      moveDir = keysDown.has('ArrowRight') ? 1 : 0;
+    const kb = userPrefs.keybinds;
+    if (e.code === kb.moveLeft && moveDir === -1) {
+      moveDir = keysDown.has(kb.moveRight) ? 1 : 0;
       dasTimer = 0; arrTimer = 0;
-    } else if (e.code === 'ArrowRight' && moveDir === 1) {
-      moveDir = keysDown.has('ArrowLeft') ? -1 : 0;
+    } else if (e.code === kb.moveRight && moveDir === 1) {
+      moveDir = keysDown.has(kb.moveLeft) ? -1 : 0;
       dasTimer = 0; arrTimer = 0;
     }
   });
 
   function updateInput(dtMs) {
     if (!canControlBoard || engine.gameOver || isTyping()) return;
+    const kb = userPrefs.keybinds;
 
     if (moveDir !== 0) {
       dasTimer += dtMs;
@@ -920,7 +1328,7 @@
       }
     }
 
-    if (keysDown.has('ArrowDown')) {
+    if (keysDown.has(kb.softDrop)) {
       if (handling.sdf >= 40) {
         engine.softDrop(true);
       } else {
@@ -936,17 +1344,79 @@
     }
   }
 
-  function drawBlock(ctx, x, y, size, color, alpha = 1.0) {
+  // ============================================================================
+  // SKIN & GHOST RENDERERS
+  // ============================================================================
+
+  function drawStyledBlock(ctx, x, y, size, color, alpha = 1.0, skin = 'bevel') {
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = color;
-    ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-    ctx.fillRect(x * size + 1, y * size + 1, size - 2, 3);
+    const px = x * size + 1;
+    const py = y * size + 1;
+    const w = size - 2;
+
+    if (skin === 'flat') {
+      ctx.fillStyle = color;
+      ctx.fillRect(px, py, w, w);
+    } else if (skin === 'neon') {
+      ctx.fillStyle = 'rgba(5, 10, 20, 0.85)';
+      ctx.fillRect(px, py, w, w);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+    } else if (skin === 'pixel') {
+      ctx.fillStyle = color;
+      ctx.fillRect(px, py, w, w);
+      ctx.fillStyle = '#050a14';
+      ctx.fillRect(px + 4, py + 4, w - 8, w - 8);
+      ctx.fillStyle = color;
+      ctx.fillRect(px + 7, py + 7, w - 14, w - 14);
+    } else if (skin === 'mono') {
+      ctx.fillStyle = '#e6f1ff';
+      ctx.fillRect(px, py, w, w);
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+    } else {
+      // Default 'bevel'
+      ctx.fillStyle = color;
+      ctx.fillRect(px, py, w, w);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.fillRect(px, py, w, 3);
+    }
     ctx.restore();
   }
 
-  function renderArena() {
+  function drawGhostBlock(ctx, x, y, size, color, ghostStyle = 'fill') {
+    ctx.save();
+    const px = x * size + 1;
+    const py = y * size + 1;
+    const w = size - 2;
+
+    if (ghostStyle === 'outline') {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.75;
+      ctx.strokeRect(px + 1, py + 1, w - 2, w - 2);
+    } else if (ghostStyle === 'crosshair') {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.85;
+      ctx.strokeRect(px + 2, py + 2, w - 4, w - 4);
+      ctx.beginPath();
+      ctx.moveTo(px + w / 2 - 4, py + w / 2);
+      ctx.lineTo(px + w / 2 + 4, py + w / 2);
+      ctx.moveTo(px + w / 2, py + w / 2 - 4);
+      ctx.lineTo(px + w / 2, py + w / 2 + 4);
+      ctx.stroke();
+    } else {
+      drawStyledBlock(ctx, x, y, size, color, 0.24, userPrefs.blockSkin);
+    }
+    ctx.restore();
+  }
+
+  function renderArena(now) {
+    if (currentMode === 'spectate') return;
     const cellSize = 32;
     const cols = engine.cols;
     const rows = engine.rows;
@@ -981,8 +1451,19 @@
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = engine.grid[r][c];
-        if (cell) drawBlock(boardCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0);
+        if (cell) drawStyledBlock(boardCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0, userPrefs.blockSkin);
       }
+    }
+
+    // Render Piece Lock Flash Effect
+    if (userPrefs.lockFlash && engine.lockFlashCells.length > 0) {
+      engine.lockFlashCells = engine.lockFlashCells.filter(f => f.expiresAt > now);
+      boardCtx.save();
+      boardCtx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+      engine.lockFlashCells.forEach(f => {
+        boardCtx.fillRect(f.x * cellSize + 1, f.y * cellSize + 1, cellSize - 2, cellSize - 2);
+      });
+      boardCtx.restore();
     }
 
     if (engine.activePiece && !engine.gameOver) {
@@ -992,12 +1473,12 @@
 
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) drawBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, 0.24);
+          if (p.matrix[r][c]) drawGhostBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, userPrefs.ghostStyle);
         }
       }
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) drawBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0);
+          if (p.matrix[r][c]) drawStyledBlock(boardCtx, p.x + c, p.y + r, cellSize, pColor, 1.0, userPrefs.blockSkin);
         }
       }
     }
@@ -1008,7 +1489,7 @@
       const col = !engine.canHold ? '#546e7a' : window.PIECE_COLORS[engine.holdPiece];
       for (let r = 0; r < mat.length; r++) {
         for (let c = 0; c < mat[r].length; c++) {
-          if (mat[r][c]) drawBlock(holdCtx, 0.8 + c, 0.8 + r, 22, col, 1.0);
+          if (mat[r][c]) drawStyledBlock(holdCtx, 0.8 + c, 0.8 + r, 22, col, 1.0, userPrefs.blockSkin);
         }
       }
     }
@@ -1019,7 +1500,7 @@
       const col = window.PIECE_COLORS[type];
       for (let r = 0; r < mat.length; r++) {
         for (let c = 0; c < mat[r].length; c++) {
-          if (mat[r][c]) drawBlock(nextCtx, 0.8 + c, idx * 3.4 + 0.5 + r, 20, col, 1.0);
+          if (mat[r][c]) drawStyledBlock(nextCtx, 0.8 + c, idx * 3.4 + 0.5 + r, 20, col, 1.0, userPrefs.blockSkin);
         }
       }
     });
@@ -1034,29 +1515,13 @@
     garbageMeterFill.style.height = `${Math.min(100, (m.pendingGarbage / 20) * 100)}%`;
   }
 
-  function drawOpponentBoard(opp) {
-    if (!opp || !opp.grid) return;
-    const rows = opp.grid.length;
-    const cols = opp.grid[0] ? opp.grid[0].length : 4;
-    const cellSize = 18;
-    oppCanvas.width = cols * cellSize;
-    oppCanvas.height = rows * cellSize;
-    oppCtx.clearRect(0, 0, oppCanvas.width, oppCanvas.height);
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const cell = opp.grid[r][c];
-        if (cell) drawBlock(oppCtx, c, r, cellSize, window.PIECE_COLORS[cell] || '#fff', 1.0);
-      }
-    }
-  }
-
   let lastFrameTime = performance.now();
   function gameLoop(now) {
     const dtMs = Math.min(100, now - lastFrameTime);
     lastFrameTime = now;
 
     if (activeScreen === 'arena') {
+      updateBoardShakePhysics(dtMs);
       if (canControlBoard && !engine.gameOver) {
         updateInput(dtMs);
         engine.update(dtMs);
@@ -1069,7 +1534,7 @@
           }
         }
       }
-      renderArena();
+      renderArena(now);
     }
 
     requestAnimationFrame(gameLoop);
