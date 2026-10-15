@@ -4,8 +4,8 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T19:50:42.087Z",
-    "lastLogin": "2026-10-15T19:48:31.227Z",
+    "updatedAt": "2026-10-15T20:03:19.913Z",
+    "lastLogin": "2026-10-15T20:03:19.913Z",
     "settings": {
       "das": 115,
       "arr": 10,
@@ -29,7 +29,8 @@
         "hardDrop": "Space",
         "hold": "ShiftLeft",
         "restart": "KeyR"
-      }
+      },
+      "lockedBg": "shuffle"
     },
     "stats": {
       "gamesPlayed": 3,
@@ -108,7 +109,8 @@
         "hardDrop": "Space",
         "hold": "ShiftLeft",
         "restart": "KeyR"
-      }
+      },
+      "lockedBg": "shuffle"
     },
     "stats": {
       "xp": 129,
@@ -174,7 +176,8 @@
         "hardDrop": "Space",
         "hold": "ShiftLeft",
         "restart": "KeyR"
-      }
+      },
+      "lockedBg": "shuffle"
     },
     "stats": {
       "xp": 140,
