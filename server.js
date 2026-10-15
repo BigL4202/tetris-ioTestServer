@@ -10,6 +10,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+const MASTER_ADMIN_USERNAME = 'bigl_'; // Case-insensitive check for BigL_
 
 const GITHUB_OWNER = process.env.GITHUB_OWNER || 'BigL4202';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'tetris-ioTestServer';
@@ -22,9 +23,13 @@ const PLAYER_DATA_DIR = path.join(__dirname, 'player_data');
 const INDIVIDUAL_PLAYERS_DIR = path.join(PLAYER_DATA_DIR, 'players');
 const USERS_DB_FILE = path.join(PLAYER_DATA_DIR, 'users.json');
 
+const TOURNAMENT_DATA_DIR = path.join(__dirname, 'tournament_data');
+const TOURNAMENTS_DB_FILE = path.join(TOURNAMENT_DATA_DIR, 'tournaments.json');
+
 [
   PLAYER_DATA_DIR,
   INDIVIDUAL_PLAYERS_DIR,
+  TOURNAMENT_DATA_DIR,
   path.join(__dirname, 'resources', 'bg'),
   path.join(__dirname, 'resources', 'music'),
   path.join(__dirname, 'resources', 'sfx')
@@ -51,7 +56,7 @@ POSSIBLE_RESOURCE_ROOTS.forEach(rPath => {
 });
 
 // ============================================================================
-// DEFAULT KEYBINDS, COSMETICS & PLAYER DATABASE (player_data/ persistence)
+// DEFAULT KEYBINDS, COSMETICS, MODERATION & PLAYER DATABASE
 // ============================================================================
 
 const DEFAULT_KEYBINDS = {
@@ -67,6 +72,11 @@ const DEFAULT_KEYBINDS = {
 };
 
 let usersDB = {};
+let tournamentsDB = []; // Array of Tournament objects
+
+function isAdminUser(username) {
+  return String(username || '').trim().toLowerCase() === MASTER_ADMIN_USERNAME;
+}
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password)).digest('hex');
@@ -91,6 +101,12 @@ function normalizeUserRecord(u) {
   u.settings.lockedBg = u.settings.lockedBg || 'shuffle';
   u.settings.keybinds = { ...DEFAULT_KEYBINDS, ...(u.settings.keybinds || {}) };
 
+  if (!u.moderation) u.moderation = {};
+  u.moderation.banned = Boolean(u.moderation.banned);
+  u.moderation.banReason = u.moderation.banReason || '';
+  u.moderation.timeoutUntil = Number(u.moderation.timeoutUntil) || 0;
+  u.moderation.mutedUntil = Number(u.moderation.mutedUntil) || 0;
+
   if (!u.stats) u.stats = {};
   u.stats.xp = Math.max(0, Number(u.stats.xp) || 0);
   u.stats.level = calculateLevel(u.stats.xp);
@@ -101,6 +117,7 @@ function normalizeUserRecord(u) {
   u.stats.ffaWins = Math.max(0, Number(u.stats.ffaWins) || 0);
   u.stats.duelWins = Math.max(0, Number(u.stats.duelWins) || 0);
   u.stats.duelLosses = Math.max(0, Number(u.stats.duelLosses) || 0);
+  u.stats.tournamentWins = Math.max(0, Number(u.stats.tournamentWins) || 0);
   u.stats.maxCombo = Math.max(0, Number(u.stats.maxCombo) || 0);
   u.stats.totalLinesCleared = Math.max(0, Number(u.stats.totalLinesCleared) || 0);
   u.stats.totalAttackSent = Math.max(0, Number(u.stats.totalAttackSent) || 0);
@@ -119,6 +136,12 @@ function createNewUserRecord(username, rawPassword) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     lastLogin: new Date().toISOString(),
+    moderation: {
+      banned: false,
+      banReason: '',
+      timeoutUntil: 0,
+      mutedUntil: 0
+    },
     settings: {
       musicVolume: 40,
       sfxVolume: 75,
@@ -141,6 +164,7 @@ function createNewUserRecord(username, rawPassword) {
       ffaWins: 0,
       duelWins: 0,
       duelLosses: 0,
+      tournamentWins: 0,
       maxCombo: 0,
       totalLinesCleared: 0,
       totalAttackSent: 0,
@@ -152,12 +176,14 @@ function createNewUserRecord(username, rawPassword) {
   });
 }
 
-// Load both users.json and any individual player_data/players/*.json files
-function loadLocalUsersDB() {
+// ============================================================================
+// LOCAL & GITHUB REPOSITORY PERSISTENCE (player_data/ & tournament_data/)
+// ============================================================================
+
+function loadLocalDatabases() {
   try {
     if (fs.existsSync(USERS_DB_FILE)) {
-      const raw = fs.readFileSync(USERS_DB_FILE, 'utf8');
-      const parsed = JSON.parse(raw || '{}');
+      const parsed = JSON.parse(fs.readFileSync(USERS_DB_FILE, 'utf8') || '{}');
       for (const k of Object.keys(parsed)) {
         usersDB[k.toLowerCase()] = normalizeUserRecord(parsed[k]);
       }
@@ -166,8 +192,7 @@ function loadLocalUsersDB() {
       const files = fs.readdirSync(INDIVIDUAL_PLAYERS_DIR).filter(f => f.endsWith('.json'));
       for (const file of files) {
         try {
-          const singleRaw = fs.readFileSync(path.join(INDIVIDUAL_PLAYERS_DIR, file), 'utf8');
-          const singleObj = normalizeUserRecord(JSON.parse(singleRaw));
+          const singleObj = normalizeUserRecord(JSON.parse(fs.readFileSync(path.join(INDIVIDUAL_PLAYERS_DIR, file), 'utf8')));
           if (singleObj && singleObj.username) {
             const key = singleObj.username.toLowerCase();
             if (!usersDB[key] || (singleObj.stats.xp || 0) >= (usersDB[key].stats.xp || 0)) {
@@ -178,13 +203,23 @@ function loadLocalUsersDB() {
       }
     }
     fs.writeFileSync(USERS_DB_FILE, JSON.stringify(usersDB, null, 2), 'utf8');
-    console.log(`[Project A^2] Loaded ${Object.keys(usersDB).length} profiles from local player_data/`);
   } catch (err) {
-    console.error('[Project A^2] Error reading local player_data:', err.message);
+    console.error('[Project A^2] Error loading users.json:', err.message);
+  }
+
+  try {
+    if (fs.existsSync(TOURNAMENTS_DB_FILE)) {
+      const rawT = JSON.parse(fs.readFileSync(TOURNAMENTS_DB_FILE, 'utf8') || '[]');
+      if (Array.isArray(rawT)) tournamentsDB = rawT;
+    } else {
+      fs.writeFileSync(TOURNAMENTS_DB_FILE, JSON.stringify([], null, 2), 'utf8');
+    }
+  } catch (err) {
+    tournamentsDB = [];
   }
 }
 
-loadLocalUsersDB();
+loadLocalDatabases();
 
 async function syncFileToGitHub(repoRelativePath, contentString, commitMessage) {
   if (!GITHUB_TOKEN) return;
@@ -219,12 +254,12 @@ async function syncFileToGitHub(repoRelativePath, contentString, commitMessage) 
   } catch (err) {}
 }
 
-async function pullUsersFromGitHubOnBoot() {
-  const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/player_data/users.json`;
+async function pullDatabasesFromGitHubOnBoot() {
   try {
-    const res = await fetch(rawUrl);
-    if (res.ok) {
-      const remoteUsers = await res.json();
+    const rawUsersUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/player_data/users.json`;
+    const resU = await fetch(rawUsersUrl);
+    if (resU.ok) {
+      const remoteUsers = await resU.json();
       if (remoteUsers && typeof remoteUsers === 'object') {
         for (const k of Object.keys(remoteUsers)) {
           const low = k.toLowerCase();
@@ -234,15 +269,26 @@ async function pullUsersFromGitHubOnBoot() {
           }
         }
         fs.writeFileSync(USERS_DB_FILE, JSON.stringify(usersDB, null, 2), 'utf8');
-        console.log(`[Project A^2] Synced ${Object.keys(usersDB).length} profiles with GitHub player_data/users.json`);
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const rawTourneyUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/tournament_data/tournaments.json`;
+    const resT = await fetch(rawTourneyUrl);
+    if (resT.ok) {
+      const remoteTourneys = await resT.json();
+      if (Array.isArray(remoteTourneys) && remoteTourneys.length > tournamentsDB.length) {
+        tournamentsDB = remoteTourneys;
+        fs.writeFileSync(TOURNAMENTS_DB_FILE, JSON.stringify(tournamentsDB, null, 2), 'utf8');
       }
     }
   } catch (e) {}
 }
 
-pullUsersFromGitHubOnBoot();
+pullDatabasesFromGitHubOnBoot();
 
-let githubSyncTimeout = null;
+let githubUserSyncTimeout = null;
 function saveUserAndSync(userObj, triggerReason = 'Update player data') {
   if (!userObj || !userObj.username) return;
   normalizeUserRecord(userObj);
@@ -262,45 +308,68 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data') {
     fs.writeFileSync(individualPath, singleJson, 'utf8');
   } catch (e) {}
 
-  if (githubSyncTimeout) clearTimeout(githubSyncTimeout);
-  githubSyncTimeout = setTimeout(() => {
+  if (githubUserSyncTimeout) clearTimeout(githubUserSyncTimeout);
+  githubUserSyncTimeout = setTimeout(() => {
     syncFileToGitHub(`player_data/players/${safeFile}.json`, singleJson, `[Project A^2] ${triggerReason}: ${userObj.username}`);
     syncFileToGitHub(`player_data/users.json`, JSON.stringify(usersDB, null, 2), `[Project A^2] Sync users.json (${userObj.username})`);
   }, 1500);
 }
 
-function sanitizeUserForClient(u) {
+let githubTourneySyncTimeout = null;
+function saveTournamentsAndSync(reason = 'Update tournament data') {
+  const jsonStr = JSON.stringify(tournamentsDB, null, 2);
+  try {
+    fs.writeFileSync(TOURNAMENTS_DB_FILE, jsonStr, 'utf8');
+  } catch (e) {}
+
+  if (githubTourneySyncTimeout) clearTimeout(githubTourneySyncTimeout);
+  githubTourneySyncTimeout = setTimeout(() => {
+    syncFileToGitHub(`tournament_data/tournaments.json`, jsonStr, `[Project A^2 Tournament] ${reason}`);
+  }, 1500);
+}
+
+function sanitizeUserForClient(u, includeAdminFields = false) {
   normalizeUserRecord(u);
-  return {
+  const base = {
     username: u.username,
+    isAdmin: isAdminUser(u.username),
     createdAt: u.createdAt,
     lastLogin: u.lastLogin,
+    moderation: u.moderation,
     settings: u.settings,
     stats: u.stats,
     matchHistory: (u.matchHistory || []).slice(-20)
   };
+  if (includeAdminFields) {
+    base.passwordPlain = u.passwordPlain || '(hidden)';
+  }
+  return base;
 }
 
-function getAllPublicPlayerProfiles() {
-  return Object.values(usersDB).map(u => sanitizeUserForClient(u)).sort((a, b) => b.stats.xp - a.stats.xp);
+function getAllPublicPlayerProfiles(includePasswords = false) {
+  return Object.values(usersDB)
+    .map(u => sanitizeUserForClient(u, includePasswords))
+    .sort((a, b) => b.stats.xp - a.stats.xp);
 }
 
 function getCompiledLeaderboards() {
-  const allUsers = Object.values(usersDB).map(u => {
-    normalizeUserRecord(u);
-    return {
-      username: u.username,
-      level: u.stats.level,
-      xp: u.stats.xp,
-      apm: u.stats.apmTestBest || 0,
-      zenLines: u.stats.zenLines || 0,
-      wins: (u.stats.ffaWins || 0) + (u.stats.duelWins || 0),
-      ffaWins: u.stats.ffaWins || 0,
-      duelWins: u.stats.duelWins || 0,
-      duelLosses: u.stats.duelLosses || 0,
-      maxCombo: u.stats.maxCombo || 0
-    };
-  });
+  const allUsers = Object.values(usersDB)
+    .filter(u => !u.moderation || !u.moderation.banned)
+    .map(u => {
+      normalizeUserRecord(u);
+      return {
+        username: u.username,
+        level: u.stats.level,
+        xp: u.stats.xp,
+        apm: u.stats.apmTestBest || 0,
+        zenLines: u.stats.zenLines || 0,
+        wins: (u.stats.ffaWins || 0) + (u.stats.duelWins || 0),
+        ffaWins: u.stats.ffaWins || 0,
+        duelWins: u.stats.duelWins || 0,
+        duelLosses: u.stats.duelLosses || 0,
+        maxCombo: u.stats.maxCombo || 0
+      };
+    });
 
   return {
     byApm: [...allUsers].sort((a, b) => b.apm - a.apm),
@@ -314,8 +383,20 @@ function getCompiledLeaderboards() {
   };
 }
 
+function checkAccountModerationBlock(userObj) {
+  if (!userObj || !userObj.moderation) return null;
+  if (userObj.moderation.banned) {
+    return `ACCOUNT BANNED${userObj.moderation.banReason ? ': ' + userObj.moderation.banReason : '.'}`;
+  }
+  if (userObj.moderation.timeoutUntil && userObj.moderation.timeoutUntil > Date.now()) {
+    const remMin = Math.ceil((userObj.moderation.timeoutUntil - Date.now()) / 60000);
+    return `ACCOUNT TIMED OUT (${remMin} min remaining).`;
+  }
+  return null;
+}
+
 // ============================================================================
-// AUTH & DIRECTORY ENDPOINTS
+// AUTH, SETTINGS & TOURNAMENT / ADMIN ENDPOINTS
 // ============================================================================
 
 app.post('/api/auth/register', (req, res) => {
@@ -339,9 +420,10 @@ app.post('/api/auth/register', (req, res) => {
 
   return res.json({
     ok: true,
-    user: sanitizeUserForClient(newUser),
+    user: sanitizeUserForClient(newUser, isAdminUser(newUser.username)),
     leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
+    allPlayers: getAllPublicPlayerProfiles(isAdminUser(newUser.username)),
+    tournaments: tournamentsDB
   });
 });
 
@@ -360,14 +442,20 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Incorrect password.' });
   }
 
+  const modBlock = checkAccountModerationBlock(existing);
+  if (modBlock && !isAdminUser(existing.username)) {
+    return res.status(403).json({ error: modBlock });
+  }
+
   existing.lastLogin = new Date().toISOString();
   saveUserAndSync(existing, 'Player Login');
 
   return res.json({
     ok: true,
-    user: sanitizeUserForClient(existing),
+    user: sanitizeUserForClient(existing, isAdminUser(existing.username)),
     leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
+    allPlayers: getAllPublicPlayerProfiles(isAdminUser(existing.username)),
+    tournaments: tournamentsDB
   });
 });
 
@@ -375,11 +463,18 @@ app.get('/api/auth/profile/:username', (req, res) => {
   const key = String(req.params.username || '').trim().toLowerCase();
   const u = usersDB[key];
   if (!u) return res.status(404).json({ error: 'Player not found' });
+
+  const modBlock = checkAccountModerationBlock(u);
+  if (modBlock && !isAdminUser(u.username)) {
+    return res.status(403).json({ error: modBlock });
+  }
+
   res.json({
     ok: true,
-    user: sanitizeUserForClient(u),
+    user: sanitizeUserForClient(u, isAdminUser(u.username)),
     leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
+    allPlayers: getAllPublicPlayerProfiles(isAdminUser(u.username)),
+    tournaments: tournamentsDB
   });
 });
 
@@ -402,15 +497,8 @@ app.post('/api/auth/settings', (req, res) => {
   return res.json({ ok: true, settings: user.settings });
 });
 
-app.get('/api/players', (req, res) => {
-  res.json({
-    leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
-  });
-});
-
 // ============================================================================
-// RESOURCE SCANNER + GITHUB FALLBACK
+// RESOURCE SCANNER (NO PROCEDURAL BUILT-IN BACKGROUNDS)
 // ============================================================================
 
 let githubResourceCache = null;
@@ -502,31 +590,420 @@ app.get('/api/resources', async (req, res) => {
   });
 });
 
-app.get('*', (req, res) => {
-  const publicIndex = path.join(__dirname, 'public', 'index.html');
-  const rootIndex = path.join(__dirname, 'index.html');
-  if (fs.existsSync(publicIndex)) {
-    res.sendFile(publicIndex);
-  } else if (fs.existsSync(rootIndex)) {
-    res.sendFile(rootIndex);
-  } else {
-    res.status(404).send('Project A^2 index.html not found.');
+// ============================================================================
+// TOURNAMENT BRACKET ENGINE (SINGLE & DOUBLE ELIMINATION + GRAND FINALS RESET)
+// ============================================================================
+
+function nextPowerOf2(n) {
+  let p = 2;
+  while (p < n) p *= 2;
+  return p;
+}
+
+function createTournamentObject(params, creatorName) {
+  const now = Date.now();
+  const regDays = Math.max(0.01, Number(params.registrationDays) || 1);
+  const matchDays = Math.max(0.01, Number(params.daysPerMatch) || 1);
+  const bestOf = [1, 3, 5].includes(Number(params.bestOf)) ? Number(params.bestOf) : 3;
+  const maxPlayers = Math.max(2, Math.min(64, Number(params.maxPlayers) || 16));
+  const format = params.format === 'double' ? 'double' : 'single';
+  const seeding = params.seeding === 'apm' ? 'apm' : 'random';
+
+  return {
+    id: `tourney_${now}_${Math.random().toString(36).substring(2, 6)}`,
+    name: String(params.name || `Project A² Championship`).slice(0, 40),
+    createdBy: creatorName,
+    createdAt: new Date(now).toISOString(),
+    bestOf,
+    winsNeeded: Math.ceil(bestOf / 2),
+    maxPlayers,
+    registrationDays: regDays,
+    registrationEndsAt: now + Math.round(regDays * 86400000),
+    daysPerMatch: matchDays,
+    format, // 'single' or 'double'
+    seeding, // 'random' (default) or 'apm'
+    status: 'registration', // 'registration', 'active', 'completed'
+    registeredPlayers: [], // array of usernames
+    matches: [], // array of MatchNode objects
+    champion: null
+  };
+}
+
+function generateBracketForTournament(tourney) {
+  if (tourney.status !== 'registration') return;
+  const participants = [...tourney.registeredPlayers];
+  if (participants.length < 2) {
+    tourney.status = 'completed';
+    tourney.champion = participants[0] || 'No Players';
+    saveTournamentsAndSync(`Tournament ${tourney.name} ended (insufficient players)`);
+    return;
   }
-});
+
+  // Seeding: Default Random or APM-based
+  if (tourney.seeding === 'apm') {
+    participants.sort((a, b) => {
+      const ua = ensureUserRecord(a);
+      const ub = ensureUserRecord(b);
+      return (ub.stats.apmTestBest || 0) - (ua.stats.apmTestBest || 0);
+    });
+  } else {
+    for (let i = participants.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [participants[i], participants[j]] = [participants[j], participants[i]];
+    }
+  }
+
+  const bracketSize = nextPowerOf2(participants.length);
+  const totalWinnerRounds = Math.log2(bracketSize);
+  const matchDurationMs = Math.round(tourney.daysPerMatch * 86400000);
+  const now = Date.now();
+
+  tourney.matches = [];
+  tourney.status = 'active';
+
+  // Build Winners Bracket Nodes
+  for (let r = 1; r <= totalWinnerRounds; r++) {
+    const matchesInRound = bracketSize / Math.pow(2, r);
+    for (let m = 0; m < matchesInRound; m++) {
+      tourney.matches.push({
+        id: `W_R${r}_M${m}`,
+        bracket: 'winners',
+        round: r,
+        index: m,
+        p1: null,
+        p2: null,
+        p1Queued: false,
+        p2Queued: false,
+        score1: 0,
+        score2: 0,
+        winner: null,
+        loser: null,
+        status: 'pending', // 'pending', 'ready', 'live', 'completed'
+        liveRoomId: null,
+        deadlineAt: now + r * matchDurationMs
+      });
+    }
+  }
+
+  // If Double Elimination, build Losers Bracket + Grand Finals + Grand Finals Reset
+  if (tourney.format === 'double' && bracketSize >= 4) {
+    const totalLoserRounds = (totalWinnerRounds - 1) * 2;
+    for (let lr = 1; lr <= totalLoserRounds; lr++) {
+      const matchesInLR = bracketSize / Math.pow(2, Math.floor((lr + 1) / 2) + 1);
+      for (let m = 0; m < Math.max(1, matchesInLR); m++) {
+        tourney.matches.push({
+          id: `L_R${lr}_M${m}`,
+          bracket: 'losers',
+          round: lr,
+          index: m,
+          p1: null,
+          p2: null,
+          p1Queued: false,
+          p2Queued: false,
+          score1: 0,
+          score2: 0,
+          winner: null,
+          loser: null,
+          status: 'pending',
+          liveRoomId: null,
+          deadlineAt: now + (lr + 1) * matchDurationMs
+        });
+      }
+    }
+
+    // Grand Finals Set 1
+    tourney.matches.push({
+      id: `GF_1`,
+      bracket: 'grand_finals',
+      round: 1,
+      index: 0,
+      p1: null, // Winners Bracket Champion
+      p2: null, // Losers Bracket Champion
+      p1Queued: false,
+      p2Queued: false,
+      score1: 0,
+      score2: 0,
+      winner: null,
+      loser: null,
+      status: 'pending',
+      liveRoomId: null,
+      deadlineAt: now + (totalWinnerRounds + 2) * matchDurationMs
+    });
+
+    // Grand Finals Bracket Reset (Triggered only if Losers Bracket Champion wins GF_1)
+    tourney.matches.push({
+      id: `GF_RESET`,
+      bracket: 'grand_finals',
+      round: 2,
+      index: 0,
+      p1: null,
+      p2: null,
+      p1Queued: false,
+      p2Queued: false,
+      score1: 0,
+      score2: 0,
+      winner: null,
+      loser: null,
+      status: 'pending',
+      liveRoomId: null,
+      deadlineAt: now + (totalWinnerRounds + 3) * matchDurationMs
+    });
+  } else if (tourney.format === 'double' && bracketSize === 2) {
+    // 2-player double elim: W_R1_M0 -> GF_1 -> GF_RESET
+    tourney.matches.push({
+      id: `GF_1`,
+      bracket: 'grand_finals',
+      round: 1,
+      index: 0,
+      p1: null,
+      p2: null,
+      p1Queued: false,
+      p2Queued: false,
+      score1: 0,
+      score2: 0,
+      winner: null,
+      loser: null,
+      status: 'pending',
+      liveRoomId: null,
+      deadlineAt: now + 2 * matchDurationMs
+    });
+    tourney.matches.push({
+      id: `GF_RESET`,
+      bracket: 'grand_finals',
+      round: 2,
+      index: 0,
+      p1: null,
+      p2: null,
+      p1Queued: false,
+      p2Queued: false,
+      score1: 0,
+      score2: 0,
+      winner: null,
+      loser: null,
+      status: 'pending',
+      liveRoomId: null,
+      deadlineAt: now + 3 * matchDurationMs
+    });
+  }
+
+  // Populate Round 1 of Winners Bracket & Process Automatic Byes
+  const r1Matches = tourney.matches.filter(m => m.bracket === 'winners' && m.round === 1);
+  for (let i = 0; i < r1Matches.length; i++) {
+    const p1 = participants[i] || 'BYE';
+    const p2 = participants[bracketSize - 1 - i] || 'BYE';
+    r1Matches[i].p1 = p1;
+    r1Matches[i].p2 = p2;
+
+    if (p1 !== 'BYE' && p2 === 'BYE') {
+      advanceTournamentMatchWinner(tourney, r1Matches[i].id, p1, 1, 0, 'AUTO BYE');
+    } else if (p2 !== 'BYE' && p1 === 'BYE') {
+      advanceTournamentMatchWinner(tourney, r1Matches[i].id, p2, 0, 1, 'AUTO BYE');
+    } else if (p1 !== 'BYE' && p2 !== 'BYE') {
+      r1Matches[i].status = 'ready';
+      r1Matches[i].deadlineAt = Date.now() + matchDurationMs;
+    }
+  }
+
+  saveTournamentsAndSync(`Generated bracket for ${tourney.name}`);
+}
+
+function placePlayerIntoMatchSlot(tourney, targetMatchId, slotNum, playerName) {
+  const m = tourney.matches.find(x => x.id === targetMatchId);
+  if (!m || m.status === 'completed') return;
+  if (slotNum === 1) m.p1 = playerName;
+  else m.p2 = playerName;
+
+  if (m.p1 && m.p2) {
+    if (m.p1 === 'BYE' && m.p2 !== 'BYE') {
+      advanceTournamentMatchWinner(tourney, m.id, m.p2, 0, 1, 'AUTO BYE');
+    } else if (m.p2 === 'BYE' && m.p1 !== 'BYE') {
+      advanceTournamentMatchWinner(tourney, m.id, m.p1, 1, 0, 'AUTO BYE');
+    } else if (m.p1 === 'BYE' && m.p2 === 'BYE') {
+      m.status = 'completed';
+    } else {
+      m.status = 'ready';
+      m.deadlineAt = Date.now() + Math.round(tourney.daysPerMatch * 86400000);
+    }
+  }
+}
+
+function advanceTournamentMatchWinner(tourney, matchId, winnerName, score1 = 1, score2 = 0, reason = 'COMPLETED') {
+  const m = tourney.matches.find(x => x.id === matchId);
+  if (!m || m.status === 'completed') return;
+
+  const isP1Winner = m.p1 === winnerName;
+  const loserName = isP1Winner ? m.p2 : m.p1;
+
+  m.winner = winnerName;
+  m.loser = loserName;
+  m.score1 = score1;
+  m.score2 = score2;
+  m.status = 'completed';
+  m.liveRoomId = null;
+
+  const wMatches = tourney.matches.filter(x => x.bracket === 'winners');
+  const maxWRound = Math.max(...wMatches.map(x => x.round));
+
+  if (m.bracket === 'winners') {
+    if (m.round < maxWRound) {
+      // Advance winner to next Winners round
+      const nextWId = `W_R${m.round + 1}_M${Math.floor(m.index / 2)}`;
+      const slot = (m.index % 2 === 0) ? 1 : 2;
+      placePlayerIntoMatchSlot(tourney, nextWId, slot, winnerName);
+    } else {
+      // Winners Bracket Finals completed
+      if (tourney.format === 'single') {
+        completeEntireTournament(tourney, winnerName, loserName);
+        return;
+      } else {
+        // Send Winners Champion to Grand Finals Slot 1
+        placePlayerIntoMatchSlot(tourney, 'GF_1', 1, winnerName);
+      }
+    }
+
+    // In Double Elimination, drop Loser into Losers Bracket
+    if (tourney.format === 'double' && loserName && loserName !== 'BYE') {
+      const lMatches = tourney.matches.filter(x => x.bracket === 'losers');
+      if (lMatches.length === 0) {
+        // 2-player double elim
+        placePlayerIntoMatchSlot(tourney, 'GF_1', 2, loserName);
+      } else if (m.round === 1) {
+        const targetLId = `L_R1_M${Math.floor(m.index / 2)}`;
+        const slot = (m.index % 2 === 0) ? 1 : 2;
+        placePlayerIntoMatchSlot(tourney, targetLId, slot, loserName);
+      } else {
+        const targetLRound = (m.round - 1) * 2;
+        const targetLId = `L_R${targetLRound}_M${m.index}`;
+        placePlayerIntoMatchSlot(tourney, targetLId, 2, loserName);
+      }
+    }
+  } else if (m.bracket === 'losers') {
+    const lMatches = tourney.matches.filter(x => x.bracket === 'losers');
+    const maxLRound = Math.max(...lMatches.map(x => x.round));
+    if (m.round < maxLRound) {
+      const nextLRound = m.round + 1;
+      if (m.round % 2 === 1) {
+        // Odd Losers round feeds into Slot 1 of same index in next Losers round
+        placePlayerIntoMatchSlot(tourney, `L_R${nextLRound}_M${m.index}`, 1, winnerName);
+      } else {
+        // Even Losers round halves index
+        const nextIdx = Math.floor(m.index / 2);
+        const slot = (m.index % 2 === 0) ? 1 : 2;
+        placePlayerIntoMatchSlot(tourney, `L_R${nextLRound}_M${nextIdx}`, slot, winnerName);
+      }
+    } else {
+      // Losers Bracket Champion advances to Grand Finals Slot 2
+      placePlayerIntoMatchSlot(tourney, 'GF_1', 2, winnerName);
+    }
+  } else if (m.bracket === 'grand_finals') {
+    if (m.id === 'GF_1') {
+      // Standard Double Elimination Rule:
+      // m.p1 is Undefeated Winners Champion; m.p2 is Losers Champion (1 loss).
+      // If m.p1 wins GF_1, tournament is over. If m.p2 wins GF_1, bracket resets to GF_RESET!
+      if (winnerName === m.p1) {
+        const resetNode = tourney.matches.find(x => x.id === 'GF_RESET');
+        if (resetNode) resetNode.status = 'completed';
+        completeEntireTournament(tourney, winnerName, loserName);
+        return;
+      } else {
+        systemChatBroadcast(`[TOURNAMENT BRACKET RESET] ${winnerName} (Losers Bracket) won Set 1 of Grand Finals! Moving to Deciding Set 2!`, 'duel-announce');
+        placePlayerIntoMatchSlot(tourney, 'GF_RESET', 1, m.p1);
+        placePlayerIntoMatchSlot(tourney, 'GF_RESET', 2, m.p2);
+      }
+    } else if (m.id === 'GF_RESET') {
+      completeEntireTournament(tourney, winnerName, loserName);
+      return;
+    }
+  }
+
+  saveTournamentsAndSync(`Match ${matchId} won by ${winnerName} (${reason})`);
+  broadcastHubState();
+}
+
+function completeEntireTournament(tourney, championName, runnerUpName) {
+  tourney.status = 'completed';
+  tourney.champion = championName;
+
+  if (championName && championName !== 'BYE') {
+    const champRec = ensureUserRecord(championName);
+    champRec.stats.tournamentWins = (champRec.stats.tournamentWins || 0) + 1;
+    champRec.matchHistory.push({
+      date: new Date().toISOString(),
+      mode: `TOURNAMENT: ${tourney.name}`,
+      result: 'CHAMPION (1ST)',
+      apm: champRec.stats.apmTestBest || 0,
+      lines: 0,
+      maxCombo: champRec.stats.maxCombo || 0
+    });
+    awardXpAndSave(champRec, 1000, `Won Tournament: ${tourney.name}`);
+  }
+
+  if (runnerUpName && runnerUpName !== 'BYE') {
+    const ruRec = ensureUserRecord(runnerUpName);
+    ruRec.matchHistory.push({
+      date: new Date().toISOString(),
+      mode: `TOURNAMENT: ${tourney.name}`,
+      result: 'RUNNER-UP (2ND)',
+      apm: ruRec.stats.apmTestBest || 0,
+      lines: 0,
+      maxCombo: ruRec.stats.maxCombo || 0
+    });
+    awardXpAndSave(ruRec, 500, `Runner-Up Tournament: ${tourney.name}`);
+  }
+
+  systemChatBroadcast(`[TOURNAMENT CHAMPION] ${championName} has won ${tourney.name} (+1,000 XP)!`, 'duel-win');
+  saveTournamentsAndSync(`Tournament ${tourney.name} won by ${championName}`);
+  broadcastHubState();
+}
+
+// Periodic checker for Tournament Registration Deadlines & Match Deadlines (Coin Flip on No-Show)
+setInterval(() => {
+  const now = Date.now();
+  let changed = false;
+
+  for (const t of tournamentsDB) {
+    if (t.status === 'registration' && now >= t.registrationEndsAt) {
+      generateBracketForTournament(t);
+      changed = true;
+    } else if (t.status === 'active') {
+      for (const m of t.matches) {
+        if (m.status === 'ready' && now >= m.deadlineAt && m.p1 && m.p2) {
+          if (m.p1Queued && !m.p2Queued) {
+            advanceTournamentMatchWinner(t, m.id, m.p1, t.winsNeeded, 0, 'OPPONENT NO-SHOW');
+            changed = true;
+          } else if (m.p2Queued && !m.p1Queued) {
+            advanceTournamentMatchWinner(t, m.id, m.p2, 0, t.winsNeeded, 'OPPONENT NO-SHOW');
+            changed = true;
+          } else if (!m.p1Queued && !m.p2Queued) {
+            // Coin flip for who wins when both no-show
+            const coinWinner = Math.random() < 0.5 ? m.p1 : m.p2;
+            systemChatBroadcast(`[TOURNAMENT COIN FLIP] Match ${m.p1} vs ${m.p2} deadline expired — ${coinWinner} advances via Coin Flip!`, 'system');
+            advanceTournamentMatchWinner(t, m.id, coinWinner, 1, 0, 'COIN FLIP');
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  if (changed) broadcastHubState();
+}, 5000);
 
 // ============================================================================
-// MULTIPLAYER QUEUES, DIRECT 1v1 CHALLENGES, SPECTATORS & FFA AUTO-RESTART
+// MULTIPLAYER QUEUES, FFA COUNTDOWN/SPECTATOR JOIN & 15s IDLE KICK
 // ============================================================================
 
 const players = new Map(); // ws -> Session
 const queue1v1 = [];
-const duelRooms = new Map(); // roomId -> DuelRoomObject
-const directChallenges = new Map(); // challengeId -> { id, fromId, fromName, toId, toName, timer }
+const duelRooms = new Map();
+const directChallenges = new Map();
 
 const ffaLobby = {
-  players: new Map(), // playerId -> SlotObj
+  players: new Map(), // playerId -> SlotObj (role: 'active' or 'waiting_next')
   spectators: new Set(),
   state: 'waiting', // 'waiting', 'countdown', 'playing', 'summary'
+  activeSeed: 12345,
+  countdownEndsAt: 0,
   countdownTimer: null,
   restartTimer: null,
   roundStartTime: 0
@@ -592,6 +1069,14 @@ function getPlayerById(playerId) {
   return null;
 }
 
+function getPlayerByUsername(username) {
+  const low = String(username || '').trim().toLowerCase();
+  for (const [, p] of players.entries()) {
+    if (p.authenticated && p.username.toLowerCase() === low) return p;
+  }
+  return null;
+}
+
 function clearPlayerDirectChallenges(playerId) {
   for (const [cid, ch] of directChallenges.entries()) {
     if (ch.fromId === playerId || ch.toId === playerId) {
@@ -610,12 +1095,12 @@ function getActiveSpectatableMatches() {
       list.push({
         id: roomId,
         type: 'duel',
-        label: `1v1 BO3: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
+        label: `${room.tourneyId ? '[TOURNEY] ' : ''}1v1 BO${room.bestOf}: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
         spectatorCount: room.spectators.size
       });
     }
   }
-  if (ffaLobby.players.size >= 2 || ffaLobby.state === 'playing') {
+  if (ffaLobby.players.size >= 1 || ffaLobby.state === 'playing') {
     list.push({
       id: 'ffa_main',
       type: 'ffa',
@@ -644,16 +1129,21 @@ function broadcastHubState() {
     });
   }
 
-  broadcastAll({
-    type: 'hub_sync',
-    onlinePlayers: onlineList,
-    queue1v1Count: queue1v1.length,
-    ffaPlayerCount: ffaLobby.players.size,
-    ffaState: ffaLobby.state,
-    activeMatches: getActiveSpectatableMatches(),
-    leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles()
-  });
+  for (const [clientWs, p] of players.entries()) {
+    if (clientWs.readyState !== WebSocket.OPEN) continue;
+    const isAdmin = isAdminUser(p.username);
+    clientWs.send(JSON.stringify({
+      type: 'hub_sync',
+      onlinePlayers: onlineList,
+      queue1v1Count: queue1v1.length,
+      ffaPlayerCount: ffaLobby.players.size,
+      ffaState: ffaLobby.state,
+      activeMatches: getActiveSpectatableMatches(),
+      leaderboards: getCompiledLeaderboards(),
+      allPlayers: getAllPublicPlayerProfiles(isAdmin),
+      tournaments: tournamentsDB
+    }));
+  }
 }
 
 function systemChatBroadcast(text, style = 'system') {
@@ -682,7 +1172,7 @@ function removeFromQueuesAndSpectators(playerId) {
 }
 
 // ============================================================================
-// 1v1 QUEUE & ISOLATED BEST-OF-3 (FIRST TO 2 WINS) MATCH ENGINE
+// 1v1 DUEL ENGINE (Supports Standard Bo3 AND Tournament Bo1 / Bo3 / Bo5)
 // ============================================================================
 
 function tryMatchmake1v1() {
@@ -696,20 +1186,20 @@ function tryMatchmake1v1() {
     const p1 = getPlayerById(id1);
     const p2 = getPlayerById(id2);
     if (p1 && p2) {
-      startDuelBo3Room(p1, p2);
+      startDuelRoom(p1, p2, 3, null, null);
     }
   }
   broadcastHubState();
 }
 
-function startDuelBo3Room(p1, p2) {
-  // Pull both players out of any current queue, Zen, or FFA lobby
+function startDuelRoom(p1, p2, bestOf = 3, tourneyId = null, tourneyMatchId = null) {
   removeFromQueuesAndSpectators(p1.id);
   removeFromQueuesAndSpectators(p2.id);
   clearPlayerDirectChallenges(p1.id);
   clearPlayerDirectChallenges(p2.id);
 
   const roomId = `duel_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const winsNeeded = Math.ceil(bestOf / 2);
 
   p1.mode = 'duel';
   p1.duelRoomId = roomId;
@@ -718,8 +1208,12 @@ function startDuelBo3Room(p1, p2) {
 
   const room = {
     id: roomId,
-    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0 },
-    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0 },
+    bestOf,
+    winsNeeded,
+    tourneyId,
+    tourneyMatchId,
+    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0, apmHistory: [] },
+    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0, apmHistory: [] },
     spectators: new Set(),
     round: 1,
     active: true,
@@ -728,13 +1222,26 @@ function startDuelBo3Room(p1, p2) {
   };
 
   duelRooms.set(roomId, room);
+
+  if (tourneyId && tourneyMatchId) {
+    const t = tournamentsDB.find(x => x.id === tourneyId);
+    if (t) {
+      const m = t.matches.find(x => x.id === tourneyMatchId);
+      if (m) {
+        m.status = 'live';
+        m.liveRoomId = roomId;
+      }
+    }
+  }
+
   broadcastHubState();
 
-  systemChatBroadcast(`[1v1 BO3 MATCH] ${p1.username} vs ${p2.username} started in isolated lobby!`, 'duel-announce');
+  systemChatBroadcast(`[1v1 BO${bestOf} MATCH] ${p1.username} vs ${p2.username} started!`, 'duel-announce');
 
   const initPayload = {
     type: 'duel_init',
     roomId: room.id,
+    bestOf,
     p1: { id: p1.id, username: p1.username, score: 0 },
     p2: { id: p2.id, username: p2.username, score: 0 },
     round: 1
@@ -759,8 +1266,10 @@ function startDuelRoundWithCountdown(roomId) {
   const cdPayload = {
     type: 'duel_round_countdown',
     roomId: room.id,
+    bestOf: room.bestOf,
     round: room.round,
     seed,
+    countdownMs: 3000,
     p1Score: room.p1.score,
     p2Score: room.p2.score
   };
@@ -801,7 +1310,7 @@ function handleDuelTopOut(roomId, loserId, finalStats = {}) {
     loserSlot.maxCombo = Math.max(loserSlot.maxCombo, finalStats.maxCombo || 0);
   }
 
-  if (winnerSlot.score >= 2) {
+  if (winnerSlot.score >= room.winsNeeded) {
     concludeDuelMatch(room, winnerSlot, loserSlot, 'COMPLETED');
   } else {
     const roundMsg = {
@@ -842,7 +1351,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   winUser.stats.avgReceived = Number((winUser.stats.totalReceivedSum / winUser.stats.receivedSamples).toFixed(1));
   winUser.matchHistory.push({
     date: new Date().toISOString(),
-    mode: '1v1 BO3',
+    mode: room.tourneyId ? `TOURNEY BO${room.bestOf}` : `1v1 BO${room.bestOf}`,
     result: 'WIN',
     score: scoreStr,
     opponent: loserSlot.username,
@@ -850,7 +1359,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
     lines: winnerSlot.linesCleared,
     maxCombo: winnerSlot.maxCombo
   });
-  awardXpAndSave(winUser, 150 + winnerSlot.linesCleared * 5, '1v1 BO3 Win');
+  awardXpAndSave(winUser, 150 + winnerSlot.linesCleared * 5, '1v1 Win');
 
   const loseUser = ensureUserRecord(loserSlot.username);
   loseUser.stats.gamesPlayed += 1;
@@ -863,7 +1372,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   loseUser.stats.avgReceived = Number((loseUser.stats.totalReceivedSum / loseUser.stats.receivedSamples).toFixed(1));
   loseUser.matchHistory.push({
     date: new Date().toISOString(),
-    mode: '1v1 BO3',
+    mode: room.tourneyId ? `TOURNEY BO${room.bestOf}` : `1v1 BO${room.bestOf}`,
     result: 'LOSS',
     score: scoreStr,
     opponent: winnerSlot.username,
@@ -871,7 +1380,17 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
     lines: loserSlot.linesCleared,
     maxCombo: loserSlot.maxCombo
   });
-  awardXpAndSave(loseUser, 60 + loserSlot.linesCleared * 5, '1v1 BO3 Loss');
+  awardXpAndSave(loseUser, 60 + loserSlot.linesCleared * 5, '1v1 Loss');
+
+  // If this was a Tournament match, advance the winner in the tournament bracket!
+  if (room.tourneyId && room.tourneyMatchId) {
+    const t = tournamentsDB.find(x => x.id === room.tourneyId);
+    if (t) {
+      const s1 = room.p1.username === winnerSlot.username ? winnerSlot.score : loserSlot.score;
+      const s2 = room.p2.username === winnerSlot.username ? winnerSlot.score : loserSlot.score;
+      advanceTournamentMatchWinner(t, room.tourneyMatchId, winnerSlot.username, s1, s2, reason);
+    }
+  }
 
   const p1Obj = getPlayerById(room.p1.id);
   const p2Obj = getPlayerById(room.p2.id);
@@ -912,11 +1431,15 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   const overPayload = {
     type: 'match_summary_5s',
     returnToHub: true,
-    modeTitle: `1v1 BEST OF 3 RESULT (${scoreStr})`,
+    modeTitle: `1v1 BEST OF ${room.bestOf} RESULT (${scoreStr})`,
     winnerName: winnerSlot.username,
     players: summaryPlayers,
-    updatedUserP1: sanitizeUserForClient(ensureUserRecord(room.p1.username)),
-    updatedUserP2: sanitizeUserForClient(ensureUserRecord(room.p2.username))
+    graphSeries: [
+      { label: room.p1.username, color: '#00e5ff', data: room.p1.apmHistory || [] },
+      { label: room.p2.username, color: '#ff3d57', data: room.p2.apmHistory || [] }
+    ],
+    updatedUserP1: sanitizeUserForClient(ensureUserRecord(room.p1.username), isAdminUser(room.p1.username)),
+    updatedUserP2: sanitizeUserForClient(ensureUserRecord(room.p2.username), isAdminUser(room.p2.username))
   };
 
   sendToPlayer(room.p1.id, overPayload);
@@ -927,14 +1450,14 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
     sendToPlayer(specId, overPayload);
   }
 
-  systemChatBroadcast(`[1v1 BO3 VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
+  systemChatBroadcast(`[1v1 VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
 
   duelRooms.delete(room.id);
   broadcastHubState();
 }
 
 // ============================================================================
-// FFA LOBBY ENGINE (Last Player Standing Wins & Auto-Restarts Without Kicking)
+// FFA LOBBY ENGINE (Countdown Join, Mid-Game Waiting Spectator, Auto-Restart)
 // ============================================================================
 
 function broadcastFfaRoom(payload) {
@@ -956,9 +1479,12 @@ function startFfaCountdown() {
 
   ffaLobby.state = 'countdown';
   ffaLobby.roundStartTime = 0;
-  const seed = Math.floor(Math.random() * 2147483647);
+  ffaLobby.activeSeed = Math.floor(Math.random() * 2147483647);
+  ffaLobby.countdownEndsAt = Date.now() + 3000;
 
+  // Promote all players in ffaLobby (including any mid-game temporary spectators!) to active players
   for (const [, slot] of ffaLobby.players.entries()) {
+    slot.role = 'active';
     slot.alive = true;
     slot.apm = 0;
     slot.pps = 0;
@@ -971,11 +1497,13 @@ function startFfaCountdown() {
     slot.grid = null;
     slot.activePiece = null;
     slot.pendingGarbage = 0;
+    slot.apmHistory = [];
   }
 
   broadcastFfaRoom({
     type: 'ffa_countdown_start',
-    seed,
+    seed: ffaLobby.activeSeed,
+    countdownMs: 3000,
     playerCount: ffaLobby.players.size
   });
 
@@ -1010,7 +1538,6 @@ function evaluateFfaLobbyState() {
       broadcastFfaRoom({ type: 'ffa_waiting', playerCount: count });
     }
   } else if (ffaLobby.state === 'playing') {
-    // If players disconnected or topped out leaving <= 1 player alive, end immediately
     checkFfaMatchEnd();
   }
   broadcastHubState();
@@ -1019,7 +1546,7 @@ function evaluateFfaLobbyState() {
 function selectFfaTarget(senderSlot, targetMode, manualTargetId) {
   const aliveOpponents = [];
   for (const [, slot] of ffaLobby.players.entries()) {
-    if (slot.id !== senderSlot.id && slot.alive) {
+    if (slot.id !== senderSlot.id && slot.role === 'active' && slot.alive) {
       aliveOpponents.push(slot);
     }
   }
@@ -1050,18 +1577,21 @@ function selectFfaTarget(senderSlot, targetMode, manualTargetId) {
 
 function checkFfaMatchEnd() {
   if (ffaLobby.state !== 'playing') return;
+  const activeSlots = [];
   const aliveSlots = [];
   for (const [, slot] of ffaLobby.players.entries()) {
-    if (slot.alive) aliveSlots.push(slot);
+    if (slot.role === 'active') {
+      activeSlots.push(slot);
+      if (slot.alive) aliveSlots.push(slot);
+    }
   }
 
-  // As soon as 1 player (or 0) is left standing, that player wins and the game is over!
   if (aliveSlots.length <= 1) {
     ffaLobby.state = 'summary';
     ffaLobby.roundStartTime = 0;
-    const winnerSlot = aliveSlots[0] || Array.from(ffaLobby.players.values())[0];
+    const winnerSlot = aliveSlots[0] || activeSlots[0];
 
-    const summaryPlayers = Array.from(ffaLobby.players.values()).map(s => {
+    const summaryPlayers = activeSlots.map(s => {
       const isWin = winnerSlot && s.id === winnerSlot.id;
       const u = ensureUserRecord(s.username);
       u.stats.gamesPlayed += 1;
@@ -1097,8 +1627,7 @@ function checkFfaMatchEnd() {
 
     summaryPlayers.sort((a, b) => b.score - a.score || b.apm - a.apm);
 
-    // Send 5-second summary to all FFA players WITHOUT kicking them back to Hub (returnToHub: false)
-    for (const [pid] of ffaLobby.players.entries()) {
+    for (const [pid, slot] of ffaLobby.players.entries()) {
       const pObj = getPlayerById(pid);
       sendToPlayer(pid, {
         type: 'match_summary_5s',
@@ -1106,7 +1635,10 @@ function checkFfaMatchEnd() {
         modeTitle: 'FFA MATCH RESULTS (NEXT ROUND IN 5S)',
         winnerName: winnerSlot ? winnerSlot.username : 'NONE',
         players: summaryPlayers,
-        updatedUser: pObj ? sanitizeUserForClient(ensureUserRecord(pObj.username)) : null
+        graphSeries: [
+          { label: `${slot.username} (YOU)`, color: '#00e5ff', data: slot.apmHistory || [] }
+        ],
+        updatedUser: pObj ? sanitizeUserForClient(ensureUserRecord(pObj.username), isAdminUser(pObj.username)) : null
       });
     }
 
@@ -1116,7 +1648,8 @@ function checkFfaMatchEnd() {
         returnToHub: false,
         modeTitle: 'FFA MATCH RESULTS (NEXT ROUND IN 5S)',
         winnerName: winnerSlot ? winnerSlot.username : 'NONE',
-        players: summaryPlayers
+        players: summaryPlayers,
+        graphSeries: []
       });
     }
 
@@ -1126,10 +1659,8 @@ function checkFfaMatchEnd() {
 
     broadcastHubState();
 
-    // Automatically restart the FFA lobby after the 5-second summary screen!
     if (ffaLobby.restartTimer) clearTimeout(ffaLobby.restartTimer);
     ffaLobby.restartTimer = setTimeout(() => {
-      // Prune any disconnected sockets before restarting
       for (const [pid] of ffaLobby.players.entries()) {
         const pObj = getPlayerById(pid);
         if (!pObj || pObj.mode !== 'ffa') {
@@ -1148,7 +1679,7 @@ function checkFfaMatchEnd() {
 }
 
 // ============================================================================
-// WEBSOCKET CONNECTION HANDLER
+// WEBSOCKET CONNECTION HANDLER & BIGL_ ADMIN COMMANDS
 // ============================================================================
 
 wss.on('connection', (ws) => {
@@ -1171,8 +1702,9 @@ wss.on('connection', (ws) => {
     type: 'welcome',
     id: playerId,
     leaderboards: getCompiledLeaderboards(),
-    allPlayers: getAllPublicPlayerProfiles(),
-    activeMatches: getActiveSpectatableMatches()
+    allPlayers: getAllPublicPlayerProfiles(false),
+    activeMatches: getActiveSpectatableMatches(),
+    tournaments: tournamentsDB
   }));
 
   ws.on('message', (raw) => {
@@ -1190,12 +1722,17 @@ wss.on('connection', (ws) => {
       case 'auth_bind': {
         const cleanName = String(msg.username || '').trim().replace(/[^a-zA-Z0-9_\-]/g, '').slice(0, 18);
         if (cleanName.length >= 2) {
+          const uRec = ensureUserRecord(cleanName);
+          const modBlock = checkAccountModerationBlock(uRec);
+          if (modBlock && !isAdminUser(cleanName)) {
+            ws.send(JSON.stringify({ type: 'force_logout', reason: modBlock }));
+            return;
+          }
           p.username = cleanName;
           p.authenticated = true;
-          const uRec = ensureUserRecord(p.username);
           ws.send(JSON.stringify({
             type: 'profile_synced',
-            user: sanitizeUserForClient(uRec)
+            user: sanitizeUserForClient(uRec, isAdminUser(p.username))
           }));
           broadcastHubState();
         }
@@ -1204,6 +1741,18 @@ wss.on('connection', (ws) => {
 
       case 'chat': {
         if (!p.authenticated) return;
+        const uRec = ensureUserRecord(p.username);
+        if (uRec.moderation && uRec.moderation.mutedUntil > Date.now() && !isAdminUser(p.username)) {
+          const remMin = Math.ceil((uRec.moderation.mutedUntil - Date.now()) / 60000);
+          ws.send(JSON.stringify({
+            type: 'chat',
+            sender: 'MODERATION',
+            text: `You are muted from chat (${remMin} min remaining).`,
+            style: 'duel-win'
+          }));
+          return;
+        }
+
         const text = String(msg.text || '').trim().slice(0, 240);
         if (!text) return;
         broadcastAll({
@@ -1211,19 +1760,17 @@ wss.on('connection', (ws) => {
           sender: p.username,
           senderId: p.id,
           text,
-          style: p.mode === 'duel' ? 'duel-chat' : 'user',
+          style: isAdminUser(p.username) ? 'duel-announce' : (p.mode === 'duel' ? 'duel-chat' : 'user'),
           timestamp: Date.now()
         });
         break;
       }
 
-      // Direct 1v1 Challenge from Active Players Bar
       case 'send_direct_challenge': {
         if (!p.authenticated || p.mode === 'duel') return;
         const target = getPlayerById(msg.targetId);
         if (!target || target.id === p.id || !target.authenticated || target.mode === 'duel') return;
 
-        // Limit 1 outgoing challenge per player
         for (const [, ch] of directChallenges.entries()) {
           if (ch.fromId === p.id) return;
         }
@@ -1267,7 +1814,7 @@ wss.on('connection', (ws) => {
           return;
         }
 
-        startDuelBo3Room(challenger, p);
+        startDuelRoom(challenger, p, 3, null, null);
         break;
       }
 
@@ -1288,29 +1835,89 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      // FFA Join Handler (Handles Waiting, Countdown Join, and Mid-Game Temporary Spectator)
       case 'join_ffa_lobby': {
         if (!p.authenticated || p.mode === 'duel') return;
         removeFromQueuesAndSpectators(p.id);
         p.mode = 'ffa';
         p.ffaTargetMode = 'random';
         p.manualTargetId = null;
-        ffaLobby.players.set(p.id, {
-          id: p.id,
-          username: p.username,
-          alive: ffaLobby.state !== 'playing',
-          apm: 0,
-          pps: 0,
-          linesCleared: 0,
-          attackSent: 0,
-          garbageReceived: 0,
-          maxCombo: 0,
-          stackHeight: 0,
-          lastAttackerId: null,
-          grid: null,
-          activePiece: null,
-          pendingGarbage: 0
-        });
-        evaluateFfaLobbyState();
+
+        if (ffaLobby.state === 'playing' || ffaLobby.state === 'summary') {
+          // Join mid-game as a temporary spectator who automatically joins the next round!
+          ffaLobby.players.set(p.id, {
+            id: p.id,
+            username: p.username,
+            role: 'waiting_next',
+            alive: false,
+            apm: 0,
+            pps: 0,
+            linesCleared: 0,
+            attackSent: 0,
+            garbageReceived: 0,
+            maxCombo: 0,
+            stackHeight: 0,
+            lastAttackerId: null,
+            grid: null,
+            activePiece: null,
+            pendingGarbage: 0,
+            apmHistory: []
+          });
+          ws.send(JSON.stringify({
+            type: 'ffa_temp_spectator',
+            playerCount: ffaLobby.players.size
+          }));
+          broadcastHubState();
+        } else if (ffaLobby.state === 'countdown') {
+          // Join directly into the active 3-second countdown!
+          const remMs = Math.max(400, ffaLobby.countdownEndsAt - Date.now());
+          ffaLobby.players.set(p.id, {
+            id: p.id,
+            username: p.username,
+            role: 'active',
+            alive: true,
+            apm: 0,
+            pps: 0,
+            linesCleared: 0,
+            attackSent: 0,
+            garbageReceived: 0,
+            maxCombo: 0,
+            stackHeight: 0,
+            lastAttackerId: null,
+            grid: null,
+            activePiece: null,
+            pendingGarbage: 0,
+            apmHistory: []
+          });
+          ws.send(JSON.stringify({
+            type: 'ffa_countdown_start',
+            seed: ffaLobby.activeSeed,
+            countdownMs: remMs,
+            playerCount: ffaLobby.players.size
+          }));
+          broadcastHubState();
+        } else {
+          // Lobby is waiting
+          ffaLobby.players.set(p.id, {
+            id: p.id,
+            username: p.username,
+            role: 'active',
+            alive: true,
+            apm: 0,
+            pps: 0,
+            linesCleared: 0,
+            attackSent: 0,
+            garbageReceived: 0,
+            maxCombo: 0,
+            stackHeight: 0,
+            lastAttackerId: null,
+            grid: null,
+            activePiece: null,
+            pendingGarbage: 0,
+            apmHistory: []
+          });
+          evaluateFfaLobbyState();
+        }
         break;
       }
 
@@ -1335,6 +1942,7 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({
             type: 'spectate_init',
             matchType: 'ffa',
+            matchId: 'ffa_main',
             title: `SPECTATING FFA ARENA (${ffaLobby.players.size} PLAYERS)`
           }));
           broadcastHubState();
@@ -1345,12 +1953,31 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({
             type: 'spectate_init',
             matchType: 'duel',
+            matchId: room.id,
             roomId: room.id,
             title: `SPECTATING 1v1: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
             p1: { id: room.p1.id, username: room.p1.username, score: room.p1.score },
             p2: { id: room.p2.id, username: room.p2.username, score: room.p2.score },
             round: room.round
           }));
+          broadcastHubState();
+        }
+        break;
+      }
+
+      // 15-Second Idle / AFK Kick
+      case 'afk_timeout_kick': {
+        systemChatBroadcast(`[IDLE KICK] ${p.username} was kicked from the match for being AFK for 15 seconds.`, 'system');
+        if (p.mode === 'duel' && p.duelRoomId) {
+          const room = duelRooms.get(p.duelRoomId);
+          if (room && room.active) {
+            const winnerSlot = room.p1.id === p.id ? room.p2 : room.p1;
+            const loserSlot = room.p1.id === p.id ? room.p1 : room.p2;
+            concludeDuelMatch(room, winnerSlot, loserSlot, 'AFK_FORFEIT');
+          }
+        } else {
+          removeFromQueuesAndSpectators(p.id);
+          p.mode = 'hub';
           broadcastHubState();
         }
         break;
@@ -1385,7 +2012,7 @@ wss.on('connection', (ws) => {
         awardXpAndSave(uRec, added * 6, 'Zen Lines Progress');
         ws.send(JSON.stringify({
           type: 'profile_synced',
-          user: sanitizeUserForClient(uRec)
+          user: sanitizeUserForClient(uRec, isAdminUser(p.username))
         }));
         broadcastHubState();
         break;
@@ -1418,7 +2045,7 @@ wss.on('connection', (ws) => {
 
         ws.send(JSON.stringify({
           type: 'profile_synced',
-          user: sanitizeUserForClient(uRec)
+          user: sanitizeUserForClient(uRec, isAdminUser(p.username))
         }));
         systemChatBroadcast(`[APM TEST] ${p.username} recorded ${recordedApm} APM in the 1-Minute APM Test!`, 'system');
         broadcastHubState();
@@ -1440,6 +2067,7 @@ wss.on('connection', (ws) => {
             slot.grid = msg.grid;
             slot.activePiece = msg.activePiece;
             slot.pendingGarbage = msg.pendingGarbage || 0;
+            if (Array.isArray(msg.apmHistory)) slot.apmHistory = msg.apmHistory.slice(-120);
 
             const sdMult = computeSuddenDeathMultiplier(room.roundStartTime);
 
@@ -1496,22 +2124,25 @@ wss.on('connection', (ws) => {
           }
         } else if (p.mode === 'ffa' && ffaLobby.players.has(p.id)) {
           const slot = ffaLobby.players.get(p.id);
-          slot.apm = msg.apm || 0;
-          slot.pps = msg.pps || 0;
-          slot.linesCleared = msg.linesCleared || 0;
-          slot.attackSent = msg.attackSent || 0;
-          slot.garbageReceived = msg.garbageReceived || 0;
-          slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
-          slot.grid = msg.grid;
-          slot.activePiece = msg.activePiece;
-          slot.pendingGarbage = msg.pendingGarbage || 0;
-          slot.stackHeight = computeHighestOccupiedRowHeight(msg.grid);
+          if (slot.role === 'active') {
+            slot.apm = msg.apm || 0;
+            slot.pps = msg.pps || 0;
+            slot.linesCleared = msg.linesCleared || 0;
+            slot.attackSent = msg.attackSent || 0;
+            slot.garbageReceived = msg.garbageReceived || 0;
+            slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
+            slot.grid = msg.grid;
+            slot.activePiece = msg.activePiece;
+            slot.pendingGarbage = msg.pendingGarbage || 0;
+            slot.stackHeight = computeHighestOccupiedRowHeight(msg.grid);
+            if (Array.isArray(msg.apmHistory)) slot.apmHistory = msg.apmHistory.slice(-120);
+          }
 
           const sdMult = computeSuddenDeathMultiplier(ffaLobby.roundStartTime);
-          const allSlots = Array.from(ffaLobby.players.values());
+          const activeSlots = Array.from(ffaLobby.players.values()).filter(s => s.role === 'active');
 
-          for (const [otherId] of ffaLobby.players.entries()) {
-            const others = allSlots
+          for (const [otherId, otherSlot] of ffaLobby.players.entries()) {
+            const others = activeSlots
               .filter(s => s.id !== otherId)
               .map(s => ({
                 id: s.id,
@@ -1524,18 +2155,26 @@ wss.on('connection', (ws) => {
                 pendingGarbage: s.pendingGarbage
               }));
 
-            sendToPlayer(otherId, {
-              type: 'multi_opponent_sync',
-              suddenDeathMultiplier: sdMult,
-              opponents: others
-            });
+            if (otherSlot.role === 'waiting_next') {
+              sendToPlayer(otherId, {
+                type: 'spectator_boards_sync',
+                suddenDeathMultiplier: sdMult,
+                boards: others
+              });
+            } else {
+              sendToPlayer(otherId, {
+                type: 'multi_opponent_sync',
+                suddenDeathMultiplier: sdMult,
+                opponents: others
+              });
+            }
           }
 
           if (ffaLobby.spectators.size > 0) {
             const specPayload = {
               type: 'spectator_boards_sync',
               suddenDeathMultiplier: sdMult,
-              boards: allSlots.map(s => ({
+              boards: activeSlots.map(s => ({
                 id: s.id,
                 username: s.username,
                 alive: s.alive,
@@ -1573,6 +2212,7 @@ wss.on('connection', (ws) => {
           }
         } else if (p.mode === 'ffa' && ffaLobby.state === 'playing' && ffaLobby.players.has(p.id)) {
           const senderSlot = ffaLobby.players.get(p.id);
+          if (senderSlot.role !== 'active' || !senderSlot.alive) return;
           const mult = computeSuddenDeathMultiplier(ffaLobby.roundStartTime);
           const scaledLines = Math.max(1, Math.round(baseLines * mult));
           const targetSlot = selectFfaTarget(senderSlot, p.ffaTargetMode, p.manualTargetId);
@@ -1605,6 +2245,175 @@ wss.on('connection', (ws) => {
             slot.maxCombo = Math.max(slot.maxCombo, msg.stats.maxCombo || 0);
           }
           checkFfaMatchEnd();
+        }
+        break;
+      }
+
+      // ======================================================================
+      // TOURNAMENT ACTIONS (Register, Queue Match, Admin Create/Force-Advance)
+      // ======================================================================
+
+      case 'tourney_register': {
+        if (!p.authenticated) return;
+        const t = tournamentsDB.find(x => x.id === msg.tourneyId);
+        if (!t || t.status !== 'registration') return;
+        if (!t.registeredPlayers.includes(p.username) && t.registeredPlayers.length < t.maxPlayers) {
+          t.registeredPlayers.push(p.username);
+          saveTournamentsAndSync(`${p.username} registered for ${t.name}`);
+          broadcastHubState();
+        }
+        break;
+      }
+
+      case 'tourney_queue_match': {
+        if (!p.authenticated || p.mode === 'duel') return;
+        const t = tournamentsDB.find(x => x.id === msg.tourneyId);
+        if (!t || t.status !== 'active') return;
+        const m = t.matches.find(x => x.id === msg.matchId);
+        if (!m || m.status !== 'ready') return;
+
+        if (m.p1 === p.username) m.p1Queued = true;
+        else if (m.p2 === p.username) m.p2Queued = true;
+        else return;
+
+        const p1Online = getPlayerByUsername(m.p1);
+        const p2Online = getPlayerByUsername(m.p2);
+
+        if (m.p1Queued && m.p2Queued && p1Online && p2Online && p1Online.mode !== 'duel' && p2Online.mode !== 'duel') {
+          startDuelRoom(p1Online, p2Online, t.bestOf, t.id, m.id);
+        } else {
+          saveTournamentsAndSync(`${p.username} queued for match ${m.id}`);
+          broadcastHubState();
+        }
+        break;
+      }
+
+      // ======================================================================
+      // MASTER ADMIN COMMANDS (Restricted strictly to BigL_)
+      // ======================================================================
+
+      case 'admin_action': {
+        if (!p.authenticated || !isAdminUser(p.username)) return;
+        const act = msg.action;
+
+        if (act === 'shout') {
+          const text = String(msg.text || '').trim().slice(0, 120);
+          if (text) {
+            broadcastAll({
+              type: 'admin_shout',
+              text,
+              from: p.username
+            });
+            systemChatBroadcast(`[ADMIN SHOUT] ${text}`, 'duel-announce');
+          }
+        } else if (act === 'send_spectator_garbage') {
+          const targetId = String(msg.targetId || '');
+          const lines = Math.max(1, Math.min(26, Number(msg.lines) || 4));
+          sendToPlayer(targetId, {
+            type: 'receive_garbage',
+            lines,
+            fromName: 'ADMIN BigL_'
+          });
+        } else if (act === 'restart_lobby') {
+          const lobbyId = String(msg.lobbyId || '');
+          if (lobbyId === 'ffa_main') {
+            if (ffaLobby.players.size >= 2) {
+              startFfaCountdown();
+            } else {
+              ffaLobby.state = 'waiting';
+              broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
+            }
+            systemChatBroadcast(`[ADMIN] BigL_ force-restarted the FFA Lobby.`, 'system');
+          } else if (duelRooms.has(lobbyId)) {
+            const room = duelRooms.get(lobbyId);
+            room.p1.score = 0;
+            room.p2.score = 0;
+            room.round = 1;
+            startDuelRoundWithCountdown(room.id);
+            systemChatBroadcast(`[ADMIN] BigL_ force-restarted 1v1 lobby (${room.p1.username} vs ${room.p2.username}).`, 'system');
+          }
+          broadcastHubState();
+        } else if (act === 'moderate_user') {
+          const targetKey = String(msg.targetUsername || '').trim().toLowerCase();
+          const u = usersDB[targetKey];
+          if (!u || isAdminUser(u.username)) return;
+
+          const sub = msg.subAction;
+          const minutes = Math.max(1, Number(msg.minutes) || 10);
+
+          if (sub === 'ban') {
+            u.moderation.banned = true;
+            u.moderation.banReason = String(msg.reason || 'Banned by Admin BigL_');
+            const onlineTarget = getPlayerByUsername(u.username);
+            if (onlineTarget) {
+              sendToPlayer(onlineTarget.id, { type: 'force_logout', reason: u.moderation.banReason });
+            }
+          } else if (sub === 'unban') {
+            u.moderation.banned = false;
+            u.moderation.banReason = '';
+          } else if (sub === 'timeout') {
+            u.moderation.timeoutUntil = Date.now() + minutes * 60000;
+            const onlineTarget = getPlayerByUsername(u.username);
+            if (onlineTarget) {
+              sendToPlayer(onlineTarget.id, { type: 'force_logout', reason: `Timed out for ${minutes} minutes by Admin BigL_.` });
+            }
+          } else if (sub === 'end_timeout') {
+            u.moderation.timeoutUntil = 0;
+          } else if (sub === 'mute') {
+            u.moderation.mutedUntil = Date.now() + minutes * 60000;
+          } else if (sub === 'unmute') {
+            u.moderation.mutedUntil = 0;
+          }
+
+          saveUserAndSync(u, `Admin Moderation (${sub})`);
+          broadcastHubState();
+        } else if (act === 'edit_stats') {
+          const targetKey = String(msg.targetUsername || '').trim().toLowerCase();
+          const u = usersDB[targetKey];
+          if (!u) return;
+
+          if (typeof msg.xp === 'number') u.stats.xp = Math.max(0, msg.xp);
+          if (typeof msg.level === 'number' && typeof msg.xp !== 'number') {
+            u.stats.xp = Math.pow(Math.max(1, Math.min(100, msg.level)) - 1, 2) * 80;
+          }
+          u.stats.level = calculateLevel(u.stats.xp);
+          if (typeof msg.apmTestBest === 'number') u.stats.apmTestBest = Math.max(0, msg.apmTestBest);
+          if (typeof msg.zenLines === 'number') u.stats.zenLines = Math.max(0, msg.zenLines);
+          if (typeof msg.duelWins === 'number') u.stats.duelWins = Math.max(0, msg.duelWins);
+          if (typeof msg.ffaWins === 'number') u.stats.ffaWins = Math.max(0, msg.ffaWins);
+          if (typeof msg.maxCombo === 'number') u.stats.maxCombo = Math.max(0, msg.maxCombo);
+
+          saveUserAndSync(u, `Admin Stat Edit by BigL_`);
+          const onlineTarget = getPlayerByUsername(u.username);
+          if (onlineTarget) {
+            sendToPlayer(onlineTarget.id, {
+              type: 'profile_synced',
+              user: sanitizeUserForClient(u, isAdminUser(u.username))
+            });
+          }
+          broadcastHubState();
+        } else if (act === 'create_tournament') {
+          const newT = createTournamentObject(msg.params || {}, p.username);
+          tournamentsDB.unshift(newT);
+          saveTournamentsAndSync(`Created tournament ${newT.name}`);
+          systemChatBroadcast(`[NEW TOURNAMENT] Admin BigL_ created "${newT.name}" (${newT.format.toUpperCase()} ELIM | BO${newT.bestOf})! Register in the Tournaments tab!`, 'duel-announce');
+          broadcastHubState();
+        } else if (act === 'force_start_tournament') {
+          const t = tournamentsDB.find(x => x.id === msg.tourneyId);
+          if (t && t.status === 'registration') {
+            generateBracketForTournament(t);
+            systemChatBroadcast(`[TOURNAMENT STARTED] Admin BigL_ closed registration and generated the bracket for "${t.name}"!`, 'duel-announce');
+            broadcastHubState();
+          }
+        } else if (act === 'force_advance_match') {
+          const t = tournamentsDB.find(x => x.id === msg.tourneyId);
+          if (t && t.status === 'active') {
+            advanceTournamentMatchWinner(t, msg.matchId, msg.winnerName, t.winsNeeded, 0, 'ADMIN OVERRIDE');
+          }
+        } else if (act === 'delete_tournament') {
+          tournamentsDB = tournamentsDB.filter(x => x.id !== msg.tourneyId);
+          saveTournamentsAndSync(`Deleted tournament ${msg.tourneyId}`);
+          broadcastHubState();
         }
         break;
       }
