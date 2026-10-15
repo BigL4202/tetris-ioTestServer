@@ -3,8 +3,8 @@
   "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   "passwordPlain": "1234",
   "createdAt": "2026-10-15T19:48:42.278Z",
-  "updatedAt": "2026-10-15T19:49:27.382Z",
-  "lastLogin": "2026-10-15T19:48:42.278Z",
+  "updatedAt": "2026-10-15T21:41:47.625Z",
+  "lastLogin": "2026-10-15T21:40:28.404Z",
   "settings": {
     "musicVolume": 0,
     "sfxVolume": 40,
@@ -24,24 +24,103 @@
       "hardDrop": "Space",
       "hold": "ShiftLeft",
       "restart": "KeyR"
-    }
+    },
+    "lockedBg": "shuffle"
   },
   "stats": {
-    "xp": 0,
-    "level": 1,
-    "gamesPlayed": 0,
+    "xp": 1249,
+    "level": 4,
+    "gamesPlayed": 7,
     "zenLines": 0,
     "apmTestBest": 0,
     "apmTestLast": 0,
-    "ffaWins": 0,
+    "ffaWins": 2,
     "duelWins": 0,
-    "duelLosses": 0,
-    "maxCombo": 0,
-    "totalLinesCleared": 0,
-    "totalAttackSent": 0,
-    "totalReceivedSum": 0,
-    "receivedSamples": 0,
-    "avgReceived": 0
+    "duelLosses": 3,
+    "maxCombo": 8,
+    "totalLinesCleared": 38,
+    "totalAttackSent": 24,
+    "totalReceivedSum": 51,
+    "receivedSamples": 7,
+    "avgReceived": 7.3,
+    "tournamentWins": 0
   },
-  "matchHistory": []
+  "matchHistory": [
+    {
+      "date": "2026-10-15T19:50:01.104Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "0-0",
+      "opponent": "BigL_",
+      "apm": 0,
+      "lines": 3,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T19:50:42.087Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 0,
+      "lines": 1,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T20:06:48.722Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 25.5,
+      "lines": 34,
+      "maxCombo": 8
+    },
+    {
+      "date": "2026-10-15T20:10:18.795Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T20:10:29.927Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T20:13:13.796Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T21:41:47.623Z",
+      "mode": "TOURNEY BO3",
+      "result": "LOSS",
+      "score": "0-0",
+      "opponent": "BigL_",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-15T21:41:47.625Z",
+      "mode": "TOURNAMENT: Project A² Championship",
+      "result": "RUNNER-UP (2ND)",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 8
+    }
+  ],
+  "moderation": {
+    "banned": false,
+    "banReason": "",
+    "timeoutUntil": 0,
+    "mutedUntil": 0
+  }
 }
