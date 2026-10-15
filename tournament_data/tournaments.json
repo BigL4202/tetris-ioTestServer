@@ -12,9 +12,9 @@
     "daysPerMatch": 1,
     "format": "single",
     "seeding": "random",
-    "status": "registration",
+    "status": "completed",
     "registeredPlayers": [],
     "matches": [],
-    "champion": null
+    "champion": "No Players"
   }
 ]
