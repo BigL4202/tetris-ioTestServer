@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-15T18:39:46.145Z",
+    "updatedAt": "2026-10-15T18:41:46.680Z",
     "lastLogin": "2026-10-15T18:39:21.158Z",
     "settings": {
       "das": 115,
@@ -13,23 +13,34 @@
       "musicVolume": 40,
       "sfxVolume": 75,
       "bgInterval": 60,
-      "preferredCols": 10
+      "preferredCols": 4
     },
     "stats": {
-      "gamesPlayed": 0,
+      "gamesPlayed": 1,
       "ffaWins": 0,
       "duelWins": 0,
       "duelLosses": 0,
       "maxCombo": 0,
-      "totalLinesCleared": 0,
+      "totalLinesCleared": 1,
       "totalAttackSent": 0,
       "totalApmSum": 0,
-      "apmSamples": 0,
+      "apmSamples": 1,
       "avgApm": 0,
       "totalReceivedSum": 0,
-      "receivedSamples": 0,
+      "receivedSamples": 1,
       "avgReceived": 0
     },
-    "matchHistory": []
+    "matchHistory": [
+      {
+        "date": "2026-10-15T18:41:46.680Z",
+        "mode": "ffa",
+        "opponent": null,
+        "result": "COMPLETE",
+        "score": null,
+        "apm": 0,
+        "maxCombo": 0,
+        "garbageReceived": 0
+      }
+    ]
   }
 }
