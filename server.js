@@ -11,15 +11,13 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
 
-// GitHub Repo Sync Configuration (For pushing player_data back to GitHub from Render)
 const GITHUB_OWNER = process.env.GITHUB_OWNER || 'BigL4202';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'tetris-ioTestServer';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ''; // Add in Render Environment Variables for auto-commits
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 
 app.use(express.json());
 
-// Ensure required directories exist on boot
 const PLAYER_DATA_DIR = path.join(__dirname, 'player_data');
 const INDIVIDUAL_PLAYERS_DIR = path.join(PLAYER_DATA_DIR, 'players');
 const USERS_DB_FILE = path.join(PLAYER_DATA_DIR, 'users.json');
@@ -36,7 +34,6 @@ const USERS_DB_FILE = path.join(PLAYER_DATA_DIR, 'users.json');
   }
 });
 
-// Serve static assets from public, root, and any resource folders
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
@@ -54,22 +51,90 @@ POSSIBLE_RESOURCE_ROOTS.forEach(rPath => {
 });
 
 // ============================================================================
-// PLAYER DATABASE & GITHUB REPOSITORY SYNC ENGINE (player_data/ folder)
+// PLAYER DATABASE, ACCOUNT LEVELS & GITHUB REPO SYNC
 // ============================================================================
 
-let usersDB = {}; // lowerUsername -> UserObject
+let usersDB = {};
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password)).digest('hex');
 }
 
-// Load local player_data/users.json on startup
+function calculateLevel(xp) {
+  const safeXp = Math.max(0, Number(xp) || 0);
+  return Math.floor(Math.sqrt(safeXp / 100)) + 1;
+}
+
+function normalizeUserRecord(u) {
+  if (!u.settings) {
+    u.settings = { das: 115, arr: 10, sdf: 40, musicVolume: 40, sfxVolume: 75, bgInterval: 60 };
+  }
+  if (!u.stats) u.stats = {};
+  u.stats.xp = Number(u.stats.xp) || 0;
+  u.stats.level = calculateLevel(u.stats.xp);
+  u.stats.gamesPlayed = Number(u.stats.gamesPlayed) || 0;
+  u.stats.zenLines = Number(u.stats.zenLines) || 0;
+  u.stats.apmTestBest = Number(u.stats.apmTestBest) || 0;
+  u.stats.apmTestLast = Number(u.stats.apmTestLast) || 0;
+  u.stats.ffaWins = Number(u.stats.ffaWins) || 0;
+  u.stats.duelWins = Number(u.stats.duelWins) || 0;
+  u.stats.duelLosses = Number(u.stats.duelLosses) || 0;
+  u.stats.maxCombo = Number(u.stats.maxCombo) || 0;
+  u.stats.totalLinesCleared = Number(u.stats.totalLinesCleared) || 0;
+  u.stats.totalAttackSent = Number(u.stats.totalAttackSent) || 0;
+  u.stats.totalReceivedSum = Number(u.stats.totalReceivedSum) || 0;
+  u.stats.receivedSamples = Number(u.stats.receivedSamples) || 0;
+  u.stats.avgReceived = Number(u.stats.avgReceived) || 0;
+  if (!Array.isArray(u.matchHistory)) u.matchHistory = [];
+  return u;
+}
+
+function createNewUserRecord(username, rawPassword) {
+  return normalizeUserRecord({
+    username: username,
+    passwordHash: hashPassword(rawPassword),
+    passwordPlain: String(rawPassword),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+    settings: {
+      das: 115,
+      arr: 10,
+      sdf: 40,
+      musicVolume: 40,
+      sfxVolume: 75,
+      bgInterval: 60
+    },
+    stats: {
+      xp: 0,
+      level: 1,
+      gamesPlayed: 0,
+      zenLines: 0,
+      apmTestBest: 0,
+      apmTestLast: 0,
+      ffaWins: 0,
+      duelWins: 0,
+      duelLosses: 0,
+      maxCombo: 0,
+      totalLinesCleared: 0,
+      totalAttackSent: 0,
+      totalReceivedSum: 0,
+      receivedSamples: 0,
+      avgReceived: 0
+    },
+    matchHistory: []
+  });
+}
+
 function loadLocalUsersDB() {
   try {
     if (fs.existsSync(USERS_DB_FILE)) {
       const raw = fs.readFileSync(USERS_DB_FILE, 'utf8');
-      usersDB = JSON.parse(raw);
-      console.log(`[Project A^2] Loaded ${Object.keys(usersDB).length} player profiles from player_data/users.json`);
+      const parsed = JSON.parse(raw);
+      for (const k of Object.keys(parsed)) {
+        usersDB[k.toLowerCase()] = normalizeUserRecord(parsed[k]);
+      }
+      console.log(`[Project A^2] Loaded ${Object.keys(usersDB).length} profiles from player_data/users.json`);
     } else {
       fs.writeFileSync(USERS_DB_FILE, JSON.stringify({}, null, 2), 'utf8');
     }
@@ -81,9 +146,8 @@ function loadLocalUsersDB() {
 
 loadLocalUsersDB();
 
-// Push updated JSON files directly to the GitHub repository's player_data/ folder
 async function syncFileToGitHub(repoRelativePath, contentString, commitMessage) {
-  if (!GITHUB_TOKEN) return; // Silently skip remote push if no token is configured
+  if (!GITHUB_TOKEN) return;
   const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${repoRelativePath}`;
   const headers = {
     'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -107,24 +171,14 @@ async function syncFileToGitHub(repoRelativePath, contentString, commitMessage) 
     };
     if (sha) bodyPayload.sha = sha;
 
-    const putRes = await fetch(apiUrl, {
+    await fetch(apiUrl, {
       method: 'PUT',
       headers,
       body: JSON.stringify(bodyPayload)
     });
-
-    if (putRes.ok) {
-      console.log(`[GitHub Sync] Synced ${repoRelativePath} to ${GITHUB_OWNER}/${GITHUB_REPO}`);
-    } else {
-      const errText = await putRes.text();
-      console.warn(`[GitHub Sync Warning] ${putRes.status}: ${errText}`);
-    }
-  } catch (err) {
-    console.warn(`[GitHub Sync Error] ${err.message}`);
-  }
+  } catch (err) {}
 }
 
-// Pull player_data/users.json from GitHub on startup if Render restarted with a fresh disk
 async function pullUsersFromGitHubOnBoot() {
   const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/player_data/users.json`;
   try {
@@ -132,9 +186,13 @@ async function pullUsersFromGitHubOnBoot() {
     if (res.ok) {
       const remoteUsers = await res.json();
       if (remoteUsers && typeof remoteUsers === 'object') {
-        usersDB = { ...remoteUsers, ...usersDB };
+        for (const k of Object.keys(remoteUsers)) {
+          const low = k.toLowerCase();
+          if (!usersDB[low]) {
+            usersDB[low] = normalizeUserRecord(remoteUsers[k]);
+          }
+        }
         fs.writeFileSync(USERS_DB_FILE, JSON.stringify(usersDB, null, 2), 'utf8');
-        console.log(`[Project A^2] Synced ${Object.keys(usersDB).length} accounts from GitHub player_data/users.json`);
       }
     }
   } catch (e) {}
@@ -145,17 +203,16 @@ pullUsersFromGitHubOnBoot();
 let githubSyncTimeout = null;
 function saveUserAndSync(userObj, triggerReason = 'Update player data') {
   if (!userObj || !userObj.username) return;
+  normalizeUserRecord(userObj);
   const key = userObj.username.toLowerCase();
   userObj.updatedAt = new Date().toISOString();
   usersDB[key] = userObj;
 
-  // 1. Write master player_data/users.json
   const masterJson = JSON.stringify(usersDB, null, 2);
   try {
     fs.writeFileSync(USERS_DB_FILE, masterJson, 'utf8');
   } catch (e) {}
 
-  // 2. Write individual player_data/players/<username>.json
   const safeFile = key.replace(/[^a-z0-9_\-]/g, '_');
   const individualPath = path.join(INDIVIDUAL_PLAYERS_DIR, `${safeFile}.json`);
   const singleJson = JSON.stringify(userObj, null, 2);
@@ -163,7 +220,6 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data') {
     fs.writeFileSync(individualPath, singleJson, 'utf8');
   } catch (e) {}
 
-  // 3. Push both to GitHub repository (debounced 2s so rapid updates batch cleanly)
   if (githubSyncTimeout) clearTimeout(githubSyncTimeout);
   githubSyncTimeout = setTimeout(() => {
     syncFileToGitHub(`player_data/players/${safeFile}.json`, singleJson, `[Project A^2] ${triggerReason}: ${userObj.username}`);
@@ -171,55 +227,54 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data') {
   }, 2000);
 }
 
-function createNewUserRecord(username, rawPassword) {
-  return {
-    username: username,
-    passwordHash: hashPassword(rawPassword),
-    passwordPlain: String(rawPassword), // Stored in player_data per request to track players & passwords
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    lastLogin: new Date().toISOString(),
-    settings: {
-      das: 115,
-      arr: 10,
-      sdf: 40,
-      musicVolume: 40,
-      sfxVolume: 75,
-      bgInterval: 60,
-      preferredCols: 4
-    },
-    stats: {
-      gamesPlayed: 0,
-      ffaWins: 0,
-      duelWins: 0,
-      duelLosses: 0,
-      maxCombo: 0,
-      totalLinesCleared: 0,
-      totalAttackSent: 0,
-      totalApmSum: 0,
-      apmSamples: 0,
-      avgApm: 0,
-      totalReceivedSum: 0,
-      receivedSamples: 0,
-      avgReceived: 0
-    },
-    matchHistory: []
-  };
-}
-
 function sanitizeUserForClient(u) {
+  normalizeUserRecord(u);
   return {
     username: u.username,
     createdAt: u.createdAt,
     lastLogin: u.lastLogin,
     settings: u.settings,
     stats: u.stats,
-    matchHistory: (u.matchHistory || []).slice(-15)
+    matchHistory: (u.matchHistory || []).slice(-20)
+  };
+}
+
+function getAllPublicPlayerProfiles() {
+  return Object.values(usersDB).map(u => sanitizeUserForClient(u)).sort((a, b) => b.stats.xp - a.stats.xp);
+}
+
+// Top 5 Leaderboards Only
+function getCompiledLeaderboards() {
+  const allUsers = Object.values(usersDB).map(u => {
+    normalizeUserRecord(u);
+    return {
+      username: u.username,
+      level: u.stats.level,
+      xp: u.stats.xp,
+      apm: u.stats.apmTestBest || 0,
+      zenLines: u.stats.zenLines || 0,
+      wins: (u.stats.ffaWins || 0) + (u.stats.duelWins || 0),
+      ffaWins: u.stats.ffaWins || 0,
+      duelWins: u.stats.duelWins || 0,
+      duelLosses: u.stats.duelLosses || 0,
+      maxCombo: u.stats.maxCombo || 0
+    };
+  });
+
+  return {
+    byApm: [...allUsers].sort((a, b) => b.apm - a.apm).slice(0, 5),
+    byZen: [...allUsers].sort((a, b) => b.zenLines - a.zenLines).slice(0, 5),
+    byWins: [...allUsers].sort((a, b) => b.wins - a.wins).slice(0, 5),
+    byCombo: [...allUsers].sort((a, b) => b.maxCombo - a.maxCombo).slice(0, 5),
+    byDuels: [...allUsers].sort((a, b) => {
+      if (b.duelWins !== a.duelWins) return b.duelWins - a.duelWins;
+      return a.duelLosses - b.duelLosses;
+    }).slice(0, 5)
   };
 }
 
 // ============================================================================
-// AUTHENTICATION REST ENDPOINTS (/api/auth/register, /api/auth/login, etc.)
+// AUTH & DIRECTORY ENDPOINTS
 // ============================================================================
 
 app.post('/api/auth/register', (req, res) => {
@@ -227,7 +282,7 @@ app.post('/api/auth/register', (req, res) => {
   const rawPass = String(req.body.password || '');
 
   if (rawName.length < 2) {
-    return res.status(400).json({ error: 'Username must be at least 2 characters (letters, numbers, _ or -).' });
+    return res.status(400).json({ error: 'Username must be at least 2 characters.' });
   }
   if (rawPass.length < 3) {
     return res.status(400).json({ error: 'Password must be at least 3 characters.' });
@@ -235,7 +290,7 @@ app.post('/api/auth/register', (req, res) => {
 
   const key = rawName.toLowerCase();
   if (usersDB[key]) {
-    return res.status(409).json({ error: 'Username is already registered. Please log in instead.' });
+    return res.status(409).json({ error: 'Username already registered. Please click LOGIN.' });
   }
 
   const newUser = createNewUserRecord(rawName, rawPass);
@@ -243,7 +298,9 @@ app.post('/api/auth/register', (req, res) => {
 
   return res.json({
     ok: true,
-    user: sanitizeUserForClient(newUser)
+    user: sanitizeUserForClient(newUser),
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
   });
 });
 
@@ -254,12 +311,12 @@ app.post('/api/auth/login', (req, res) => {
 
   const existing = usersDB[key];
   if (!existing) {
-    return res.status(404).json({ error: 'Pilot username not found. Click REGISTER to create this account.' });
+    return res.status(404).json({ error: 'Pilot not found. Click REGISTER to create account.' });
   }
 
   const incomingHash = hashPassword(rawPass);
   if (existing.passwordHash !== incomingHash && existing.passwordPlain !== rawPass) {
-    return res.status(401).json({ error: 'Incorrect password for this pilot.' });
+    return res.status(401).json({ error: 'Incorrect password.' });
   }
 
   existing.lastLogin = new Date().toISOString();
@@ -267,7 +324,9 @@ app.post('/api/auth/login', (req, res) => {
 
   return res.json({
     ok: true,
-    user: sanitizeUserForClient(existing)
+    user: sanitizeUserForClient(existing),
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
   });
 });
 
@@ -277,17 +336,21 @@ app.post('/api/auth/settings', (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   if (req.body.settings && typeof req.body.settings === 'object') {
-    user.settings = {
-      ...user.settings,
-      ...req.body.settings
-    };
-    saveUserAndSync(user, 'Updated Handling/Audio Settings');
+    user.settings = { ...user.settings, ...req.body.settings };
+    saveUserAndSync(user, 'Updated Settings');
   }
   return res.json({ ok: true, settings: user.settings });
 });
 
+app.get('/api/players', (req, res) => {
+  res.json({
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
+  });
+});
+
 // ============================================================================
-// DEEP RECURSIVE RESOURCE SCANNER + GITHUB FALLBACK (/api/resources)
+// RESOURCE SCANNER + GITHUB FALLBACK
 // ============================================================================
 
 let githubResourceCache = null;
@@ -325,7 +388,6 @@ async function fetchGitHubResourcesFallback() {
         }
       }
     }
-
     githubResourceCache = { bg, music, sfx };
     return githubResourceCache;
   } catch (e) {
@@ -364,7 +426,6 @@ app.get('/api/resources', async (req, res) => {
     walkFolder(path.join(rootPath, 'sfx'), '/resources/sfx', ['.wav', '.mp3', '.ogg', '.m4a'], sfxSet);
   }
 
-  // If local folders are empty, automatically check the GitHub repository tree
   if (bgSet.size === 0 || musicSet.size === 0 || sfxSet.size === 0) {
     const ghFallback = await fetchGitHubResourcesFallback();
     if (ghFallback) {
@@ -374,17 +435,13 @@ app.get('/api/resources', async (req, res) => {
     }
   }
 
-  const manifest = {
+  res.json({
     bg: Array.from(bgSet),
     music: Array.from(musicSet),
     sfx: Array.from(sfxSet)
-  };
-
-  console.log(`[Project A^2 Resources] BG: ${manifest.bg.length} | Music: ${manifest.music.length} | SFX: ${manifest.sfx.length}`);
-  res.json(manifest);
+  });
 });
 
-// Fallback route for index.html (Prevents Render ENOENT errors)
 app.get('*', (req, res) => {
   const publicIndex = path.join(__dirname, 'public', 'index.html');
   const rootIndex = path.join(__dirname, 'index.html');
@@ -393,93 +450,36 @@ app.get('*', (req, res) => {
   } else if (fs.existsSync(rootIndex)) {
     res.sendFile(rootIndex);
   } else {
-    res.status(404).send('Project A^2: index.html not found.');
+    res.status(404).send('Project A^2 index.html not found.');
   }
 });
 
 // ============================================================================
-// MULTIPLAYER & PERSISTENT LEADERBOARD ENGINE
+// MULTIPLAYER QUEUES (1v1 BO3 QUEUE & 2+ PLAYER FFA LOBBY)
 // ============================================================================
 
 const players = new Map(); // ws -> PlayerSession
-const challenges = new Map(); // challengeId -> ChallengeObj
-const duelRooms = new Map(); // roomId -> DuelRoomObj
+const queue1v1 = []; // array of playerIds waiting for 1v1 BO3
+const duelRooms = new Map(); // roomId -> DuelRoomObject
 
-function ensurePlayerStatsRecord(username) {
+const ffaLobby = {
+  players: new Map(), // playerId -> { id, username, alive, apm, pps, linesCleared, attackSent, garbageReceived, maxCombo }
+  state: 'waiting', // 'waiting', 'countdown', 'playing'
+  countdownTimer: null
+};
+
+function ensureUserRecord(username) {
   const key = username.toLowerCase();
   if (!usersDB[key]) {
-    usersDB[key] = createNewUserRecord(username, 'guest_pass');
+    usersDB[key] = createNewUserRecord(username, 'default123');
   }
-  return usersDB[key];
+  return normalizeUserRecord(usersDB[key]);
 }
 
-function recordPlayerMatchStats(username, matchResult) {
-  const userRec = ensurePlayerStatsRecord(username);
-  const st = userRec.stats;
-
-  st.gamesPlayed += 1;
-  if (matchResult.ffaWin) st.ffaWins += 1;
-  if (matchResult.duelWin) st.duelWins += 1;
-  if (matchResult.duelLoss) st.duelLosses += 1;
-  if (matchResult.linesCleared) st.totalLinesCleared += Number(matchResult.linesCleared) || 0;
-  if (matchResult.attackSent) st.totalAttackSent += Number(matchResult.attackSent) || 0;
-
-  if (matchResult.maxCombo && matchResult.maxCombo > st.maxCombo) {
-    st.maxCombo = matchResult.maxCombo;
-  }
-
-  if (typeof matchResult.apm === 'number' && !isNaN(matchResult.apm)) {
-    st.totalApmSum += matchResult.apm;
-    st.apmSamples += 1;
-    st.avgApm = Number((st.totalApmSum / st.apmSamples).toFixed(1));
-  }
-
-  if (typeof matchResult.garbageReceived === 'number' && !isNaN(matchResult.garbageReceived)) {
-    st.totalReceivedSum += matchResult.garbageReceived;
-    st.receivedSamples += 1;
-    st.avgReceived = Number((st.totalReceivedSum / st.receivedSamples).toFixed(1));
-  }
-
-  userRec.matchHistory = userRec.matchHistory || [];
-  userRec.matchHistory.push({
-    date: new Date().toISOString(),
-    mode: matchResult.mode || 'zen',
-    opponent: matchResult.opponent || null,
-    result: matchResult.duelWin ? 'WIN' : (matchResult.duelLoss ? 'LOSS' : 'COMPLETE'),
-    score: matchResult.scoreStr || null,
-    apm: matchResult.apm || 0,
-    maxCombo: matchResult.maxCombo || 0,
-    garbageReceived: matchResult.garbageReceived || 0
-  });
-
-  if (userRec.matchHistory.length > 50) {
-    userRec.matchHistory = userRec.matchHistory.slice(-50);
-  }
-
-  saveUserAndSync(userRec, `Match Recorded (${matchResult.mode || 'game'})`);
-}
-
-function getCompiledLeaderboards() {
-  const allUsers = Object.values(usersDB).map(u => ({
-    username: u.username,
-    gamesPlayed: u.stats.gamesPlayed || 0,
-    ffaWins: u.stats.ffaWins || 0,
-    duelWins: u.stats.duelWins || 0,
-    duelLosses: u.stats.duelLosses || 0,
-    maxCombo: u.stats.maxCombo || 0,
-    avgApm: u.stats.avgApm || 0,
-    avgReceived: u.stats.avgReceived || 0
-  }));
-
-  return {
-    byApm: [...allUsers].sort((a, b) => b.avgApm - a.avgApm).slice(0, 25),
-    byWins: [...allUsers].sort((a, b) => (b.ffaWins + b.duelWins) - (a.ffaWins + a.duelWins)).slice(0, 25),
-    byCombo: [...allUsers].sort((a, b) => b.maxCombo - a.maxCombo).slice(0, 25),
-    byDuels: [...allUsers].sort((a, b) => {
-      if (b.duelWins !== a.duelWins) return b.duelWins - a.duelWins;
-      return a.duelLosses - b.duelLosses;
-    }).slice(0, 25)
-  };
+function awardXpAndSave(userRec, xpAmount, reason) {
+  userRec.stats.xp += Math.max(0, Math.round(xpAmount));
+  userRec.stats.level = calculateLevel(userRec.stats.xp);
+  saveUserAndSync(userRec, reason);
 }
 
 function broadcastAll(payload) {
@@ -508,26 +508,31 @@ function getPlayerById(playerId) {
   return null;
 }
 
-function broadcastOnlineList() {
-  const list = [];
+function broadcastHubState() {
+  const onlineList = [];
   for (const [, p] of players.entries()) {
     if (!p.authenticated) continue;
-    const uRec = ensurePlayerStatsRecord(p.username);
-    list.push({
+    const u = ensureUserRecord(p.username);
+    onlineList.push({
       id: p.id,
       username: p.username,
+      level: u.stats.level,
       mode: p.mode,
-      boardCols: p.boardCols || 4,
-      inDuel: p.mode === 'duel',
-      avgApm: uRec.stats.avgApm,
-      duelWins: uRec.stats.duelWins,
-      duelLosses: uRec.stats.duelLosses
+      apm: u.stats.apmTestBest,
+      zenLines: u.stats.zenLines,
+      duelWins: u.stats.duelWins,
+      duelLosses: u.stats.duelLosses
     });
   }
+
   broadcastAll({
-    type: 'online_list',
-    players: list,
-    leaderboards: getCompiledLeaderboards()
+    type: 'hub_sync',
+    onlinePlayers: onlineList,
+    queue1v1Count: queue1v1.length,
+    ffaPlayerCount: ffaLobby.players.size,
+    ffaState: ffaLobby.state,
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
   });
 }
 
@@ -541,57 +546,64 @@ function systemChatBroadcast(text, style = 'system') {
   });
 }
 
-function clearPlayerChallenges(playerId, reason) {
-  for (const [cid, ch] of challenges.entries()) {
-    if (ch.fromId === playerId || ch.toId === playerId) {
-      clearTimeout(ch.timer);
-      challenges.delete(cid);
-      sendToPlayer(ch.fromId, { type: 'challenge_cleared', id: cid, reason });
-      sendToPlayer(ch.toId, { type: 'challenge_cleared', id: cid, reason });
-    }
+function removeFromQueues(playerId) {
+  const qIdx = queue1v1.indexOf(playerId);
+  if (qIdx !== -1) {
+    queue1v1.splice(qIdx, 1);
+  }
+  if (ffaLobby.players.has(playerId)) {
+    ffaLobby.players.delete(playerId);
+    evaluateFfaLobbyState();
   }
 }
 
 // ============================================================================
-// 1v1 DUEL MATCH ENGINE (First to 6, Win by 2)
+// 1v1 QUEUE & ISOLATED BEST-OF-3 (FIRST TO 2 WINS) MATCH ENGINE
 // ============================================================================
 
-function startDuelRoom(p1, p2, boardCols) {
-  const roomId = `duel_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+function tryMatchmake1v1() {
+  // Clean disconnected players from queue
+  for (let i = queue1v1.length - 1; i >= 0; i--) {
+    if (!getPlayerById(queue1v1[i])) queue1v1.splice(i, 1);
+  }
 
-  clearPlayerChallenges(p1.id, 'Entered a 1v1 Duel');
-  clearPlayerChallenges(p2.id, 'Entered a 1v1 Duel');
+  while (queue1v1.length >= 2) {
+    const id1 = queue1v1.shift();
+    const id2 = queue1v1.shift();
+    const p1 = getPlayerById(id1);
+    const p2 = getPlayerById(id2);
+    if (p1 && p2) {
+      startDuelBo3Room(p1, p2);
+    }
+  }
+  broadcastHubState();
+}
+
+function startDuelBo3Room(p1, p2) {
+  const roomId = `duel_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   p1.mode = 'duel';
   p1.duelRoomId = roomId;
-  p1.boardCols = boardCols;
-
   p2.mode = 'duel';
   p2.duelRoomId = roomId;
-  p2.boardCols = boardCols;
 
   const room = {
     id: roomId,
-    boardCols,
-    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, garbageReceived: 0, maxCombo: 0, linesCleared: 0, attackSent: 0 },
-    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, garbageReceived: 0, maxCombo: 0, linesCleared: 0, attackSent: 0 },
+    p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0 },
+    p2: { id: p2.id, username: p2.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0 },
     round: 1,
     active: true,
     roundInProgress: false
   };
 
   duelRooms.set(roomId, room);
-  broadcastOnlineList();
+  broadcastHubState();
 
-  systemChatBroadcast(
-    `[1v1 DUEL STARTED] ${p1.username} vs ${p2.username} (${boardCols}x26 Matrix | FT6 Win-by-2)!`,
-    'duel-announce'
-  );
+  systemChatBroadcast(`[1v1 BO3 MATCH] ${p1.username} vs ${p2.username} started in isolated lobby!`, 'duel-announce');
 
   const initPayload = {
     type: 'duel_init',
     roomId: room.id,
-    boardCols: room.boardCols,
     p1: { id: p1.id, username: p1.username, score: 0 },
     p2: { id: p2.id, username: p2.username, score: 0 },
     round: 1
@@ -600,36 +612,37 @@ function startDuelRoom(p1, p2, boardCols) {
   sendToPlayer(p1.id, initPayload);
   sendToPlayer(p2.id, initPayload);
 
-  scheduleDuelRoundStart(roomId, 3000);
+  startDuelRoundWithCountdown(roomId);
 }
 
-function scheduleDuelRoundStart(roomId, delayMs) {
+function startDuelRoundWithCountdown(roomId) {
+  const room = duelRooms.get(roomId);
+  if (!room || !room.active) return;
+
+  room.p1.alive = true;
+  room.p2.alive = true;
+  room.roundInProgress = false;
+  const seed = Math.floor(Math.random() * 2147483647);
+
+  // Tell both clients to begin their 3-second countdown
+  const cdPayload = {
+    type: 'duel_round_countdown',
+    roomId: room.id,
+    round: room.round,
+    seed,
+    p1Score: room.p1.score,
+    p2Score: room.p2.score
+  };
+
+  sendToPlayer(room.p1.id, cdPayload);
+  sendToPlayer(room.p2.id, cdPayload);
+
   setTimeout(() => {
-    const room = duelRooms.get(roomId);
-    if (!room || !room.active) return;
-
-    room.p1.alive = true;
-    room.p2.alive = true;
-    room.roundInProgress = true;
-    const seed = Math.floor(Math.random() * 2147483647);
-
-    const startPayload = {
-      type: 'duel_round_start',
-      roomId: room.id,
-      round: room.round,
-      seed,
-      boardCols: room.boardCols,
-      p1Score: room.p1.score,
-      p2Score: room.p2.score
-    };
-
-    sendToPlayer(room.p1.id, startPayload);
-    sendToPlayer(room.p2.id, startPayload);
-  }, delayMs);
-}
-
-function checkDuelSetWin(scoreA, scoreB) {
-  return scoreA >= 6 && (scoreA - scoreB) >= 2;
+    const r = duelRooms.get(roomId);
+    if (r && r.active) {
+      r.roundInProgress = true;
+    }
+  }, 3000);
 }
 
 function handleDuelTopOut(roomId, loserId, finalStats = {}) {
@@ -645,14 +658,16 @@ function handleDuelTopOut(roomId, loserId, finalStats = {}) {
   winnerSlot.score += 1;
 
   if (finalStats) {
-    loserSlot.apm = finalStats.apm || loserSlot.apm;
-    loserSlot.garbageReceived = finalStats.garbageReceived || loserSlot.garbageReceived;
-    loserSlot.maxCombo = Math.max(loserSlot.maxCombo, finalStats.maxCombo || 0);
+    loserSlot.apm = Math.max(loserSlot.apm, finalStats.apm || 0);
+    loserSlot.pps = Math.max(loserSlot.pps, finalStats.pps || 0);
     loserSlot.linesCleared += finalStats.linesCleared || 0;
     loserSlot.attackSent += finalStats.attackSent || 0;
+    loserSlot.garbageReceived += finalStats.garbageReceived || 0;
+    loserSlot.maxCombo = Math.max(loserSlot.maxCombo, finalStats.maxCombo || 0);
   }
 
-  if (checkDuelSetWin(winnerSlot.score, loserSlot.score)) {
+  // Best of 3: First to 2 wins
+  if (winnerSlot.score >= 2) {
     concludeDuelMatch(room, winnerSlot, loserSlot, 'COMPLETED');
   } else {
     const roundMsg = {
@@ -667,13 +682,8 @@ function handleDuelTopOut(roomId, loserId, finalStats = {}) {
     sendToPlayer(room.p1.id, roundMsg);
     sendToPlayer(room.p2.id, roundMsg);
 
-    systemChatBroadcast(
-      `[DUEL R${room.round}] ${winnerSlot.username} takes the round! Score: ${room.p1.username} (${room.p1.score}) - (${room.p2.score}) ${room.p2.username}`,
-      'duel-round'
-    );
-
     room.round += 1;
-    scheduleDuelRoundStart(room.id, 3500);
+    setTimeout(() => startDuelRoundWithCountdown(room.id), 2500);
   }
 }
 
@@ -684,72 +694,229 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 
   const scoreStr = `${winnerSlot.score}-${loserSlot.score}`;
 
-  recordPlayerMatchStats(winnerSlot.username, {
-    mode: '1v1_duel',
+  // Update Winner DB Record
+  const winUser = ensureUserRecord(winnerSlot.username);
+  winUser.stats.gamesPlayed += 1;
+  winUser.stats.duelWins += 1;
+  winUser.stats.totalLinesCleared += winnerSlot.linesCleared;
+  winUser.stats.totalAttackSent += winnerSlot.attackSent;
+  winUser.stats.maxCombo = Math.max(winUser.stats.maxCombo, winnerSlot.maxCombo);
+  winUser.stats.totalReceivedSum += winnerSlot.garbageReceived;
+  winUser.stats.receivedSamples += 1;
+  winUser.stats.avgReceived = Number((winUser.stats.totalReceivedSum / winUser.stats.receivedSamples).toFixed(1));
+  winUser.matchHistory.push({
+    date: new Date().toISOString(),
+    mode: '1v1 BO3',
+    result: 'WIN',
+    score: scoreStr,
     opponent: loserSlot.username,
-    scoreStr,
-    duelWin: true,
-    duelLoss: false,
     apm: winnerSlot.apm,
-    garbageReceived: winnerSlot.garbageReceived,
-    maxCombo: winnerSlot.maxCombo,
-    linesCleared: winnerSlot.linesCleared,
-    attackSent: winnerSlot.attackSent
+    lines: winnerSlot.linesCleared,
+    maxCombo: winnerSlot.maxCombo
   });
+  awardXpAndSave(winUser, 150 + winnerSlot.linesCleared * 5, '1v1 BO3 Win');
 
-  recordPlayerMatchStats(loserSlot.username, {
-    mode: '1v1_duel',
+  // Update Loser DB Record
+  const loseUser = ensureUserRecord(loserSlot.username);
+  loseUser.stats.gamesPlayed += 1;
+  loseUser.stats.duelLosses += 1;
+  loseUser.stats.totalLinesCleared += loserSlot.linesCleared;
+  loseUser.stats.totalAttackSent += loserSlot.attackSent;
+  loseUser.stats.maxCombo = Math.max(loseUser.stats.maxCombo, loserSlot.maxCombo);
+  loseUser.stats.totalReceivedSum += loserSlot.garbageReceived;
+  loseUser.stats.receivedSamples += 1;
+  loseUser.stats.avgReceived = Number((loseUser.stats.totalReceivedSum / loseUser.stats.receivedSamples).toFixed(1));
+  loseUser.matchHistory.push({
+    date: new Date().toISOString(),
+    mode: '1v1 BO3',
+    result: 'LOSS',
+    score: scoreStr,
     opponent: winnerSlot.username,
-    scoreStr,
-    duelWin: false,
-    duelLoss: true,
     apm: loserSlot.apm,
-    garbageReceived: loserSlot.garbageReceived,
-    maxCombo: loserSlot.maxCombo,
-    linesCleared: loserSlot.linesCleared,
-    attackSent: loserSlot.attackSent
+    lines: loserSlot.linesCleared,
+    maxCombo: loserSlot.maxCombo
   });
+  awardXpAndSave(loseUser, 60 + loserSlot.linesCleared * 5, '1v1 BO3 Loss');
 
   const p1Obj = getPlayerById(room.p1.id);
   const p2Obj = getPlayerById(room.p2.id);
   if (p1Obj) {
-    p1Obj.mode = 'zen';
+    p1Obj.mode = 'hub';
     p1Obj.duelRoomId = null;
   }
   if (p2Obj) {
-    p2Obj.mode = 'zen';
+    p2Obj.mode = 'hub';
     p2Obj.duelRoomId = null;
   }
 
-  const endPayload = {
-    type: 'duel_match_over',
-    roomId: room.id,
-    winnerId: winnerSlot.id,
+  const summaryPlayers = [
+    {
+      username: winnerSlot.username,
+      placement: '1ST (WINNER)',
+      score: winnerSlot.score,
+      apm: winnerSlot.apm,
+      pps: winnerSlot.pps,
+      lines: winnerSlot.linesCleared,
+      sent: winnerSlot.attackSent,
+      recv: winnerSlot.garbageReceived,
+      maxCombo: winnerSlot.maxCombo
+    },
+    {
+      username: loserSlot.username,
+      placement: '2ND',
+      score: loserSlot.score,
+      apm: loserSlot.apm,
+      pps: loserSlot.pps,
+      lines: loserSlot.linesCleared,
+      sent: loserSlot.attackSent,
+      recv: loserSlot.garbageReceived,
+      maxCombo: loserSlot.maxCombo
+    }
+  ];
+
+  const overPayload = {
+    type: 'match_summary_5s',
+    modeTitle: `1v1 BEST OF 3 RESULT (${scoreStr})`,
     winnerName: winnerSlot.username,
-    loserId: loserSlot.id,
-    loserName: loserSlot.username,
-    p1Score: room.p1.score,
-    p2Score: room.p2.score,
-    reason
+    players: summaryPlayers,
+    updatedUserP1: sanitizeUserForClient(ensureUserRecord(room.p1.username)),
+    updatedUserP2: sanitizeUserForClient(ensureUserRecord(room.p2.username))
   };
 
-  sendToPlayer(room.p1.id, endPayload);
-  sendToPlayer(room.p2.id, endPayload);
+  sendToPlayer(room.p1.id, overPayload);
+  sendToPlayer(room.p2.id, overPayload);
 
-  if (reason === 'DISCONNECT_FORFEIT') {
-    systemChatBroadcast(
-      `[1v1 DUEL FORFEIT] ${loserSlot.username} disconnected/forfeited! ${winnerSlot.username} wins the set (${room.p1.score}-${room.p2.score})!`,
-      'duel-win'
-    );
-  } else {
-    systemChatBroadcast(
-      `[1v1 DUEL VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${room.p1.score}-${room.p2.score}) in FT6 Win-by-2!`,
-      'duel-win'
-    );
-  }
+  systemChatBroadcast(`[1v1 BO3 VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
 
   duelRooms.delete(room.id);
-  broadcastOnlineList();
+  broadcastHubState();
+}
+
+// ============================================================================
+// FFA LOBBY ENGINE (Requires 2+ Players to Start, 3s Countdown, 5s Summary)
+// ============================================================================
+
+function broadcastFfaRoom(payload) {
+  for (const [pid] of ffaLobby.players.entries()) {
+    sendToPlayer(pid, payload);
+  }
+}
+
+function evaluateFfaLobbyState() {
+  const count = ffaLobby.players.size;
+
+  if (ffaLobby.state === 'waiting') {
+    if (count >= 2) {
+      ffaLobby.state = 'countdown';
+      const seed = Math.floor(Math.random() * 2147483647);
+      for (const [, slot] of ffaLobby.players.entries()) {
+        slot.alive = true;
+        slot.apm = 0;
+        slot.pps = 0;
+        slot.linesCleared = 0;
+        slot.attackSent = 0;
+        slot.garbageReceived = 0;
+        slot.maxCombo = 0;
+      }
+
+      broadcastFfaRoom({
+        type: 'ffa_countdown_start',
+        seed,
+        playerCount: count
+      });
+
+      if (ffaLobby.countdownTimer) clearTimeout(ffaLobby.countdownTimer);
+      ffaLobby.countdownTimer = setTimeout(() => {
+        if (ffaLobby.players.size >= 2) {
+          ffaLobby.state = 'playing';
+          broadcastHubState();
+        } else {
+          ffaLobby.state = 'waiting';
+          broadcastFfaRoom({ type: 'ffa_waiting', playerCount: ffaLobby.players.size });
+          broadcastHubState();
+        }
+      }, 3000);
+    } else {
+      broadcastFfaRoom({ type: 'ffa_waiting', playerCount: count });
+    }
+  } else if (ffaLobby.state === 'countdown') {
+    if (count < 2) {
+      if (ffaLobby.countdownTimer) clearTimeout(ffaLobby.countdownTimer);
+      ffaLobby.state = 'waiting';
+      broadcastFfaRoom({ type: 'ffa_waiting', playerCount: count });
+    }
+  } else if (ffaLobby.state === 'playing') {
+    checkFfaMatchEnd();
+  }
+  broadcastHubState();
+}
+
+function checkFfaMatchEnd() {
+  if (ffaLobby.state !== 'playing') return;
+  const aliveSlots = [];
+  for (const [, slot] of ffaLobby.players.entries()) {
+    if (slot.alive) aliveSlots.push(slot);
+  }
+
+  if (aliveSlots.length <= 1) {
+    ffaLobby.state = 'waiting';
+    const winnerSlot = aliveSlots[0] || Array.from(ffaLobby.players.values())[0];
+
+    const summaryPlayers = Array.from(ffaLobby.players.values()).map(s => {
+      const isWin = winnerSlot && s.id === winnerSlot.id;
+      const u = ensureUserRecord(s.username);
+      u.stats.gamesPlayed += 1;
+      if (isWin) u.stats.ffaWins += 1;
+      u.stats.totalLinesCleared += s.linesCleared;
+      u.stats.totalAttackSent += s.attackSent;
+      u.stats.maxCombo = Math.max(u.stats.maxCombo, s.maxCombo);
+      u.stats.totalReceivedSum += s.garbageReceived;
+      u.stats.receivedSamples += 1;
+      u.stats.avgReceived = Number((u.stats.totalReceivedSum / u.stats.receivedSamples).toFixed(1));
+      u.matchHistory.push({
+        date: new Date().toISOString(),
+        mode: 'FFA',
+        result: isWin ? '1ST (WIN)' : 'TOP OUT',
+        apm: s.apm,
+        lines: s.linesCleared,
+        maxCombo: s.maxCombo
+      });
+      awardXpAndSave(u, (isWin ? 140 : 50) + s.linesCleared * 4, 'FFA Match Complete');
+
+      return {
+        username: s.username,
+        placement: isWin ? '1ST (WINNER)' : 'ELIMINATED',
+        score: isWin ? 1 : 0,
+        apm: s.apm,
+        pps: s.pps,
+        lines: s.linesCleared,
+        sent: s.attackSent,
+        recv: s.garbageReceived,
+        maxCombo: s.maxCombo
+      };
+    });
+
+    summaryPlayers.sort((a, b) => b.score - a.score || b.apm - a.apm);
+
+    for (const [pid] of ffaLobby.players.entries()) {
+      const pObj = getPlayerById(pid);
+      if (pObj) pObj.mode = 'hub';
+      sendToPlayer(pid, {
+        type: 'match_summary_5s',
+        modeTitle: 'FFA MATCH RESULTS',
+        winnerName: winnerSlot ? winnerSlot.username : 'NONE',
+        players: summaryPlayers,
+        updatedUser: pObj ? sanitizeUserForClient(ensureUserRecord(pObj.username)) : null
+      });
+    }
+
+    if (winnerSlot) {
+      systemChatBroadcast(`[FFA VICTORY] ${winnerSlot.username} won the FFA match!`, 'duel-win');
+    }
+
+    ffaLobby.players.clear();
+    broadcastHubState();
+  }
 }
 
 // ============================================================================
@@ -759,22 +926,22 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
 wss.on('connection', (ws) => {
   const playerId = `p_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-  const playerState = {
+  const session = {
     id: playerId,
     ws,
     username: `Guest_${Math.floor(1000 + Math.random() * 9000)}`,
     authenticated: false,
-    mode: 'zen',
-    boardCols: 4,
+    mode: 'hub',
     duelRoomId: null
   };
 
-  players.set(ws, playerState);
+  players.set(ws, session);
 
   ws.send(JSON.stringify({
     type: 'welcome',
     id: playerId,
-    leaderboards: getCompiledLeaderboards()
+    leaderboards: getCompiledLeaderboards(),
+    allPlayers: getAllPublicPlayerProfiles()
   }));
 
   ws.on('message', (raw) => {
@@ -794,43 +961,13 @@ wss.on('connection', (ws) => {
         if (cleanName.length >= 2) {
           p.username = cleanName;
           p.authenticated = true;
-          const uRec = ensurePlayerStatsRecord(p.username);
-          if (msg.boardCols === 4 || msg.boardCols === 10) {
-            p.boardCols = msg.boardCols;
-          } else if (uRec.settings && uRec.settings.preferredCols) {
-            p.boardCols = uRec.settings.preferredCols;
-          }
+          const uRec = ensureUserRecord(p.username);
           ws.send(JSON.stringify({
-            type: 'profile_updated',
-            username: p.username,
-            boardCols: p.boardCols,
-            mode: p.mode,
-            stats: uRec.stats
+            type: 'profile_synced',
+            user: sanitizeUserForClient(uRec)
           }));
-          broadcastOnlineList();
+          broadcastHubState();
         }
-        break;
-      }
-
-      case 'set_profile': {
-        if (msg.boardCols === 4 || msg.boardCols === 10) {
-          if (p.mode !== 'duel') p.boardCols = msg.boardCols;
-        }
-        if (msg.mode && ['zen', 'ffa'].includes(msg.mode) && p.mode !== 'duel') {
-          p.mode = msg.mode;
-        }
-        const uRec = ensurePlayerStatsRecord(p.username);
-        uRec.settings.preferredCols = p.boardCols;
-        saveUserAndSync(uRec, 'Updated Matrix Mode');
-
-        ws.send(JSON.stringify({
-          type: 'profile_updated',
-          username: p.username,
-          boardCols: p.boardCols,
-          mode: p.mode,
-          stats: uRec.stats
-        }));
-        broadcastOnlineList();
         break;
       }
 
@@ -849,102 +986,116 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      case 'send_challenge': {
+      // Join 1v1 Queue (Best of 3, 4x26 only)
+      case 'join_1v1_queue': {
+        if (!p.authenticated || p.mode === 'duel') return;
+        removeFromQueues(p.id);
+        p.mode = 'queue_1v1';
+        queue1v1.push(p.id);
+        ws.send(JSON.stringify({ type: 'queued_1v1', count: queue1v1.length }));
+        tryMatchmake1v1();
+        break;
+      }
+
+      case 'leave_1v1_queue': {
+        removeFromQueues(p.id);
+        p.mode = 'hub';
+        broadcastHubState();
+        break;
+      }
+
+      // Join FFA Lobby (4x26 only, waits for 2+ players)
+      case 'join_ffa_lobby': {
+        if (!p.authenticated || p.mode === 'duel') return;
+        removeFromQueues(p.id);
+        p.mode = 'ffa';
+        ffaLobby.players.set(p.id, {
+          id: p.id,
+          username: p.username,
+          alive: true,
+          apm: 0,
+          pps: 0,
+          linesCleared: 0,
+          attackSent: 0,
+          garbageReceived: 0,
+          maxCombo: 0
+        });
+        evaluateFfaLobbyState();
+        break;
+      }
+
+      case 'leave_active_mode': {
+        if (p.mode === 'duel' && p.duelRoomId) {
+          const room = duelRooms.get(p.duelRoomId);
+          if (room && room.active) {
+            const winnerSlot = room.p1.id === p.id ? room.p2 : room.p1;
+            const loserSlot = room.p1.id === p.id ? room.p1 : room.p2;
+            concludeDuelMatch(room, winnerSlot, loserSlot, 'DISCONNECT_FORFEIT');
+          }
+        } else {
+          removeFromQueues(p.id);
+          p.mode = 'hub';
+          broadcastHubState();
+        }
+        break;
+      }
+
+      // Singleplayer Zen Line Clear Progress (4x26 Zen or 10x26 Zen)
+      case 'zen_lines_add': {
         if (!p.authenticated) return;
-        if (p.mode === 'duel') {
-          ws.send(JSON.stringify({ type: 'error_msg', text: 'You are already in an active 1v1 Duel.' }));
-          return;
+        const added = Math.max(0, Number(msg.lines) || 0);
+        if (added <= 0) return;
+        const uRec = ensureUserRecord(p.username);
+        uRec.stats.zenLines += added;
+        uRec.stats.totalLinesCleared += added;
+        if (msg.maxCombo && msg.maxCombo > uRec.stats.maxCombo) {
+          uRec.stats.maxCombo = msg.maxCombo;
         }
+        awardXpAndSave(uRec, added * 6, 'Zen Lines Progress');
+        ws.send(JSON.stringify({
+          type: 'profile_synced',
+          user: sanitizeUserForClient(uRec)
+        }));
+        broadcastHubState();
+        break;
+      }
 
-        for (const [, ch] of challenges.entries()) {
-          if (ch.fromId === p.id) {
-            ws.send(JSON.stringify({ type: 'error_msg', text: 'You already have an active challenge pending (max 1 at a time).' }));
-            return;
-          }
+      // Singleplayer 1-Minute APM Test Result
+      case 'apm_test_complete': {
+        if (!p.authenticated) return;
+        const recordedApm = Number(Number(msg.apm || 0).toFixed(1));
+        const lines = Number(msg.linesCleared) || 0;
+        const combo = Number(msg.maxCombo) || 0;
+
+        const uRec = ensureUserRecord(p.username);
+        uRec.stats.gamesPlayed += 1;
+        uRec.stats.apmTestLast = recordedApm;
+        if (recordedApm > uRec.stats.apmTestBest) {
+          uRec.stats.apmTestBest = recordedApm;
         }
-
-        const target = getPlayerById(msg.targetId);
-        if (!target || target.id === p.id || !target.authenticated) {
-          ws.send(JSON.stringify({ type: 'error_msg', text: 'Target pilot is unavailable.' }));
-          return;
-        }
-        if (target.mode === 'duel') {
-          ws.send(JSON.stringify({ type: 'error_msg', text: `${target.username} is currently in a 1v1 Duel.` }));
-          return;
-        }
-
-        const chosenCols = (msg.boardCols === 10) ? 10 : 4;
-        const challengeId = `ch_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-
-        const timer = setTimeout(() => {
-          if (challenges.has(challengeId)) {
-            challenges.delete(challengeId);
-            sendToPlayer(p.id, { type: 'challenge_expired', id: challengeId, text: `Challenge to ${target.username} expired (60s).` });
-            sendToPlayer(target.id, { type: 'challenge_expired', id: challengeId, text: `Challenge from ${p.username} expired.` });
-          }
-        }, 60000);
-
-        const chObj = {
-          id: challengeId,
-          fromId: p.id,
-          fromName: p.username,
-          toId: target.id,
-          toName: target.username,
-          boardCols: chosenCols,
-          createdAt: Date.now(),
-          expiresAt: Date.now() + 60000,
-          timer
-        };
-
-        challenges.set(challengeId, chObj);
-
-        sendToPlayer(p.id, {
-          type: 'challenge_sent',
-          challenge: { id: chObj.id, toId: chObj.toId, toName: chObj.toName, boardCols: chObj.boardCols, expiresAt: chObj.expiresAt }
+        uRec.stats.totalLinesCleared += lines;
+        uRec.stats.maxCombo = Math.max(uRec.stats.maxCombo, combo);
+        uRec.matchHistory.push({
+          date: new Date().toISOString(),
+          mode: 'APM TEST (1:00)',
+          result: `${recordedApm} APM`,
+          apm: recordedApm,
+          lines,
+          maxCombo: combo
         });
 
-        sendToPlayer(target.id, {
-          type: 'challenge_received',
-          challenge: { id: chObj.id, fromId: chObj.fromId, fromName: chObj.fromName, boardCols: chObj.boardCols, expiresAt: chObj.expiresAt }
-        });
+        awardXpAndSave(uRec, 100 + Math.round(recordedApm * 2), '1-Minute APM Test Completed');
 
-        systemChatBroadcast(`${p.username} challenged ${target.username} to a ${chosenCols}x26 1v1 Duel!`, 'challenge');
+        ws.send(JSON.stringify({
+          type: 'profile_synced',
+          user: sanitizeUserForClient(uRec)
+        }));
+        systemChatBroadcast(`[APM TEST] ${p.username} recorded ${recordedApm} APM in the 1-Minute APM Test!`, 'system');
+        broadcastHubState();
         break;
       }
 
-      case 'respond_challenge': {
-        const ch = challenges.get(msg.challengeId);
-        if (!ch || ch.toId !== p.id) return;
-
-        clearTimeout(ch.timer);
-        challenges.delete(ch.id);
-
-        const challenger = getPlayerById(ch.fromId);
-        if (!challenger) {
-          ws.send(JSON.stringify({ type: 'error_msg', text: 'Challenger went offline.' }));
-          return;
-        }
-
-        if (!msg.accept) {
-          sendToPlayer(challenger.id, { type: 'challenge_declined', byName: p.username });
-          sendToPlayer(p.id, { type: 'challenge_cleared', id: ch.id, reason: 'Declined' });
-          return;
-        }
-
-        if (challenger.mode === 'duel' || p.mode === 'duel') {
-          ws.send(JSON.stringify({ type: 'error_msg', text: 'One of the pilots is already in a duel.' }));
-          return;
-        }
-
-        startDuelRoom(challenger, p, ch.boardCols);
-        break;
-      }
-
-      case 'cancel_challenge': {
-        clearPlayerChallenges(p.id, 'Cancelled by sender');
-        break;
-      }
-
+      // Live Multiplayer Board & Stats Sync
       case 'board_sync': {
         if (p.mode === 'duel' && p.duelRoomId) {
           const room = duelRooms.get(p.duelRoomId);
@@ -953,6 +1104,8 @@ wss.on('connection', (ws) => {
             const oppSlot = room.p1.id === p.id ? room.p2 : room.p1;
             slot.apm = msg.apm || 0;
             slot.pps = msg.pps || 0;
+            slot.linesCleared = msg.linesCleared || 0;
+            slot.attackSent = msg.attackSent || 0;
             slot.garbageReceived = msg.garbageReceived || 0;
             slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
 
@@ -962,34 +1115,30 @@ wss.on('connection', (ws) => {
               username: p.username,
               grid: msg.grid,
               activePiece: msg.activePiece,
-              holdPiece: msg.holdPiece,
-              nextQueue: msg.nextQueue,
-              garbageQueue: msg.garbageQueue,
               apm: msg.apm,
-              pps: msg.pps,
-              vsScore: msg.vsScore,
-              b2b: msg.b2b,
-              combo: msg.combo
+              pps: msg.pps
             });
           }
-        } else if (p.mode === 'ffa') {
-          for (const [clientWs, other] of players.entries()) {
-            if (other.id !== p.id && other.mode === 'ffa' && clientWs.readyState === WebSocket.OPEN) {
-              clientWs.send(JSON.stringify({
+        } else if (p.mode === 'ffa' && ffaLobby.players.has(p.id)) {
+          const slot = ffaLobby.players.get(p.id);
+          slot.apm = msg.apm || 0;
+          slot.pps = msg.pps || 0;
+          slot.linesCleared = msg.linesCleared || 0;
+          slot.attackSent = msg.attackSent || 0;
+          slot.garbageReceived = msg.garbageReceived || 0;
+          slot.maxCombo = Math.max(slot.maxCombo, msg.maxCombo || 0);
+
+          for (const [otherId] of ffaLobby.players.entries()) {
+            if (otherId !== p.id) {
+              sendToPlayer(otherId, {
                 type: 'opponent_sync',
                 fromId: p.id,
                 username: p.username,
                 grid: msg.grid,
                 activePiece: msg.activePiece,
-                holdPiece: msg.holdPiece,
-                nextQueue: msg.nextQueue,
-                garbageQueue: msg.garbageQueue,
                 apm: msg.apm,
-                pps: msg.pps,
-                vsScore: msg.vsScore,
-                b2b: msg.b2b,
-                combo: msg.combo
-              }));
+                pps: msg.pps
+              });
             }
           }
         }
@@ -1003,27 +1152,17 @@ wss.on('connection', (ws) => {
         if (p.mode === 'duel' && p.duelRoomId) {
           const room = duelRooms.get(p.duelRoomId);
           if (room && room.active && room.roundInProgress) {
-            const targetId = (room.p1.id === p.id) ? room.p2.id : room.p1.id;
-            sendToPlayer(targetId, {
-              type: 'receive_garbage',
-              lines,
-              fromName: p.username
-            });
+            const targetId = room.p1.id === p.id ? room.p2.id : room.p1.id;
+            sendToPlayer(targetId, { type: 'receive_garbage', lines, fromName: p.username });
           }
-        } else if (p.mode === 'ffa') {
-          const ffaTargets = [];
-          for (const [, other] of players.entries()) {
-            if (other.id !== p.id && other.mode === 'ffa') {
-              ffaTargets.push(other);
-            }
+        } else if (p.mode === 'ffa' && ffaLobby.state === 'playing') {
+          const targets = [];
+          for (const [otherId, slot] of ffaLobby.players.entries()) {
+            if (otherId !== p.id && slot.alive) targets.push(otherId);
           }
-          if (ffaTargets.length > 0) {
-            const chosen = ffaTargets[Math.floor(Math.random() * ffaTargets.length)];
-            sendToPlayer(chosen.id, {
-              type: 'receive_garbage',
-              lines,
-              fromName: p.username
-            });
+          if (targets.length > 0) {
+            const chosenId = targets[Math.floor(Math.random() * targets.length)];
+            sendToPlayer(chosenId, { type: 'receive_garbage', lines, fromName: p.username });
           }
         }
         break;
@@ -1032,29 +1171,18 @@ wss.on('connection', (ws) => {
       case 'player_topout': {
         if (p.mode === 'duel' && p.duelRoomId) {
           handleDuelTopOut(p.duelRoomId, p.id, msg.stats || {});
-        } else if (p.authenticated) {
-          recordPlayerMatchStats(p.username, {
-            mode: p.mode,
-            ffaWin: Boolean(msg.stats && msg.stats.ffaWin),
-            apm: msg.stats ? msg.stats.apm : 0,
-            garbageReceived: msg.stats ? msg.stats.garbageReceived : 0,
-            maxCombo: msg.stats ? msg.stats.maxCombo : 0,
-            linesCleared: msg.stats ? msg.stats.linesCleared : 0,
-            attackSent: msg.stats ? msg.stats.attackSent : 0
-          });
-          broadcastOnlineList();
-        }
-        break;
-      }
-
-      case 'forfeit_duel': {
-        if (p.mode === 'duel' && p.duelRoomId) {
-          const room = duelRooms.get(p.duelRoomId);
-          if (room && room.active) {
-            const winnerSlot = (room.p1.id === p.id) ? room.p2 : room.p1;
-            const loserSlot = (room.p1.id === p.id) ? room.p1 : room.p2;
-            concludeDuelMatch(room, winnerSlot, loserSlot, 'DISCONNECT_FORFEIT');
+        } else if (p.mode === 'ffa' && ffaLobby.players.has(p.id)) {
+          const slot = ffaLobby.players.get(p.id);
+          slot.alive = false;
+          if (msg.stats) {
+            slot.apm = msg.stats.apm || slot.apm;
+            slot.pps = msg.stats.pps || slot.pps;
+            slot.linesCleared = msg.stats.linesCleared || slot.linesCleared;
+            slot.attackSent = msg.stats.attackSent || slot.attackSent;
+            slot.garbageReceived = msg.stats.garbageReceived || slot.garbageReceived;
+            slot.maxCombo = Math.max(slot.maxCombo, msg.stats.maxCombo || 0);
           }
+          checkFfaMatchEnd();
         }
         break;
       }
@@ -1065,19 +1193,19 @@ wss.on('connection', (ws) => {
     const p = players.get(ws);
     if (!p) return;
 
-    clearPlayerChallenges(p.id, 'Player disconnected');
+    removeFromQueues(p.id);
 
     if (p.mode === 'duel' && p.duelRoomId) {
       const room = duelRooms.get(p.duelRoomId);
       if (room && room.active) {
-        const winnerSlot = (room.p1.id === p.id) ? room.p2 : room.p1;
-        const loserSlot = (room.p1.id === p.id) ? room.p1 : room.p2;
+        const winnerSlot = room.p1.id === p.id ? room.p2 : room.p1;
+        const loserSlot = room.p1.id === p.id ? room.p1 : room.p2;
         concludeDuelMatch(room, winnerSlot, loserSlot, 'DISCONNECT_FORFEIT');
       }
     }
 
     players.delete(ws);
-    broadcastOnlineList();
+    broadcastHubState();
   });
 });
 
