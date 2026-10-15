@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project A² | Multiplayer Stacker</title>
+  <title>Project A² | Competitive Stacker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -13,13 +13,13 @@
     <div class="bg-vignette"></div>
   </div>
 
-  <!-- DEDICATED LOGIN & REGISTRATION SCREEN OVERLAY -->
-  <div id="auth-screen" class="auth-screen">
+  <!-- 1. DEDICATED LOGIN & REGISTRATION SCREEN -->
+  <div id="auth-screen" class="fullscreen-overlay">
     <div class="auth-card">
-      <div class="auth-logo">
+      <div class="mega-title">
         <span class="brand-accent">PROJECT</span> A<sup>2</sup>
       </div>
-      <p class="auth-subtitle">4x26 & 10x26 Competitive Multiplayer Stacker</p>
+      <p class="auth-subtitle">Competitive Stacker • Account Leveling • Telemetry</p>
 
       <div id="auth-error-box" class="auth-error hidden"></div>
 
@@ -35,109 +35,173 @@
         </div>
 
         <div class="auth-btn-row">
-          <button type="submit" id="login-submit-btn" class="btn btn-primary auth-btn">LOGIN TO A²</button>
-          <button type="button" id="register-submit-btn" class="btn btn-success auth-btn">REGISTER NEW PILOT</button>
+          <button type="submit" id="login-submit-btn" class="btn btn-primary auth-btn">LOGIN</button>
+          <button type="button" id="register-submit-btn" class="btn btn-success auth-btn">REGISTER</button>
         </div>
       </form>
-
-      <div class="auth-footer-note">
-        Player profiles, passwords, handling configs & match records sync to <code>/player_data</code>.
-      </div>
     </div>
   </div>
 
-  <!-- Top Navigation & Mode Bar -->
-  <header class="top-bar">
-    <div class="brand">
-      <span class="brand-accent">PROJECT</span> A<sup>2</sup>
-      <span id="matrix-badge" class="badge">4x26 MATRIX</span>
+  <!-- Top Navigation Bar (Persistent once logged in) -->
+  <header id="top-bar" class="top-bar hidden">
+    <div class="brand-group">
+      <span class="brand"><span class="brand-accent">PROJECT</span> A<sup>2</sup></span>
+      <button id="return-hub-btn" class="btn btn-sm btn-primary hidden">⬅ RETURN TO HUB</button>
     </div>
 
-    <div class="profile-controls">
-      <span class="pilot-tag-label">PILOT:</span>
-      <span id="active-pilot-name" class="active-pilot-badge">NOT LOGGED IN</span>
-      <button id="logout-btn" class="btn btn-sm btn-danger">LOGOUT</button>
-    </div>
-
-    <div class="mode-controls">
-      <button id="mode-zen-btn" class="btn mode-btn active">ZEN / PRACTICE</button>
-      <button id="mode-ffa-btn" class="btn mode-btn">FFA LOBBY</button>
-      <select id="matrix-select" class="select-box" title="Select Board Width">
-        <option value="4" selected>4x26 (4-Wide Tower)</option>
-        <option value="10">10x26 (Standard Guideline)</option>
-      </select>
-      <button id="restart-btn" class="btn btn-warning">RESTART (R)</button>
-      <button id="forfeit-duel-btn" class="btn btn-danger hidden">FORFEIT DUEL</button>
+    <div class="pilot-level-strip">
+      <span id="nav-pilot-name" class="pilot-badge">PILOT</span>
+      <span id="nav-pilot-level" class="level-pill">LVL 1</span>
+      <div class="xp-bar-wrap" title="Account XP Progress">
+        <div id="nav-xp-fill" class="xp-bar-fill"></div>
+      </div>
+      <span id="nav-xp-text" class="xp-text">0 XP</span>
     </div>
 
     <div class="media-controls">
+      <button id="toggle-chat-btn" class="btn btn-sm">💬 CHAT</button>
       <button id="next-track-btn" class="btn btn-sm">⏭ MUSIC</button>
       <button id="next-bg-btn" class="btn btn-sm">🖼 BG</button>
-      <button id="open-settings-btn" class="btn btn-sm">⚙ HANDLING & AUDIO</button>
+      <button id="open-settings-btn" class="btn btn-sm">⚙ SETTINGS</button>
+      <button id="logout-btn" class="btn btn-sm btn-danger">LOGOUT</button>
     </div>
   </header>
 
-  <!-- Duel Scoreboard Banner (Hidden unless in 1v1 Duel) -->
-  <div id="duel-banner" class="duel-banner hidden">
-    <div class="duel-side p1-side">
-      <span id="duel-p1-name">PLAYER 1</span>
-      <span id="duel-p1-score" class="duel-score-pill">0</span>
+  <!-- 2. POST-LOGIN MAIN HUB SCREEN -->
+  <section id="hub-screen" class="hub-screen hidden">
+    <div class="hub-hero-header">
+      <h1 class="hub-giant-title"><span class="brand-accent">PROJECT</span> A<sup>2</sup></h1>
+      <div class="hub-nav-tabs">
+        <button id="hub-tab-play" class="btn mode-btn active">🎮 MODES & LEADERBOARDS</button>
+        <button id="hub-tab-stats" class="btn mode-btn">📊 PLAYER STATS DIRECTORY</button>
+      </div>
     </div>
-    <div class="duel-center">
-      <div id="duel-format-label">PROJECT A² 1v1 DUEL • FIRST TO 6 (WIN BY 2)</div>
-      <div id="duel-round-label">ROUND 1</div>
-    </div>
-    <div class="duel-side p2-side">
-      <span id="duel-p2-score" class="duel-score-pill">0</span>
-      <span id="duel-p2-name">PLAYER 2</span>
-    </div>
-  </div>
 
-  <!-- Main 3-Column Game Layout -->
-  <main class="main-layout">
+    <!-- HUB VIEW A: Modes & Top-5 Leaderboards -->
+    <div id="hub-play-view" class="hub-grid">
+      <!-- Singleplayer Column -->
+      <div class="hub-column">
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>SINGLEPLAYER MODES</h3>
+            <span class="sub-hint">3s Countdown • XP & Leaderboards</span>
+          </div>
+          <div class="mode-cards-list">
+            <div class="mode-select-card" id="launch-zen-4-btn">
+              <div class="mc-title">4x26 ZEN MODE</div>
+              <div class="mc-desc">4-Wide endless tower practice. Every line cleared adds to the Zen Leaderboard!</div>
+              <span class="badge">4x26 MATRIX</span>
+            </div>
 
-    <!-- LEFT COLUMN: Online Players, Challenges & Leaderboards -->
-    <aside class="side-panel left-panel">
-      <div id="challenge-alert-box" class="challenge-box hidden">
-        <div id="challenge-alert-text">Incoming 1v1 Challenge!</div>
-        <div id="challenge-timer-bar" class="timer-bar"></div>
-        <div class="challenge-actions">
-          <button id="accept-challenge-btn" class="btn btn-success btn-sm">ACCEPT</button>
-          <button id="decline-challenge-btn" class="btn btn-danger btn-sm">DECLINE</button>
+            <div class="mode-select-card" id="launch-zen-10-btn">
+              <div class="mc-title">10x26</div>
+              <div class="mc-desc">Standard 10-column guideline matrix Zen mode. Lines count toward the Zen Leaderboard!</div>
+              <span class="badge">10x26 MATRIX</span>
+            </div>
+
+            <div class="mode-select-card highlight-card" id="launch-apm-test-btn">
+              <div class="mc-title">APM TEST (1:00 TIMED)</div>
+              <div class="mc-desc">1-Minute high-intensity attack sprint. Your recorded APM sets your official Leaderboard APM!</div>
+              <span class="badge gold-badge">⏱ 60 SECONDS • OFFICIAL APM</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div id="outgoing-challenge-box" class="challenge-box outgoing hidden">
-        <div id="outgoing-challenge-text">Waiting for opponent...</div>
-        <button id="cancel-challenge-btn" class="btn btn-danger btn-sm">CANCEL</button>
+      <!-- Multiplayer Column (4x26 Strictly) -->
+      <div class="hub-column">
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>MULTIPLAYER MODES (4x26)</h3>
+            <span class="sub-hint">Live Matchmaking & Lobbies</span>
+          </div>
+          <div class="mode-cards-list">
+            <div class="mode-select-card mp-card" id="join-1v1-queue-btn">
+              <div class="mc-title">1v1 MATCHMAKING QUEUE</div>
+              <div class="mc-desc">Queue up! When 2 players are queued, both enter an isolated 4x26 Best-of-3 match.</div>
+              <div class="mc-status-row">
+                <span class="badge">BEST OF 3</span>
+                <span id="hub-1v1-queue-status" class="queue-pill">In Queue: 0</span>
+              </div>
+            </div>
+
+            <div id="queue-waiting-banner" class="challenge-box hidden">
+              <div>Searching for 1v1 Opponent (Best of 3)...</div>
+              <button id="leave-1v1-queue-btn" class="btn btn-danger btn-sm">LEAVE QUEUE</button>
+            </div>
+
+            <div class="mode-select-card mp-card" id="join-ffa-lobby-btn">
+              <div class="mc-title">FFA ARENA</div>
+              <div class="mc-desc">Free-For-All 4x26 battle. Starts automatically when 2 or more players join the lobby!</div>
+              <div class="mc-status-row">
+                <span class="badge">2+ PLAYERS</span>
+                <span id="hub-ffa-status" class="queue-pill">In Lobby: 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <section class="panel-card">
-        <div class="card-header">
-          <h3>ONLINE PILOTS (<span id="online-count">0</span>)</h3>
-          <span class="sub-hint">1v1 FT6 Win-by-2</span>
+      <!-- Top 5 Leaderboards Column -->
+      <div class="hub-column">
+        <div class="panel-card leaderboard-card">
+          <div class="card-header">
+            <h3>TOP 5 LEADERBOARDS</h3>
+            <span class="sub-hint">Top 5 Only</span>
+          </div>
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-tab="byApm">APM TEST</button>
+            <button class="lb-tab" data-tab="byZen">ZEN LINES</button>
+            <button class="lb-tab" data-tab="byWins">WINS</button>
+            <button class="lb-tab" data-tab="byCombo">COMBO</button>
+            <button class="lb-tab" data-tab="byDuels">1v1</button>
+          </div>
+          <div id="leaderboard-content" class="scrollable-list lb-list"></div>
         </div>
-        <div id="online-players-list" class="scrollable-list"></div>
-      </section>
+      </div>
+    </div>
 
-      <section class="panel-card leaderboard-card">
+    <!-- HUB VIEW B: Every Player's Stats Directory -->
+    <div id="hub-stats-view" class="hub-stats-view hidden">
+      <div class="panel-card directory-list-card">
         <div class="card-header">
-          <h3>A² LEADERBOARDS</h3>
+          <h3>ALL REGISTERED PILOTS</h3>
+          <input type="text" id="pilot-search-input" placeholder="Search pilot..." />
         </div>
-        <div class="lb-tabs">
-          <button class="lb-tab active" data-tab="byApm">AVG APM</button>
-          <button class="lb-tab" data-tab="byWins">WINS</button>
-          <button class="lb-tab" data-tab="byCombo">COMBO</button>
-          <button class="lb-tab" data-tab="byDuels">1v1 DUELS</button>
-        </div>
-        <div id="leaderboard-content" class="scrollable-list lb-list"></div>
-      </section>
-    </aside>
+        <div id="all-pilots-directory" class="scrollable-list"></div>
+      </div>
 
-    <!-- CENTER COLUMN: Playfield, Hold, Queue, Garbage Meter & Live Telemetry Boxes -->
-    <section class="center-stage">
+      <div class="panel-card directory-detail-card">
+        <div class="card-header">
+          <h3 id="inspected-pilot-title">SELECT A PILOT TO INSPECT</h3>
+        </div>
+        <div id="inspected-pilot-body" class="inspected-pilot-body">
+          <p class="sub-hint">Click any player on the left to view their Level, XP, Official APM, Zen Lines, 1v1 & FFA records, and recent match log.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. ACTIVE GAME ARENA SCREEN -->
+  <main id="arena-screen" class="arena-screen hidden">
+    <!-- Duel / Mode Header Banner -->
+    <div id="arena-top-strip" class="duel-banner">
+      <div class="duel-side">
+        <span id="arena-mode-title">MODE</span>
+      </div>
+      <div class="duel-center">
+        <span id="arena-score-strip"></span>
+      </div>
+      <div class="duel-side">
+        <span id="arena-timer-display" class="duel-score-pill hidden">60.0s</span>
+        <button id="arena-restart-btn" class="btn btn-warning btn-sm">RESTART (R)</button>
+        <button id="arena-leave-btn" class="btn btn-danger btn-sm">LEAVE TO HUB</button>
+      </div>
+    </div>
+
+    <div class="arena-stage">
       <div class="playfield-wrapper">
-        
+        <!-- Left HUD: Hold & Live Stats -->
         <div class="hud-left-col">
           <div class="hud-box hold-box">
             <div class="hud-label">HOLD (C / SHIFT)</div>
@@ -154,16 +218,12 @@
               <span id="stat-pps" class="stat-val">0.00</span>
             </div>
             <div class="stat-card">
-              <span class="stat-title">VS SCORE</span>
-              <span id="stat-vs" class="stat-val">0.0</span>
-            </div>
-            <div class="stat-card">
               <span class="stat-title">LINES / SENT</span>
               <span id="stat-lines-sent" class="stat-val">0 / 0</span>
             </div>
             <div class="stat-card">
-              <span class="stat-title">RECV / AVG RECV</span>
-              <span id="stat-recv" class="stat-val">0 / 0.0</span>
+              <span class="stat-title">RECV GARBAGE</span>
+              <span id="stat-recv" class="stat-val">0</span>
             </div>
             <div class="stat-card">
               <span class="stat-title">COMBO / MAX</span>
@@ -176,19 +236,22 @@
           </div>
         </div>
 
+        <!-- Incoming Garbage Meter -->
         <div class="garbage-meter-container">
           <div id="garbage-meter-fill" class="garbage-meter-fill"></div>
         </div>
 
+        <!-- Main Board Canvas -->
         <div class="board-frame">
-          <canvas id="board-canvas" width="320" height="832"></canvas>
+          <canvas id="board-canvas" width="128" height="832"></canvas>
           <div id="action-callout" class="action-callout"></div>
           <div id="overlay-banner" class="overlay-banner hidden">
-            <div id="overlay-title">READY</div>
-            <div id="overlay-subtitle"></div>
+            <div id="overlay-title">3</div>
+            <div id="overlay-subtitle">GET READY</div>
           </div>
         </div>
 
+        <!-- Next Queue -->
         <div class="hud-right-col">
           <div class="hud-box next-box">
             <div class="hud-label">NEXT (7-BAG)</div>
@@ -196,40 +259,66 @@
           </div>
         </div>
 
+        <!-- Opponent Matrix Preview (Visible in 1v1 and FFA) -->
+        <div id="opponent-preview-panel" class="panel-card opponent-card hidden">
+          <div class="card-header">
+            <h3 id="opp-header-name">OPPONENT</h3>
+            <span id="opp-live-metrics" class="sub-hint">0.0 APM</span>
+          </div>
+          <div class="opponent-board-holder">
+            <canvas id="opponent-canvas" width="144" height="468"></canvas>
+          </div>
+        </div>
       </div>
-    </section>
-
-    <!-- RIGHT COLUMN: Opponent Live Matrix & Lobby/Match Chat -->
-    <aside class="side-panel right-panel">
-      <section class="panel-card opponent-card">
-        <div class="card-header">
-          <h3 id="opp-header-name">OPPONENT MATRIX</h3>
-          <span id="opp-live-metrics" class="sub-hint">0.0 APM | 0.00 PPS</span>
-        </div>
-        <div class="opponent-board-holder">
-          <canvas id="opponent-canvas" width="180" height="468"></canvas>
-        </div>
-      </section>
-
-      <section class="panel-card chat-card">
-        <div class="card-header">
-          <h3>A² LOBBY & MATCH COMMS</h3>
-        </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <form id="chat-form" class="chat-input-row">
-          <input type="text" id="chat-input" placeholder="Send message or GG..." maxlength="240" autocomplete="off" />
-          <button type="submit" class="btn btn-primary">SEND</button>
-        </form>
-      </section>
-    </aside>
-
+    </div>
   </main>
 
-  <!-- Handling & Audio Settings Modal -->
+  <!-- 4. 5-SECOND POST-MATCH STATS SUMMARY OVERLAY (1v1 & FFA) -->
+  <div id="post-match-screen" class="fullscreen-overlay hidden">
+    <div class="summary-card">
+      <div id="summary-mode-title" class="summary-title">MATCH COMPLETE</div>
+      <div id="summary-winner-banner" class="summary-winner">WINNER: PILOT</div>
+      <div class="summary-table-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>PLACE</th>
+              <th>PILOT</th>
+              <th>APM</th>
+              <th>PPS</th>
+              <th>LINES</th>
+              <th>SENT</th>
+              <th>RECV</th>
+              <th>MAX COMBO</th>
+            </tr>
+          </thead>
+          <tbody id="summary-table-body"></tbody>
+        </table>
+      </div>
+      <div class="summary-footer">
+        Returning to Project A² Hub in <span id="summary-countdown-sec">5</span>s...
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CLOSABLE "Chat" DRAWER WITH TOP-RIGHT X BUTTON -->
+  <aside id="chat-drawer" class="chat-drawer">
+    <div class="card-header">
+      <h3>Chat</h3>
+      <button id="close-chat-btn" class="btn btn-sm btn-danger" title="Close Chat">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-messages"></div>
+    <form id="chat-form" class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type message..." maxlength="240" autocomplete="off" />
+      <button type="submit" class="btn btn-primary btn-sm">SEND</button>
+    </form>
+  </aside>
+
+  <!-- 6. HANDLING & AUDIO SETTINGS MODAL -->
   <div id="settings-modal" class="modal-backdrop hidden">
     <div class="modal-window">
       <div class="modal-header">
-        <h2>PROJECT A² HANDLING & AUDIO</h2>
+        <h2>PROJECT A² SETTINGS</h2>
         <button id="close-settings-btn" class="btn btn-sm btn-danger">✕</button>
       </div>
       <div class="modal-body">
@@ -255,21 +344,13 @@
           <input type="range" id="slider-sfx" min="0" max="100" value="75" />
         </div>
         <div class="setting-group">
-          <label>Background Auto-Shuffle Interval: <span id="val-bg-interval">60</span>s</label>
+          <label>Background Shuffle Interval: <span id="val-bg-interval">60</span>s</label>
           <input type="range" id="slider-bg-interval" min="15" max="300" step="15" value="60" />
-        </div>
-        <div class="controls-reference">
-          <h4>DEFAULT CONTROLS</h4>
-          <p><strong>Move Left / Right:</strong> Arrow Left / Right</p>
-          <p><strong>Rotate CW / CCW / 180°:</strong> Arrow Up (or X) / Z (or Ctrl) / A</p>
-          <p><strong>Soft Drop / Hard Drop:</strong> Arrow Down / Spacebar</p>
-          <p><strong>Hold Piece / Quick Reset:</strong> Shift (or C) / R</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Client Modules -->
   <script src="js/audio.js"></script>
   <script src="js/background.js"></script>
   <script src="js/engine.js"></script>
