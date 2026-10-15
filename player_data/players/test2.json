@@ -3,10 +3,10 @@
   "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   "passwordPlain": "1234",
   "createdAt": "2026-10-15T19:48:57.768Z",
-  "updatedAt": "2026-10-15T19:48:57.768Z",
+  "updatedAt": "2026-10-15T19:49:24.491Z",
   "lastLogin": "2026-10-15T19:48:57.768Z",
   "settings": {
-    "musicVolume": 40,
+    "musicVolume": 0,
     "sfxVolume": 75,
     "bgInterval": 180,
     "boardShake": true,
