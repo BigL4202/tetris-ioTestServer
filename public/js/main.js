@@ -1,16 +1,14 @@
 // ============================================================================
-// PROJECT A^2 MAIN CONTROLLER: FIXED BLOCK RENDERER, FFA LOOP, 1v1 & LEVEL 100
+// PROJECT A^2 CONTROLLER: TOURNAMENTS, BigL_ ADMIN, LIVE APM GRAPH & AFK KICK
 // ============================================================================
 
 (function () {
-  // Built-in Color & Matrix Fallbacks (Guarantees blocks are NEVER invisible)
   const FALLBACK_COLORS = {
     I: '#00e5ff', O: '#ffea00', T: '#d500f9',
     S: '#00e676', Z: '#ff1744', J: '#2979ff',
     L: '#ff9100', G: '#78909c'
   };
 
-  // Level-Unlocked Rewards Every 10 Levels up to Level 100
   const UNLOCKABLE_SKINS = [
     { id: 'bevel',   name: 'Glossy Bevel',            reqLevel: 1,   desc: 'Classic highlighted 3D stacker blocks' },
     { id: 'flat',    name: 'Flat Minimalist',         reqLevel: 10,  desc: 'Clean solid-color tournament blocks' },
@@ -33,7 +31,7 @@
     { id: 'core',      name: 'Center Dot',       reqLevel: 40,  desc: 'Minimalist center node ghost' },
     { id: 'double',    name: 'Double Frame',     reqLevel: 50,  desc: 'Twin concentric wireframe ghost' },
     { id: 'pulse',     name: 'Pulse Glow',       reqLevel: 60,  desc: 'High-visibility luminous ghost' },
-    { id: 'brackets',  name: 'Corner Brackets',  reqLevel: 70,  desc: ' corner-pinned ghost' },
+    { id: 'brackets',  name: 'Corner Brackets',  reqLevel: 70,  desc: 'Corner-pinned ghost' },
     { id: 'xray',      name: 'X-Ray Grid',       reqLevel: 80,  desc: 'Internal cross-hatch ghost' },
     { id: 'beacon',    name: 'Solar Beacon',     reqLevel: 90,  desc: 'Golden outlined ghost piece' },
     { id: 'omega',     name: 'Omega Phantom',    reqLevel: 100, desc: 'Level 100 Master diamond ghost' }
@@ -77,7 +75,10 @@
     restart: 'Quick Restart'
   };
 
-  // Screens & Navigation
+  // DOM References
+  const adminShoutBanner = document.getElementById('admin-shout-banner');
+  const adminShoutText = document.getElementById('admin-shout-text');
+
   const authScreen = document.getElementById('auth-screen');
   const topBar = document.getElementById('top-bar');
   const hubScreen = document.getElementById('hub-screen');
@@ -85,7 +86,6 @@
   const postMatchScreen = document.getElementById('post-match-screen');
   const returnHubBtn = document.getElementById('return-hub-btn');
 
-  // Auth Elements
   const authForm = document.getElementById('auth-form');
   const authUsernameInput = document.getElementById('auth-username');
   const authPasswordInput = document.getElementById('auth-password');
@@ -93,19 +93,24 @@
   const authErrorBox = document.getElementById('auth-error-box');
   const logoutBtn = document.getElementById('logout-btn');
 
-  // Player Level Strip
   const navPilotName = document.getElementById('nav-pilot-name');
+  const navAdminTag = document.getElementById('nav-admin-tag');
   const navPilotLevel = document.getElementById('nav-pilot-level');
   const navXpFill = document.getElementById('nav-xp-fill');
   const navXpText = document.getElementById('nav-xp-text');
 
-  // Hub Elements
+  // Hub Tabs & Views
   const hubTabPlay = document.getElementById('hub-tab-play');
+  const hubTabTourney = document.getElementById('hub-tab-tourney');
   const hubTabCustomize = document.getElementById('hub-tab-customize');
   const hubTabStats = document.getElementById('hub-tab-stats');
+  const hubTabAdmin = document.getElementById('hub-tab-admin');
+
   const hubPlayView = document.getElementById('hub-play-view');
+  const hubTourneyView = document.getElementById('hub-tourney-view');
   const hubCustomizeView = document.getElementById('hub-customize-view');
   const hubStatsView = document.getElementById('hub-stats-view');
+  const hubAdminView = document.getElementById('hub-admin-view');
 
   const activePlayersCountEl = document.getElementById('active-players-count');
   const activePlayersBarEl = document.getElementById('active-players-bar');
@@ -121,19 +126,34 @@
   const hubFfaStatus = document.getElementById('hub-ffa-status');
   const liveMatchesList = document.getElementById('live-matches-list');
 
-  // Bottom-Left Incoming Challenge Toast
+  // Challenge Toast
   const challengeToast = document.getElementById('challenge-toast');
   const challengeToastText = document.getElementById('challenge-toast-text');
   const acceptDirectChallengeBtn = document.getElementById('accept-direct-challenge-btn');
   const denyDirectChallengeBtn = document.getElementById('deny-direct-challenge-btn');
 
-  // Leaderboards & Player Stats Directory
+  // Leaderboards & Stats Directory
   const lbContentEl = document.getElementById('leaderboard-content');
   const lbTabs = document.querySelectorAll('.lb-tab');
   const pilotSearchInput = document.getElementById('pilot-search-input');
   const allPilotsDirectory = document.getElementById('all-pilots-directory');
   const inspectedPilotTitle = document.getElementById('inspected-pilot-title');
   const inspectedPilotBody = document.getElementById('inspected-pilot-body');
+
+  // Tournament Elements
+  const adminTourneyCreator = document.getElementById('admin-tourney-creator');
+  const tournamentsListEl = document.getElementById('tournaments-list');
+  const selectedTourneyTitle = document.getElementById('selected-tourney-title');
+  const selectedTourneyActions = document.getElementById('selected-tourney-actions');
+  const selectedTourneyBody = document.getElementById('selected-tourney-body');
+
+  // Admin Console Elements
+  const adminShoutInput = document.getElementById('admin-shout-input');
+  const adminShoutBtn = document.getElementById('admin-shout-btn');
+  const adminRestartFfaBtn = document.getElementById('admin-restart-ffa-btn');
+  const adminPlayersList = document.getElementById('admin-players-list');
+  const adminSelectedUserTitle = document.getElementById('admin-selected-user-title');
+  const adminSelectedUserBody = document.getElementById('admin-selected-user-body');
 
   // Arena Elements
   const arenaModeTitle = document.getElementById('arena-mode-title');
@@ -160,6 +180,12 @@
   const nextCanvas = document.getElementById('next-canvas');
   const nextCtx = nextCanvas.getContext('2d');
 
+  const liveApmGraphBox = document.getElementById('live-apm-graph-box');
+  const liveApmCanvas = document.getElementById('live-apm-canvas');
+  const liveApmCtx = liveApmCanvas.getContext('2d');
+  const summaryApmCanvas = document.getElementById('summary-apm-canvas');
+  const summaryApmCtx = summaryApmCanvas.getContext('2d');
+
   const statApm = document.getElementById('stat-apm');
   const statPps = document.getElementById('stat-pps');
   const statLinesSent = document.getElementById('stat-lines-sent');
@@ -173,7 +199,6 @@
   const overlayTitle = document.getElementById('overlay-title');
   const overlaySubtitle = document.getElementById('overlay-subtitle');
 
-  // Chat Drawer Elements
   const chatDrawer = document.getElementById('chat-drawer');
   const toggleChatBtn = document.getElementById('toggle-chat-btn');
   const closeChatBtn = document.getElementById('close-chat-btn');
@@ -195,6 +220,8 @@
   let listeningKeybindAction = null;
   let expandedActivePlayerId = null;
   let pendingDirectChallengeId = null;
+  let selectedTourneyId = null;
+  let spectatingMatchId = null;
 
   let shakeOffsetX = 0;
   let shakeOffsetY = 0;
@@ -210,6 +237,12 @@
   let canControlBoard = false;
   let selectedManualTargetId = null;
 
+  // 15-Second AFK / Idle Tracker & Live APM Telemetry Series
+  let lastInputTimestamp = performance.now();
+  let myApmHistory = [];
+  let opponentApmHistory = [];
+  let apmSampleTimer = 0;
+
   let countdownInterval = null;
   let summaryInterval = null;
   let apmTestRemainingMs = 60000;
@@ -219,7 +252,12 @@
   let cachedLeaderboards = { byApm: [], byZen: [], byWins: [], byCombo: [], byDuels: [] };
   let cachedAllPlayers = [];
   let cachedOnlinePlayers = [];
+  let cachedTournaments = [];
   let ws = null;
+
+  function isBigLAdmin() {
+    return Boolean(myUserObj && (myUserObj.isAdmin || String(myUserObj.username || '').toLowerCase() === 'bigl_'));
+  }
 
   function getPieceColor(type) {
     if (window.PIECE_COLORS && window.PIECE_COLORS[type]) return window.PIECE_COLORS[type];
@@ -257,7 +295,6 @@
     }
   });
 
-  // Load Media Resources & Render Background Thumbnails
   fetch('/api/resources')
     .then(r => r.json())
     .then(manifest => {
@@ -270,6 +307,49 @@
       window.BackgroundController.init({ bg: [], music: [], sfx: [] });
       renderBackgroundThumbnailsGrid();
     });
+
+  // ============================================================================
+  // LIVE APM LINE GRAPH RENDERER (Dual-Line in 1v1, Single-Line in FFA & APM Test)
+  // ============================================================================
+
+  function drawApmChartOnCanvas(ctx, width, height, seriesList) {
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i <= 3; i++) {
+      const y = (height / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    let maxVal = 60;
+    seriesList.forEach(s => {
+      (s.data || []).forEach(v => {
+        if (v > maxVal) maxVal = v;
+      });
+    });
+    maxVal = Math.ceil(maxVal * 1.15);
+
+    seriesList.forEach(s => {
+      const pts = s.data || [];
+      if (pts.length === 0) return;
+
+      ctx.strokeStyle = s.color || '#00e5ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      pts.forEach((val, idx) => {
+        const x = pts.length === 1 ? width / 2 : (idx / (pts.length - 1)) * (width - 8) + 4;
+        const y = height - 6 - (Math.min(maxVal, Math.max(0, val)) / maxVal) * (height - 14);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+  }
 
   // ============================================================================
   // BOARD SHAKE PHYSICS
@@ -344,13 +424,13 @@
       localStorage.setItem('a2_saved_user', data.user.username);
       if (data.leaderboards) cachedLeaderboards = data.leaderboards;
       if (data.allPlayers) cachedAllPlayers = data.allPlayers;
+      if (data.tournaments) cachedTournaments = data.tournaments;
       completeLogin(data.user);
     } catch (e) {
       showAuthError('Could not connect to Project A² server.');
     }
   }
 
-  // Auto-restore saved player profile on page load so player_data is always hydrated
   const savedUsername = localStorage.getItem('a2_saved_user');
   if (savedUsername) {
     authUsernameInput.value = savedUsername;
@@ -360,6 +440,7 @@
         if (data && data.ok && data.user) {
           if (data.leaderboards) cachedLeaderboards = data.leaderboards;
           if (data.allPlayers) cachedAllPlayers = data.allPlayers;
+          if (data.tournaments) cachedTournaments = data.tournaments;
           completeLogin(data.user);
         }
       })
@@ -379,6 +460,17 @@
     navPilotLevel.textContent = `LVL ${lvl}`;
     navXpFill.style.width = `${pct}%`;
     navXpText.textContent = `${xp} XP`;
+
+    // Show/Hide BigL_ Admin UI
+    if (isBigLAdmin()) {
+      navAdminTag.classList.remove('hidden');
+      hubTabAdmin.classList.remove('hidden');
+      adminTourneyCreator.classList.remove('hidden');
+    } else {
+      navAdminTag.classList.add('hidden');
+      hubTabAdmin.classList.add('hidden');
+      adminTourneyCreator.classList.add('hidden');
+    }
   }
 
   function applyUserSettingsFromProfile(settings) {
@@ -463,7 +555,7 @@
     submitAuth('/api/auth/register');
   });
 
-  logoutBtn.addEventListener('click', () => {
+  function forceLogoutToScreen(reasonMsg) {
     localStorage.removeItem('a2_saved_user');
     leaveCurrentArenaOrQueue();
     isAuthenticated = false;
@@ -473,7 +565,10 @@
     hubScreen.classList.add('hidden');
     arenaScreen.classList.add('hidden');
     authScreen.classList.remove('hidden');
-  });
+    if (reasonMsg) showAuthError(reasonMsg);
+  }
+
+  logoutBtn.addEventListener('click', () => forceLogoutToScreen());
 
   // ============================================================================
   // ACTIVE PLAYERS SIDEBAR & BOTTOM-LEFT 1v1 CHALLENGE TOAST
@@ -502,7 +597,6 @@
       `;
       item.appendChild(topRow);
 
-      // Clicking a player toggles the "CHALLENGE TO 1v1" button underneath their name
       if (!isMe && !p.inDuel) {
         item.addEventListener('click', (e) => {
           if (e.target.tagName === 'BUTTON') return;
@@ -558,7 +652,7 @@
   });
 
   // ============================================================================
-  // 4-COLUMN CUSTOMIZATION: BACKGROUND THUMBNAILS + LEVEL 100 REWARDS
+  // 4-COLUMN CUSTOMIZATION: BG THUMBNAILS + BigL_ ALL UNLOCKED OVERRIDE
   // ============================================================================
 
   function renderBackgroundThumbnailsGrid() {
@@ -566,7 +660,6 @@
     if (!grid) return;
     grid.innerHTML = '';
 
-    // 1. Default Shuffle All Option Card
     const shuffleCard = document.createElement('div');
     const isShuffleEquipped = !userPrefs.lockedBg || userPrefs.lockedBg === 'shuffle';
     shuffleCard.className = `bg-thumb-card shuffle-card ${isShuffleEquipped ? 'equipped' : ''}`;
@@ -584,8 +677,16 @@
     });
     grid.appendChild(shuffleCard);
 
-    // 2. Individual Background Thumbnails (Click to lock)
     const catalog = window.BackgroundController.getCatalog();
+    if (catalog.length === 0) {
+      const emptyNote = document.createElement('div');
+      emptyNote.className = 'sub-hint';
+      emptyNote.style.gridColumn = 'span 2';
+      emptyNote.textContent = 'Drop images into /resources/bg/ to populate thumbnails.';
+      grid.appendChild(emptyNote);
+      return;
+    }
+
     catalog.forEach(item => {
       const isLockedToThis = userPrefs.lockedBg === item.id;
       const card = document.createElement('div');
@@ -593,7 +694,7 @@
 
       const previewDiv = document.createElement('div');
       previewDiv.className = 'bg-thumb-preview';
-      previewDiv.style.backgroundImage = item.thumbPreview || item.cssValue;
+      previewDiv.style.backgroundImage = item.cssValue;
 
       const labelDiv = document.createElement('div');
       labelDiv.className = 'bg-thumb-label';
@@ -615,6 +716,7 @@
 
   function renderUnlockGrids() {
     const myLvl = (myUserObj && myUserObj.stats && myUserObj.stats.level) ? myUserObj.stats.level : 1;
+    const adminBypass = isBigLAdmin(); // BigL_ has EVERY unlockable unlocked regardless of level
 
     const buildGrid = (containerId, catalog, currentId, onSelect) => {
       const container = document.getElementById(containerId);
@@ -622,7 +724,7 @@
       container.innerHTML = '';
 
       catalog.forEach(item => {
-        const unlocked = myLvl >= item.reqLevel;
+        const unlocked = adminBypass || myLvl >= item.reqLevel;
         const equipped = currentId === item.id;
         const div = document.createElement('div');
         div.className = `unlock-item ${equipped ? 'equipped' : ''} ${!unlocked ? 'locked' : ''}`;
@@ -651,6 +753,408 @@
     buildGrid('themes-unlock-grid', UNLOCKABLE_THEMES, userPrefs.boardTheme, id => {
       userPrefs.boardTheme = id;
       document.body.setAttribute('data-theme', id);
+    });
+  }
+
+  // ============================================================================
+  // TOURNAMENT SYSTEM UI (Registration, Brackets, Queue Match & BigL_ Controls)
+  // ============================================================================
+
+  document.getElementById('t-create-submit-btn').addEventListener('click', () => {
+    if (!isBigLAdmin() || !ws || ws.readyState !== WebSocket.OPEN) return;
+    const params = {
+      name: document.getElementById('t-create-name').value.trim() || 'Project A² Championship',
+      format: document.getElementById('t-create-format').value,
+      bestOf: Number(document.getElementById('t-create-bo').value) || 3,
+      seeding: document.getElementById('t-create-seeding').value,
+      maxPlayers: Number(document.getElementById('t-create-max').value) || 8,
+      registrationDays: Number(document.getElementById('t-create-regdays').value) || 1,
+      daysPerMatch: Number(document.getElementById('t-create-matchdays').value) || 1
+    };
+    ws.send(JSON.stringify({
+      type: 'admin_action',
+      action: 'create_tournament',
+      params
+    }));
+    document.getElementById('t-create-name').value = '';
+  });
+
+  function renderTournamentsView() {
+    if (!tournamentsListEl) return;
+    tournamentsListEl.innerHTML = '';
+
+    if (cachedTournaments.length === 0) {
+      tournamentsListEl.innerHTML = `<div class="sub-hint">No tournaments created yet.</div>`;
+      selectedTourneyTitle.textContent = 'NO ACTIVE TOURNAMENT';
+      selectedTourneyActions.innerHTML = '';
+      selectedTourneyBody.innerHTML = `<p class="sub-hint">When Admin BigL_ creates a tournament, it will appear here.</p>`;
+      return;
+    }
+
+    if (!selectedTourneyId || !cachedTournaments.some(t => t.id === selectedTourneyId)) {
+      selectedTourneyId = cachedTournaments[0].id;
+    }
+
+    cachedTournaments.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'pilot-row';
+      row.innerHTML = `
+        <div>
+          <strong>${escapeHtml(t.name)}</strong>
+          <div class="sub-hint">${t.format.toUpperCase()} ELIM • BO${t.bestOf} • ${t.registeredPlayers.length}/${t.maxPlayers} Players</div>
+        </div>
+        <span class="badge ${t.status === 'completed' ? 'gold-badge' : ''}">${t.status.toUpperCase()}</span>
+      `;
+      row.addEventListener('click', () => {
+        selectedTourneyId = t.id;
+        renderTournamentsView();
+      });
+      tournamentsListEl.appendChild(row);
+    });
+
+    const activeT = cachedTournaments.find(t => t.id === selectedTourneyId);
+    if (activeT) renderSelectedTournamentDetail(activeT);
+  }
+
+  function renderSelectedTournamentDetail(t) {
+    selectedTourneyTitle.textContent = `${t.name.toUpperCase()} (${t.format.toUpperCase()} ELIM | BO${t.bestOf})`;
+    selectedTourneyActions.innerHTML = '';
+    selectedTourneyBody.innerHTML = '';
+
+    const myName = myUserObj ? myUserObj.username : '';
+    const isRegistered = t.registeredPlayers.includes(myName);
+
+    // Registration Action Buttons
+    if (t.status === 'registration') {
+      if (!isRegistered && t.registeredPlayers.length < t.maxPlayers) {
+        const regBtn = document.createElement('button');
+        regBtn.className = 'btn btn-success btn-sm';
+        regBtn.textContent = 'REGISTER FOR TOURNAMENT';
+        regBtn.addEventListener('click', () => {
+          ws.send(JSON.stringify({ type: 'tourney_register', tourneyId: t.id }));
+        });
+        selectedTourneyActions.appendChild(regBtn);
+      } else if (isRegistered) {
+        const badge = document.createElement('span');
+        badge.className = 'badge gold-badge';
+        badge.textContent = 'REGISTERED';
+        selectedTourneyActions.appendChild(badge);
+      }
+
+      if (isBigLAdmin()) {
+        const forceStartBtn = document.createElement('button');
+        forceStartBtn.className = 'btn btn-warning btn-sm';
+        forceStartBtn.textContent = 'FORCE-START BRACKET NOW';
+        forceStartBtn.addEventListener('click', () => {
+          ws.send(JSON.stringify({
+            type: 'admin_action',
+            action: 'force_start_tournament',
+            tourneyId: t.id
+          }));
+        });
+        selectedTourneyActions.appendChild(forceStartBtn);
+      }
+    }
+
+    if (isBigLAdmin()) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger btn-sm';
+      delBtn.textContent = 'DELETE';
+      delBtn.addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'admin_action', action: 'delete_tournament', tourneyId: t.id }));
+      });
+      selectedTourneyActions.appendChild(delBtn);
+    }
+
+    if (t.status === 'registration') {
+      const remHrs = Math.max(0, (t.registrationEndsAt - Date.now()) / 3600000).toFixed(1);
+      selectedTourneyBody.innerHTML = `
+        <div class="stat-grid-boxes">
+          <div class="stat-card"><span class="stat-title">STATUS</span><span class="stat-val">REGISTRATION OPEN</span></div>
+          <div class="stat-card"><span class="stat-title">SEEDING</span><span class="stat-val">${t.seeding.toUpperCase()}</span></div>
+          <div class="stat-card"><span class="stat-title">REGISTERED</span><span class="stat-val">${t.registeredPlayers.length} / ${t.maxPlayers}</span></div>
+          <div class="stat-card"><span class="stat-title">CLOSES IN</span><span class="stat-val">${remHrs} Hours</span></div>
+        </div>
+        <h4 class="bracket-section-title">REGISTERED PLAYERS</h4>
+        <div>${t.registeredPlayers.map(p => `<span class="badge" style="margin:3px;">${escapeHtml(p)}</span>`).join('') || '<span class="sub-hint">No players registered yet.</span>'}</div>
+      `;
+      return;
+    }
+
+    if (t.champion) {
+      const champBanner = document.createElement('div');
+      champBanner.className = 'challenge-box';
+      champBanner.innerHTML = `<strong>TOURNAMENT CHAMPION: ${escapeHtml(t.champion)}</strong>`;
+      selectedTourneyBody.appendChild(champBanner);
+    }
+
+    // Check if the logged-in player has a ready match they can queue for right now
+    const myReadyMatch = t.matches.find(m => m.status === 'ready' && (m.p1 === myName || m.p2 === myName));
+    if (myReadyMatch) {
+      const oppName = myReadyMatch.p1 === myName ? myReadyMatch.p2 : myReadyMatch.p1;
+      const alreadyQueued = (myReadyMatch.p1 === myName && myReadyMatch.p1Queued) || (myReadyMatch.p2 === myName && myReadyMatch.p2Queued);
+      const qBox = document.createElement('div');
+      qBox.className = 'challenge-box';
+      qBox.innerHTML = `
+        <div>
+          <strong>YOUR NEXT TOURNAMENT MATCH: ${escapeHtml(myName)} vs ${escapeHtml(oppName)} (BO${t.bestOf})</strong>
+          <div class="sub-hint">When both you and ${escapeHtml(oppName)} click Queue, your 1v1 starts immediately.</div>
+        </div>
+        <button class="btn ${alreadyQueued ? 'btn-warning' : 'btn-success'} btn-sm" id="queue-my-tourney-match-btn">
+          ${alreadyQueued ? 'WAITING FOR OPPONENT...' : 'QUEUE TOURNAMENT MATCH'}
+        </button>
+      `;
+      qBox.querySelector('#queue-my-tourney-match-btn').addEventListener('click', () => {
+        ws.send(JSON.stringify({
+          type: 'tourney_queue_match',
+          tourneyId: t.id,
+          matchId: myReadyMatch.id
+        }));
+      });
+      selectedTourneyBody.appendChild(qBox);
+    }
+
+    // Render Winners Bracket, Losers Bracket, and Grand Finals
+    const renderBracketGroup = (title, bracketKey) => {
+      const groupMatches = t.matches.filter(m => m.bracket === bracketKey);
+      if (groupMatches.length === 0) return;
+
+      const secTitle = document.createElement('div');
+      secTitle.className = 'bracket-section-title';
+      secTitle.textContent = title;
+      selectedTourneyBody.appendChild(secTitle);
+
+      const roundsRow = document.createElement('div');
+      roundsRow.className = 'bracket-rounds-row';
+
+      const roundsSet = Array.from(new Set(groupMatches.map(m => m.round))).sort((a, b) => a - b);
+      roundsSet.forEach(rNum => {
+        const col = document.createElement('div');
+        col.className = 'bracket-round-col';
+        const rHeader = document.createElement('div');
+        rHeader.className = 'bracket-round-header';
+        rHeader.textContent = bracketKey === 'grand_finals' ? (rNum === 1 ? 'GRAND FINALS SET 1' : 'GF BRACKET RESET (IF NEEDED)') : `ROUND ${rNum}`;
+        col.appendChild(rHeader);
+
+        const rMatches = groupMatches.filter(m => m.round === rNum);
+        rMatches.forEach(m => {
+          const node = document.createElement('div');
+          node.className = `bracket-match-node ${m.status === 'live' ? 'live-match' : ''}`;
+
+          const p1Label = m.p1 || 'TBD';
+          const p2Label = m.p2 || 'TBD';
+          const remHours = m.deadlineAt ? Math.max(0, (m.deadlineAt - Date.now()) / 3600000).toFixed(1) : '0.0';
+
+          node.innerHTML = `
+            <div class="sub-hint">${m.id} • ${m.status.toUpperCase()} ${m.status === 'ready' ? `(${remHours}h left)` : ''}</div>
+            <div class="bracket-slot ${m.winner && m.winner === m.p1 ? 'winner-slot' : ''}">
+              <span>${escapeHtml(p1Label)} ${m.p1Queued ? '[QUEUED]' : ''}</span>
+              <span>${m.score1}</span>
+            </div>
+            <div class="bracket-slot ${m.winner && m.winner === m.p2 ? 'winner-slot' : ''}">
+              <span>${escapeHtml(p2Label)} ${m.p2Queued ? '[QUEUED]' : ''}</span>
+              <span>${m.score2}</span>
+            </div>
+          `;
+
+          if (m.status === 'live' && m.liveRoomId) {
+            const specBtn = document.createElement('button');
+            specBtn.className = 'btn btn-primary btn-sm';
+            specBtn.textContent = 'LIVE - SPECTATE';
+            specBtn.addEventListener('click', () => {
+              ws.send(JSON.stringify({ type: 'spectate_match', matchId: m.liveRoomId }));
+            });
+            node.appendChild(specBtn);
+          }
+
+          // Admin Force-Advance Buttons on Ready Matches
+          if (isBigLAdmin() && (m.status === 'ready' || m.status === 'live') && m.p1 && m.p2 && m.p1 !== 'BYE' && m.p2 !== 'BYE') {
+            const adminRow = document.createElement('div');
+            adminRow.className = 'admin-inject-row';
+            const adv1 = document.createElement('button');
+            adv1.className = 'btn btn-warning btn-sm';
+            adv1.textContent = `WIN: ${m.p1}`;
+            adv1.addEventListener('click', () => {
+              ws.send(JSON.stringify({
+                type: 'admin_action',
+                action: 'force_advance_match',
+                tourneyId: t.id,
+                matchId: m.id,
+                winnerName: m.p1
+              }));
+            });
+
+            const adv2 = document.createElement('button');
+            adv2.className = 'btn btn-warning btn-sm';
+            adv2.textContent = `WIN: ${m.p2}`;
+            adv2.addEventListener('click', () => {
+              ws.send(JSON.stringify({
+                type: 'admin_action',
+                action: 'force_advance_match',
+                tourneyId: t.id,
+                matchId: m.id,
+                winnerName: m.p2
+              }));
+            });
+
+            adminRow.appendChild(adv1);
+            adminRow.appendChild(adv2);
+            node.appendChild(adminRow);
+          }
+
+          col.appendChild(node);
+        });
+
+        roundsRow.appendChild(col);
+      });
+
+      selectedTourneyBody.appendChild(roundsRow);
+    };
+
+    renderBracketGroup('WINNERS BRACKET', 'winners');
+    if (t.format === 'double') {
+      renderBracketGroup('LOSERS BRACKET', 'losers');
+      renderBracketGroup('GRAND FINALS (LOSERS BRACKET MUST WIN TWICE)', 'grand_finals');
+    }
+  }
+
+  // ============================================================================
+  // BigL_ MASTER ADMIN CONSOLE UI (Stat Editor, View Passwords, Moderation, Shout)
+  // ============================================================================
+
+  adminShoutBtn.addEventListener('click', () => {
+    const text = adminShoutInput.value.trim();
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({
+      type: 'admin_action',
+      action: 'shout',
+      text
+    }));
+    adminShoutInput.value = '';
+  });
+
+  adminRestartFfaBtn.addEventListener('click', () => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({
+      type: 'admin_action',
+      action: 'restart_lobby',
+      lobbyId: 'ffa_main'
+    }));
+  });
+
+  function renderAdminConsole() {
+    if (!isBigLAdmin() || !adminPlayersList) return;
+    adminPlayersList.innerHTML = '';
+
+    cachedAllPlayers.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'pilot-row';
+      const modFlags = [];
+      if (p.moderation && p.moderation.banned) modFlags.push('BANNED');
+      if (p.moderation && p.moderation.timeoutUntil > Date.now()) modFlags.push('TIMED OUT');
+      if (p.moderation && p.moderation.mutedUntil > Date.now()) modFlags.push('MUTED');
+
+      row.innerHTML = `
+        <div>
+          <strong>${escapeHtml(p.username)}</strong>
+          <div class="sub-hint">LVL ${p.stats.level} • ${p.stats.apmTestBest.toFixed(1)} APM ${modFlags.length ? '• [' + modFlags.join(', ') + ']' : ''}</div>
+        </div>
+        <span class="badge gold-badge">MANAGE</span>
+      `;
+      row.addEventListener('click', () => renderAdminUserEditor(p));
+      adminPlayersList.appendChild(row);
+    });
+  }
+
+  function renderAdminUserEditor(p) {
+    adminSelectedUserTitle.textContent = `MANAGE ACCOUNT: ${p.username.toUpperCase()}`;
+    const s = p.stats;
+    const mod = p.moderation || {};
+
+    adminSelectedUserBody.innerHTML = `
+      <div class="stat-grid-boxes">
+        <div class="stat-card">
+          <span class="stat-title">SAVED PASSWORD (VIEW ONLY)</span>
+          <span class="stat-val" style="color:var(--accent-gold);">${escapeHtml(p.passwordPlain || '(hidden)')}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">MODERATION STATUS</span>
+          <span class="stat-val">${mod.banned ? 'BANNED' : (mod.timeoutUntil > Date.now() ? 'TIMED OUT' : (mod.mutedUntil > Date.now() ? 'MUTED' : 'ACTIVE'))}</span>
+        </div>
+      </div>
+
+      <h4 style="color:var(--accent-cyan);font-size:0.8rem;">MODERATION CONTROLS (BAN / TIMEOUT / MUTE)</h4>
+      <div class="t-form-row" style="gap:8px;flex-wrap:wrap;">
+        <label>Duration (Minutes):</label>
+        <input type="number" id="adm-mod-mins" value="15" min="1" max="10080" style="width:90px;" />
+        <button class="btn btn-danger btn-sm" id="adm-ban-btn">BAN ACCOUNT</button>
+        <button class="btn btn-success btn-sm" id="adm-unban-btn">UNBAN</button>
+        <button class="btn btn-warning btn-sm" id="adm-timeout-btn">TIMEOUT</button>
+        <button class="btn btn-primary btn-sm" id="adm-untimeout-btn">END TIMEOUT</button>
+        <button class="btn btn-warning btn-sm" id="adm-mute-btn">MUTE CHAT</button>
+        <button class="btn btn-primary btn-sm" id="adm-unmute-btn">DISMISS MUTE</button>
+      </div>
+
+      <h4 style="color:var(--accent-cyan);font-size:0.8rem;">ACCOUNT, STAT & LEADERBOARD EDITOR</h4>
+      <div class="stat-grid-boxes">
+        <div class="stat-card">
+          <span class="stat-title">XP</span>
+          <input type="number" id="adm-edit-xp" value="${s.xp}" />
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">OFFICIAL APM</span>
+          <input type="number" step="0.1" id="adm-edit-apm" value="${s.apmTestBest}" />
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">ZEN LINES</span>
+          <input type="number" id="adm-edit-zen" value="${s.zenLines}" />
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">1v1 WINS</span>
+          <input type="number" id="adm-edit-duelwins" value="${s.duelWins}" />
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">FFA WINS</span>
+          <input type="number" id="adm-edit-ffawins" value="${s.ffaWins}" />
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">MAX COMBO</span>
+          <input type="number" id="adm-edit-combo" value="${s.maxCombo}" />
+        </div>
+      </div>
+      <button class="btn btn-success" id="adm-save-stats-btn">SAVE EDITED STATS TO LEADERBOARD & GITHUB</button>
+    `;
+
+    const sendMod = (subAction) => {
+      const minutes = Number(document.getElementById('adm-mod-mins').value) || 15;
+      ws.send(JSON.stringify({
+        type: 'admin_action',
+        action: 'moderate_user',
+        targetUsername: p.username,
+        subAction,
+        minutes
+      }));
+    };
+
+    document.getElementById('adm-ban-btn').addEventListener('click', () => sendMod('ban'));
+    document.getElementById('adm-unban-btn').addEventListener('click', () => sendMod('unban'));
+    document.getElementById('adm-timeout-btn').addEventListener('click', () => sendMod('timeout'));
+    document.getElementById('adm-untimeout-btn').addEventListener('click', () => sendMod('end_timeout'));
+    document.getElementById('adm-mute-btn').addEventListener('click', () => sendMod('mute'));
+    document.getElementById('adm-unmute-btn').addEventListener('click', () => sendMod('unmute'));
+
+    document.getElementById('adm-save-stats-btn').addEventListener('click', () => {
+      ws.send(JSON.stringify({
+        type: 'admin_action',
+        action: 'edit_stats',
+        targetUsername: p.username,
+        xp: Number(document.getElementById('adm-edit-xp').value),
+        apmTestBest: Number(document.getElementById('adm-edit-apm').value),
+        zenLines: Number(document.getElementById('adm-edit-zen').value),
+        duelWins: Number(document.getElementById('adm-edit-duelwins').value),
+        ffaWins: Number(document.getElementById('adm-edit-ffawins').value),
+        maxCombo: Number(document.getElementById('adm-edit-combo').value)
+      }));
     });
   }
 
@@ -693,7 +1197,7 @@
   });
 
   // ============================================================================
-  // HUB NAVIGATION, FULL LEADERBOARDS & PLAYER STATS DIRECTORY
+  // HUB NAVIGATION & LEADERBOARDS
   // ============================================================================
 
   function navigateToHub() {
@@ -713,16 +1217,22 @@
     renderPlayersDirectory();
     renderUnlockGrids();
     renderBackgroundThumbnailsGrid();
+    renderTournamentsView();
+    renderAdminConsole();
   }
 
   function switchHubTab(activeBtn, activeView) {
-    [hubTabPlay, hubTabCustomize, hubTabStats].forEach(b => b.classList.remove('active'));
-    [hubPlayView, hubCustomizeView, hubStatsView].forEach(v => v.classList.add('hidden'));
+    [hubTabPlay, hubTabTourney, hubTabCustomize, hubTabStats, hubTabAdmin].forEach(b => b.classList.remove('active'));
+    [hubPlayView, hubTourneyView, hubCustomizeView, hubStatsView, hubAdminView].forEach(v => v.classList.add('hidden'));
     activeBtn.classList.add('active');
     activeView.classList.remove('hidden');
   }
 
   hubTabPlay.addEventListener('click', () => switchHubTab(hubTabPlay, hubPlayView));
+  hubTabTourney.addEventListener('click', () => {
+    switchHubTab(hubTabTourney, hubTourneyView);
+    renderTournamentsView();
+  });
   hubTabCustomize.addEventListener('click', () => {
     switchHubTab(hubTabCustomize, hubCustomizeView);
     renderUnlockGrids();
@@ -731,6 +1241,10 @@
   hubTabStats.addEventListener('click', () => {
     switchHubTab(hubTabStats, hubStatsView);
     renderPlayersDirectory();
+  });
+  hubTabAdmin.addEventListener('click', () => {
+    switchHubTab(hubTabAdmin, hubAdminView);
+    renderAdminConsole();
   });
 
   function renderLiveSpectateMatches(matches) {
@@ -746,13 +1260,22 @@
       row.className = 'spectate-row';
       row.innerHTML = `
         <span>${escapeHtml(m.label)}</span>
-        <button class="btn btn-sm btn-primary">SPECTATE (${m.spectatorCount || 0})</button>
+        <div class="duel-side">
+          <button class="btn btn-sm btn-primary spec-btn">SPECTATE (${m.spectatorCount || 0})</button>
+          ${isBigLAdmin() ? `<button class="btn btn-sm btn-warning rst-btn">RESTART</button>` : ''}
+        </div>
       `;
-      row.querySelector('button').addEventListener('click', () => {
+      row.querySelector('.spec-btn').addEventListener('click', () => {
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'spectate_match', matchId: m.id }));
         }
       });
+      const rstBtn = row.querySelector('.rst-btn');
+      if (rstBtn) {
+        rstBtn.addEventListener('click', () => {
+          ws.send(JSON.stringify({ type: 'admin_action', action: 'restart_lobby', lobbyId: m.id }));
+        });
+      }
       liveMatchesList.appendChild(row);
     });
   }
@@ -841,10 +1364,10 @@
         <div class="stat-card"><span class="stat-title">OFFICIAL APM (BEST)</span><span class="stat-val">${Number(s.apmTestBest || 0).toFixed(1)} APM</span></div>
         <div class="stat-card"><span class="stat-title">LAST APM TEST</span><span class="stat-val">${Number(s.apmTestLast || 0).toFixed(1)} APM</span></div>
         <div class="stat-card"><span class="stat-title">ZEN LINES CLEARED</span><span class="stat-val">${s.zenLines || 0}</span></div>
-        <div class="stat-card"><span class="stat-title">1v1 BO3 RECORD</span><span class="stat-val">${s.duelWins || 0}W - ${s.duelLosses || 0}L</span></div>
+        <div class="stat-card"><span class="stat-title">1v1 RECORD</span><span class="stat-val">${s.duelWins || 0}W - ${s.duelLosses || 0}L</span></div>
         <div class="stat-card"><span class="stat-title">FFA WINS</span><span class="stat-val">${s.ffaWins || 0}</span></div>
+        <div class="stat-card"><span class="stat-title">TOURNEY WINS</span><span class="stat-val">${s.tournamentWins || 0}</span></div>
         <div class="stat-card"><span class="stat-title">MAX COMBO</span><span class="stat-val">${s.maxCombo || 0}x</span></div>
-        <div class="stat-card"><span class="stat-title">CAREER LINES / SENT</span><span class="stat-val">${s.totalLinesCleared || 0} / ${s.totalAttackSent || 0}</span></div>
       </div>
       <h4 style="color:var(--accent-cyan);font-size:0.82rem;">RECENT MATCH HISTORY</h4>
       <table class="summary-table">
@@ -857,7 +1380,7 @@
   }
 
   // ============================================================================
-  // GAME MODE LAUNCHERS & 3-SECOND COUNTDOWN ENGINE
+  // GAME MODE LAUNCHERS & DYNAMIC COUNTDOWN ENGINE
   // ============================================================================
 
   function setFfaTargetModeUI(mode) {
@@ -883,31 +1406,36 @@
     boardCanvas.height = 26 * 32;
   }
 
-  function startThreeSecondCountdown(seed, cols, onGoCallback) {
+  function startCountdownWithDuration(seed, cols, durationMs = 3000, onGoCallback = null) {
     if (countdownInterval) clearInterval(countdownInterval);
     if (summaryInterval) clearInterval(summaryInterval);
     postMatchScreen.classList.add('hidden');
 
     canControlBoard = false;
+    playerPlayfieldWrapper.classList.remove('hidden');
     configureBoardDimensions(cols);
     engine.reset(seed, cols);
     lastReportedZenLines = 0;
+    myApmHistory = [0];
+    opponentApmHistory = [0];
+    apmSampleTimer = 0;
     actionCallout.textContent = '—';
     suddenDeathBadge.classList.add('hidden');
 
-    let count = 3;
-    showOverlay('3', 'GET READY');
+    let remSec = Math.max(1, Math.ceil(durationMs / 1000));
+    showOverlay(String(remSec), 'GET READY');
     window.AudioController.playSFX('move');
 
     countdownInterval = setInterval(() => {
-      count -= 1;
-      if (count > 0) {
-        showOverlay(String(count), 'GET READY');
+      remSec -= 1;
+      if (remSec > 0) {
+        showOverlay(String(remSec), 'GET READY');
         window.AudioController.playSFX('move');
-      } else if (count === 0) {
+      } else if (remSec === 0) {
         showOverlay('GO!', '');
         window.AudioController.playSFX('rotate');
         engine.startTime = performance.now();
+        lastInputTimestamp = performance.now(); // Start 15s AFK timer
         canControlBoard = true;
         if (onGoCallback) onGoCallback();
       } else {
@@ -932,10 +1460,17 @@
     tugOfWarWrap.classList.add('hidden');
     multiOpponentsGrid.innerHTML = '';
 
+    // Show Live APM Graph in 1v1, FFA, and APM Test
+    if (modeKey === 'duel' || modeKey === 'ffa' || modeKey === 'apm_test') {
+      liveApmGraphBox.classList.remove('hidden');
+    } else {
+      liveApmGraphBox.classList.add('hidden');
+    }
+
     if (modeKey === 'spectate') {
       playerPlayfieldWrapper.classList.add('hidden');
       multiOpponentsPanel.classList.remove('hidden');
-      multiOppHeader.textContent = 'LIVE SPECTATOR FEED';
+      multiOppHeader.textContent = isBigLAdmin() ? 'LIVE SPECTATOR FEED (ADMIN GARBAGE INJECTOR ACTIVE)' : 'LIVE SPECTATOR FEED';
       arenaRestartBtn.classList.add('hidden');
       ffaTargetBar.classList.add('hidden');
       arenaTimerDisplay.classList.add('hidden');
@@ -970,7 +1505,7 @@
     }
 
     if (modeKey === 'zen4' || modeKey === 'zen10' || modeKey === 'apm_test') {
-      startThreeSecondCountdown(seed, cols);
+      startCountdownWithDuration(seed, cols, 3000);
     }
   }
 
@@ -1028,7 +1563,7 @@
     if (ws && ws.readyState === WebSocket.OPEN) {
       enterArenaMode('ffa', 'FFA ARENA', 4);
       canControlBoard = false;
-      showOverlay('WAITING FOR PLAYERS', 'FFA starts when 2+ players join');
+      showOverlay('JOINING FFA LOBBY...', 'Syncing lobby state...');
       ws.send(JSON.stringify({ type: 'join_ffa_lobby' }));
     }
   });
@@ -1049,11 +1584,11 @@
     if (currentMode === 'duel' || currentMode === 'ffa' || currentMode === 'spectate') return;
     flushZenLines();
     if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
-    startThreeSecondCountdown(Date.now(), currentCols);
+    startCountdownWithDuration(Date.now(), currentCols, 3000);
   });
 
   // ============================================================================
-  // 5-SECOND POST-MATCH STATS SUMMARY (Stays in FFA Lobby on FFA finish!)
+  // 5-SECOND POST-MATCH STATS SUMMARY + APM GRAPH
   // ============================================================================
 
   function displayFiveSecondMatchSummary(msg) {
@@ -1082,6 +1617,12 @@
       tbody.appendChild(tr);
     });
 
+    // Draw Match APM Telemetry Graph on Summary Modal
+    const series = Array.isArray(msg.graphSeries) && msg.graphSeries.length > 0
+      ? msg.graphSeries
+      : [{ label: 'YOU', color: '#00e5ff', data: myApmHistory }];
+    drawApmChartOnCanvas(summaryApmCtx, summaryApmCanvas.width, summaryApmCanvas.height, series);
+
     postMatchScreen.classList.remove('hidden');
     const footerEl = document.getElementById('summary-footer-text');
     let rem = 5;
@@ -1102,7 +1643,6 @@
         clearInterval(summaryInterval);
         summaryInterval = null;
         postMatchScreen.classList.add('hidden');
-        // Only return to Hub if it was a 1v1 set; FFA stays in the arena for the auto-restart!
         if (msg.returnToHub !== false) {
           navigateToHub();
         }
@@ -1111,7 +1651,7 @@
   }
 
   // ============================================================================
-  // WEBSOCKET CLIENT & MULTI-BOARD RENDERING
+  // WEBSOCKET CLIENT, MULTI-BOARD RENDERING & ADMIN SPECTATOR GARBAGE INJECTOR
   // ============================================================================
 
   function updateSuddenDeathAndTugUI(sdMult, tug) {
@@ -1134,6 +1674,12 @@
     if (!Array.isArray(boardsList)) return;
     multiOpponentsGrid.innerHTML = '';
 
+    // In 1v1, track opponent's live APM for the dual-line APM graph
+    if (currentMode === 'duel' && boardsList[0]) {
+      opponentApmHistory.push(Number(boardsList[0].apm || 0));
+      if (opponentApmHistory.length > 80) opponentApmHistory.shift();
+    }
+
     boardsList.forEach(b => {
       const card = document.createElement('div');
       card.className = `opp-mini-card ${selectedManualTargetId === b.id ? 'targeted' : ''}`;
@@ -1142,6 +1688,31 @@
         <div class="opp-mini-sub">${Number(b.apm || 0).toFixed(1)} APM | ${Number(b.pps || 0).toFixed(2)} PPS</div>
         <canvas width="72" height="468"></canvas>
       `;
+
+      // Admin BigL_ Spectator Garbage Injector Buttons (+1, +4, +10 Lines)
+      if (isBigLAdmin() && (currentMode === 'spectate' || currentMode === 'ffa' || currentMode === 'duel')) {
+        const injectRow = document.createElement('div');
+        injectRow.className = 'admin-inject-row';
+        [1, 4, 10].forEach(lineAmt => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-danger btn-sm';
+          btn.textContent = `+${lineAmt}L`;
+          btn.title = `Admin BigL_: Send +${lineAmt} garbage lines to ${b.username}`;
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'admin_action',
+                action: 'send_spectator_garbage',
+                targetId: b.id,
+                lines: lineAmt
+              }));
+            }
+          });
+          injectRow.appendChild(btn);
+        });
+        card.appendChild(injectRow);
+      }
 
       if (currentMode === 'ffa') {
         card.addEventListener('click', () => {
@@ -1195,6 +1766,17 @@
     });
   }
 
+  let shoutHideTimer = null;
+  function displayAdminShout(text) {
+    adminShoutText.textContent = text;
+    adminShoutBanner.classList.remove('hidden');
+    window.AudioController.playSFX('tspin');
+    if (shoutHideTimer) clearTimeout(shoutHideTimer);
+    shoutHideTimer = setTimeout(() => {
+      adminShoutBanner.classList.add('hidden');
+    }, 5500);
+  }
+
   function connectWebSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${proto}//${window.location.host}`);
@@ -1219,6 +1801,15 @@
           if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
           if (msg.allPlayers) cachedAllPlayers = msg.allPlayers;
           if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
+          if (msg.tournaments) cachedTournaments = msg.tournaments;
+          break;
+
+        case 'force_logout':
+          forceLogoutToScreen(msg.reason || 'Disconnected by Admin.');
+          break;
+
+        case 'admin_shout':
+          displayAdminShout(msg.text);
           break;
 
         case 'profile_synced':
@@ -1235,10 +1826,13 @@
           if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
           if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
           if (msg.allPlayers) cachedAllPlayers = msg.allPlayers;
+          if (msg.tournaments) cachedTournaments = msg.tournaments;
           if (activeScreen === 'hub') {
             renderActivePlayersBar();
             renderLeaderboard();
             renderPlayersDirectory();
+            renderTournamentsView();
+            renderAdminConsole();
           }
           break;
 
@@ -1246,7 +1840,6 @@
           appendChatMessage(msg.sender, msg.text, msg.style);
           break;
 
-        // Bottom-Left Direct 1v1 Challenge Popup
         case 'direct_challenge_received':
           pendingDirectChallengeId = msg.challengeId;
           challengeToastText.textContent = `${msg.fromName} has challenged you to 1v1`;
@@ -1265,15 +1858,15 @@
         case 'duel_init':
           queueWaitingBanner.classList.add('hidden');
           challengeToast.classList.add('hidden');
-          enterArenaMode('duel', `1v1 BEST OF 3 • ${msg.p1.username} vs ${msg.p2.username}`, 4);
+          enterArenaMode('duel', `1v1 BEST OF ${msg.bestOf || 3} • ${msg.p1.username} vs ${msg.p2.username}`, 4);
           arenaScoreStrip.textContent = `${msg.p1.username} (0) - (0) ${msg.p2.username} | ROUND 1`;
           tugOfWarWrap.classList.remove('hidden');
           break;
 
         case 'duel_round_countdown':
-          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score} | ROUND ${msg.round} (BEST OF 3)`;
+          arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score} | ROUND ${msg.round} (BEST OF ${msg.bestOf || 3})`;
           if (currentMode === 'duel') {
-            startThreeSecondCountdown(msg.seed, 4);
+            startCountdownWithDuration(msg.seed, 4, msg.countdownMs || 3000);
           }
           break;
 
@@ -1295,18 +1888,31 @@
           if (currentMode === 'ffa') {
             canControlBoard = false;
             postMatchScreen.classList.add('hidden');
+            playerPlayfieldWrapper.classList.remove('hidden');
             showOverlay('WAITING FOR PLAYERS', `In Lobby: ${msg.playerCount} / 2+ required`);
+          }
+          break;
+
+        case 'ffa_temp_spectator':
+          if (currentMode === 'ffa') {
+            canControlBoard = false;
+            playerPlayfieldWrapper.classList.add('hidden');
+            multiOpponentsPanel.classList.remove('hidden');
+            multiOppHeader.textContent = 'MATCH IN PROGRESS — YOU WILL AUTO-JOIN NEXT ROUND!';
+            arenaScoreStrip.textContent = `SPECTATING UNTIL CURRENT FFA ROUND ENDS`;
           }
           break;
 
         case 'ffa_countdown_start':
           if (currentMode === 'ffa') {
             arenaScoreStrip.textContent = `${msg.playerCount} PLAYERS ALIVE`;
-            startThreeSecondCountdown(msg.seed, 4);
+            multiOppHeader.textContent = 'FFA OPPONENTS (CLICK TO TARGET)';
+            startCountdownWithDuration(msg.seed, 4, msg.countdownMs || 3000);
           }
           break;
 
         case 'spectate_init':
+          spectatingMatchId = msg.matchId || null;
           enterArenaMode('spectate', msg.title || 'LIVE SPECTATOR MODE', 4);
           break;
 
@@ -1358,7 +1964,8 @@
       attackSent: m.attackSent,
       garbageReceived: m.garbageReceived,
       maxCombo: m.maxCombo,
-      pendingGarbage: m.pendingGarbage
+      pendingGarbage: m.pendingGarbage,
+      apmHistory: myApmHistory
     }));
   }
 
@@ -1465,7 +2072,7 @@
   bindSlider('slider-bg-interval', 'val-bg-interval', 180, v => window.BackgroundController.setShuffleInterval(v));
 
   // ============================================================================
-  // CUSTOM KEYBIND INPUT HANDLING & 60FPS GAME LOOP
+  // CUSTOM KEYBIND INPUT, 15s AFK TRACKER & 60FPS GAME LOOP
   // ============================================================================
 
   const keysDown = new Set();
@@ -1493,6 +2100,9 @@
 
     if (isTyping() || activeScreen !== 'arena') return;
 
+    // Reset 15-second AFK timer on any arena keypress
+    lastInputTimestamp = performance.now();
+
     const kb = userPrefs.keybinds;
     if (Object.values(kb).includes(e.code)) {
       e.preventDefault();
@@ -1511,7 +2121,7 @@
     if (e.code === kb.restart && currentMode !== 'duel' && currentMode !== 'ffa' && currentMode !== 'spectate') {
       flushZenLines();
       if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
-      startThreeSecondCountdown(Date.now(), currentCols);
+      startCountdownWithDuration(Date.now(), currentCols, 3000);
       return;
     }
 
@@ -1584,7 +2194,7 @@
   }
 
   // ============================================================================
-  // 11-TIER SKIN & GHOST RENDERERS (GUARANTEED VISIBLE BLOCKS)
+  // 11-TIER SKIN & GHOST RENDERERS
   // ============================================================================
 
   function drawStyledBlock(ctx, x, y, size, color, alpha = 1.0, skin = 'bevel') {
@@ -1740,7 +2350,6 @@
     const cols = engine.cols || 4;
     const rows = engine.rows || 26;
 
-    // Guarantee canvas dimensions match engine dimensions so blocks are never clipped or invisible
     if (boardCanvas.width !== cols * cellSize || boardCanvas.height !== rows * cellSize) {
       boardCanvas.width = cols * cellSize;
       boardCanvas.height = rows * cellSize;
@@ -1844,6 +2453,18 @@
     statCombo.textContent = `${m.combo}x (Max ${m.maxCombo}x)`;
     statB2b.textContent = `${m.b2b}x`;
     garbageMeterFill.style.height = `${Math.min(100, (m.pendingGarbage / 20) * 100)}%`;
+
+    // Render Live In-Arena APM Graph (Dual-line in 1v1, Single-line in FFA & APM Test)
+    if (currentMode === 'duel') {
+      drawApmChartOnCanvas(liveApmCtx, liveApmCanvas.width, liveApmCanvas.height, [
+        { label: 'YOU', color: '#00e5ff', data: myApmHistory },
+        { label: 'OPP', color: '#ff3d57', data: opponentApmHistory }
+      ]);
+    } else if (currentMode === 'ffa' || currentMode === 'apm_test') {
+      drawApmChartOnCanvas(liveApmCtx, liveApmCanvas.width, liveApmCanvas.height, [
+        { label: 'YOU', color: '#00e5ff', data: myApmHistory }
+      ]);
+    }
   }
 
   let lastFrameTime = performance.now();
@@ -1854,8 +2475,28 @@
     if (activeScreen === 'arena') {
       updateBoardShakePhysics(dtMs);
       if (canControlBoard && !engine.gameOver) {
+        // 15-Second Idle / AFK Kick Check
+        if (now - lastInputTimestamp >= 15000) {
+          canControlBoard = false;
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'afk_timeout_kick' }));
+          }
+          navigateToHub();
+          requestAnimationFrame(gameLoop);
+          return;
+        }
+
         updateInput(dtMs);
         engine.update(dtMs);
+
+        // Sample APM every 500ms for the Live APM Graph
+        apmSampleTimer += dtMs;
+        if (apmSampleTimer >= 500) {
+          apmSampleTimer = 0;
+          const m = engine.getLiveMetrics();
+          myApmHistory.push(m.apm);
+          if (myApmHistory.length > 80) myApmHistory.shift();
+        }
 
         if (currentMode === 'apm_test') {
           apmTestRemainingMs -= dtMs;
