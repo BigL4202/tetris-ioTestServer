@@ -1,7 +1,7 @@
 {
-  "name": "tetrio-stacker-4x26",
-  "version": "1.0.0",
-  "description": "Full-stack multiplayer TETR.IO style block stacker with 4x26 and 10x26 support, 1v1 FT6 Duels, SRS, and dynamic resources",
+  "name": "project-a2-stacker",
+  "version": "2.0.0",
+  "description": "Project A^2: Full-stack multiplayer 4x26 and 10x26 stacker with Login, GitHub player_data sync, 1v1 FT6 Duels, and dynamic resources",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
