@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "tourney_1792100453869_7ny2",
+    "name": "Project A² Championship",
+    "createdBy": "BigL_",
+    "createdAt": "2026-10-15T21:40:53.869Z",
+    "bestOf": 3,
+    "winsNeeded": 2,
+    "maxPlayers": 8,
+    "registrationDays": 2,
+    "registrationEndsAt": 1792273253869,
+    "daysPerMatch": 1,
+    "format": "single",
+    "seeding": "random",
+    "status": "registration",
+    "registeredPlayers": [],
+    "matches": [],
+    "champion": null
+  }
+]
