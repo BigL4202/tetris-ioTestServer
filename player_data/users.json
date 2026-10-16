@@ -265,7 +265,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-16T13:27:11.815Z",
+    "updatedAt": "2026-10-16T14:31:14.744Z",
     "lastLogin": "2026-10-16T13:25:06.465Z",
     "settings": {
       "musicVolume": 0,
@@ -362,8 +362,8 @@
       }
     ],
     "moderation": {
-      "banned": false,
-      "banReason": "",
+      "banned": true,
+      "banReason": "Banned by Admin BigL_",
       "timeoutUntil": 1792158013493,
       "mutedUntil": 0
     }
@@ -373,7 +373,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:57.768Z",
-    "updatedAt": "2026-10-15T20:18:47.809Z",
+    "updatedAt": "2026-10-16T14:31:13.290Z",
     "lastLogin": "2026-10-15T20:05:21.505Z",
     "settings": {
       "musicVolume": 0,
@@ -466,8 +466,8 @@
       }
     ],
     "moderation": {
-      "banned": false,
-      "banReason": "",
+      "banned": true,
+      "banReason": "Banned by Admin BigL_",
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
@@ -577,7 +577,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-16T14:30:49.198Z",
+    "updatedAt": "2026-10-16T14:31:20.742Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -608,10 +608,10 @@
       }
     },
     "stats": {
-      "xp": 3744,
+      "xp": 3858,
       "level": 7,
       "gamesPlayed": 3,
-      "zenLines": 575,
+      "zenLines": 594,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 0,
@@ -619,7 +619,7 @@
       "duelLosses": 2,
       "tournamentWins": 0,
       "maxCombo": 8,
-      "totalLinesCleared": 604,
+      "totalLinesCleared": 623,
       "totalAttackSent": 6,
       "totalReceivedSum": 38,
       "receivedSamples": 3,
