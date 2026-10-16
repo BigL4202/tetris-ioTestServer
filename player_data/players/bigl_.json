@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-16T14:10:25.540Z",
+  "updatedAt": "2026-10-16T14:17:42.822Z",
   "lastLogin": "2026-10-16T13:41:26.709Z",
   "settings": {
     "das": 115,
@@ -29,23 +29,23 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "/resources/bg/bg3.jpg"
+    "lockedBg": "/resources/bg/bg10.jpg"
   },
   "stats": {
-    "gamesPlayed": 21,
+    "gamesPlayed": 23,
     "ffaWins": 6,
-    "duelWins": 4,
+    "duelWins": 6,
     "duelLosses": 0,
     "maxCombo": 18,
-    "totalLinesCleared": 1686,
-    "totalAttackSent": 146,
+    "totalLinesCleared": 1697,
+    "totalAttackSent": 170,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
     "totalReceivedSum": 9,
-    "receivedSamples": 13,
-    "avgReceived": 0.7,
-    "xp": 10359,
+    "receivedSamples": 15,
+    "avgReceived": 0.6,
+    "xp": 10714,
     "level": 12,
     "zenLines": 957,
     "apmTestBest": 199,
@@ -230,6 +230,26 @@
       "apm": 8.9,
       "lines": 16,
       "maxCombo": 5
+    },
+    {
+      "date": "2026-10-16T14:10:51.250Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "0-0",
+      "opponent": "TJ",
+      "apm": 0,
+      "lines": 3,
+      "maxCombo": 1
+    },
+    {
+      "date": "2026-10-16T14:11:51.542Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "TJ",
+      "apm": 162.5,
+      "lines": 8,
+      "maxCombo": 3
     }
   ],
   "moderation": {
