@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-16T14:10:21.952Z",
+  "updatedAt": "2026-10-16T14:10:51.251Z",
   "lastLogin": "2026-10-16T14:08:15.863Z",
   "moderation": {
     "banned": false,
@@ -34,22 +34,22 @@
     }
   },
   "stats": {
-    "xp": 134,
+    "xp": 204,
     "level": 2,
-    "gamesPlayed": 1,
+    "gamesPlayed": 2,
     "zenLines": 0,
     "apmTestBest": 0,
     "apmTestLast": 0,
     "ffaWins": 0,
     "duelWins": 0,
-    "duelLosses": 0,
+    "duelLosses": 1,
     "tournamentWins": 0,
     "maxCombo": 2,
-    "totalLinesCleared": 21,
+    "totalLinesCleared": 23,
     "totalAttackSent": 6,
     "totalReceivedSum": 6,
-    "receivedSamples": 1,
-    "avgReceived": 6
+    "receivedSamples": 2,
+    "avgReceived": 3
   },
   "matchHistory": [
     {
@@ -59,6 +59,16 @@
       "apm": 7.6,
       "lines": 21,
       "maxCombo": 2
+    },
+    {
+      "date": "2026-10-16T14:10:51.251Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "0-0",
+      "opponent": "BigL_",
+      "apm": 0,
+      "lines": 2,
+      "maxCombo": 0
     }
   ]
 }
