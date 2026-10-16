@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T13:22:15.074Z",
+    "updatedAt": "2026-10-16T13:23:24.374Z",
     "lastLogin": "2026-10-16T13:06:27.915Z",
     "settings": {
       "das": 115,
@@ -33,12 +33,12 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 14,
+      "gamesPlayed": 15,
       "ffaWins": 5,
       "duelWins": 2,
       "duelLosses": 0,
       "maxCombo": 13,
-      "totalLinesCleared": 1237,
+      "totalLinesCleared": 1306,
       "totalAttackSent": 111,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -46,11 +46,11 @@
       "totalReceivedSum": 8,
       "receivedSamples": 10,
       "avgReceived": 0.8,
-      "xp": 7733,
+      "xp": 7933,
       "level": 10,
       "zenLines": 863,
       "apmTestBest": 163,
-      "apmTestLast": 76,
+      "apmTestLast": 50,
       "tournamentWins": 0
     },
     "matchHistory": [
@@ -171,6 +171,14 @@
         "apm": 76,
         "lines": 68,
         "maxCombo": 11
+      },
+      {
+        "date": "2026-10-16T13:23:24.374Z",
+        "mode": "APM TEST (1:00)",
+        "result": "50 APM",
+        "apm": 50,
+        "lines": 69,
+        "maxCombo": 7
       }
     ],
     "moderation": {
