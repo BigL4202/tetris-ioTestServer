@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-16T13:55:24.634Z",
+  "updatedAt": "2026-10-16T13:55:43.397Z",
   "lastLogin": "2026-10-16T13:41:26.709Z",
   "settings": {
     "das": 115,
@@ -15,7 +15,7 @@
     "preferredCols": 4,
     "boardShake": true,
     "lockFlash": true,
-    "blockSkin": "mono",
+    "blockSkin": "bevel",
     "ghostStyle": "dashed",
     "boardTheme": "sakura",
     "keybinds": {
@@ -29,7 +29,7 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "/resources/bg/bg10.jpg"
+    "lockedBg": "shuffle"
   },
   "stats": {
     "gamesPlayed": 16,
