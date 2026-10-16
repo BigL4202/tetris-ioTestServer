@@ -477,7 +477,7 @@
     "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
     "passwordPlain": "WaverlyH18!",
     "createdAt": "2026-10-16T13:52:21.058Z",
-    "updatedAt": "2026-10-16T14:13:32.627Z",
+    "updatedAt": "2026-10-16T14:13:35.874Z",
     "lastLogin": "2026-10-16T13:56:23.203Z",
     "moderation": {
       "banned": false,
@@ -508,10 +508,10 @@
       }
     },
     "stats": {
-      "xp": 1960,
+      "xp": 1978,
       "level": 5,
       "gamesPlayed": 5,
-      "zenLines": 183,
+      "zenLines": 186,
       "apmTestBest": 34,
       "apmTestLast": 34,
       "ffaWins": 0,
@@ -519,7 +519,7 @@
       "duelLosses": 2,
       "tournamentWins": 0,
       "maxCombo": 8,
-      "totalLinesCleared": 361,
+      "totalLinesCleared": 364,
       "totalAttackSent": 48,
       "totalReceivedSum": 54,
       "receivedSamples": 2,
@@ -577,8 +577,8 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-16T14:11:51.543Z",
-    "lastLogin": "2026-10-16T14:08:15.863Z",
+    "updatedAt": "2026-10-16T14:15:25.389Z",
+    "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
       "banReason": "",
@@ -594,7 +594,7 @@
       "blockSkin": "bevel",
       "ghostStyle": "fill",
       "boardTheme": "cyan",
-      "lockedBg": "/resources/bg/bg3.jpg",
+      "lockedBg": "shuffle",
       "keybinds": {
         "moveLeft": "KeyA",
         "moveRight": "KeyD",
@@ -602,16 +602,16 @@
         "rotateCCW": "ArrowDown",
         "rotate180": "KeyA",
         "softDrop": "Space",
-        "hardDrop": "KeyS",
+        "hardDrop": "Space",
         "hold": "ShiftLeft",
         "restart": "KeyR"
       }
     },
     "stats": {
-      "xp": 294,
+      "xp": 312,
       "level": 2,
       "gamesPlayed": 3,
-      "zenLines": 0,
+      "zenLines": 3,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 0,
@@ -619,7 +619,7 @@
       "duelLosses": 2,
       "tournamentWins": 0,
       "maxCombo": 2,
-      "totalLinesCleared": 29,
+      "totalLinesCleared": 32,
       "totalAttackSent": 6,
       "totalReceivedSum": 38,
       "receivedSamples": 3,
@@ -655,5 +655,60 @@
         "maxCombo": 1
       }
     ]
+  },
+  "normaltj": {
+    "username": "NormalTJ",
+    "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
+    "passwordPlain": "1024Rosco!",
+    "createdAt": "2026-10-16T14:13:36.094Z",
+    "updatedAt": "2026-10-16T14:13:36.094Z",
+    "lastLogin": "2026-10-16T14:13:36.094Z",
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    },
+    "settings": {
+      "musicVolume": 40,
+      "sfxVolume": 75,
+      "bgInterval": 180,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "boardTheme": "cyan",
+      "lockedBg": "shuffle",
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
+    },
+    "stats": {
+      "xp": 0,
+      "level": 1,
+      "gamesPlayed": 0,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0,
+      "ffaWins": 0,
+      "duelWins": 0,
+      "duelLosses": 0,
+      "tournamentWins": 0,
+      "maxCombo": 0,
+      "totalLinesCleared": 0,
+      "totalAttackSent": 0,
+      "totalReceivedSum": 0,
+      "receivedSamples": 0,
+      "avgReceived": 0
+    },
+    "matchHistory": []
   }
 }
