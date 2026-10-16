@@ -3,7 +3,7 @@
   "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
   "passwordPlain": "WaverlyH18!",
   "createdAt": "2026-10-16T13:52:21.058Z",
-  "updatedAt": "2026-10-16T14:08:52.286Z",
+  "updatedAt": "2026-10-16T14:09:11.140Z",
   "lastLogin": "2026-10-16T13:56:23.203Z",
   "moderation": {
     "banned": false,
@@ -34,10 +34,10 @@
     }
   },
   "stats": {
-    "xp": 1540,
+    "xp": 1588,
     "level": 5,
     "gamesPlayed": 5,
-    "zenLines": 113,
+    "zenLines": 121,
     "apmTestBest": 34,
     "apmTestLast": 34,
     "ffaWins": 0,
@@ -45,7 +45,7 @@
     "duelLosses": 2,
     "tournamentWins": 0,
     "maxCombo": 8,
-    "totalLinesCleared": 291,
+    "totalLinesCleared": 299,
     "totalAttackSent": 48,
     "totalReceivedSum": 54,
     "receivedSamples": 2,
