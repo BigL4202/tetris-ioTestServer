@@ -3,11 +3,11 @@
   "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
   "passwordPlain": "WaverlyH18!",
   "createdAt": "2026-10-16T13:52:21.058Z",
-  "updatedAt": "2026-10-16T13:56:11.920Z",
+  "updatedAt": "2026-10-16T13:56:14.639Z",
   "lastLogin": "2026-10-16T13:52:21.058Z",
   "moderation": {
-    "banned": true,
-    "banReason": "Banned by Admin BigL_",
+    "banned": false,
+    "banReason": "",
     "timeoutUntil": 0,
     "mutedUntil": 0
   },
