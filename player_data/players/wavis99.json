@@ -3,7 +3,7 @@
   "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
   "passwordPlain": "WaverlyH18!",
   "createdAt": "2026-10-16T13:52:21.058Z",
-  "updatedAt": "2026-10-16T13:52:21.058Z",
+  "updatedAt": "2026-10-16T13:54:48.463Z",
   "lastLogin": "2026-10-16T13:52:21.058Z",
   "moderation": {
     "banned": false,
@@ -34,22 +34,33 @@
     }
   },
   "stats": {
-    "xp": 0,
-    "level": 1,
-    "gamesPlayed": 0,
+    "xp": 230,
+    "level": 2,
+    "gamesPlayed": 1,
     "zenLines": 0,
     "apmTestBest": 0,
     "apmTestLast": 0,
     "ffaWins": 0,
     "duelWins": 0,
-    "duelLosses": 0,
+    "duelLosses": 1,
     "tournamentWins": 0,
-    "maxCombo": 0,
-    "totalLinesCleared": 0,
-    "totalAttackSent": 0,
-    "totalReceivedSum": 0,
-    "receivedSamples": 0,
-    "avgReceived": 0
+    "maxCombo": 8,
+    "totalLinesCleared": 34,
+    "totalAttackSent": 26,
+    "totalReceivedSum": 24,
+    "receivedSamples": 1,
+    "avgReceived": 24
   },
-  "matchHistory": []
+  "matchHistory": [
+    {
+      "date": "2026-10-16T13:54:48.463Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-1",
+      "opponent": "BigL_",
+      "apm": 34.1,
+      "lines": 34,
+      "maxCombo": 8
+    }
+  ]
 }
