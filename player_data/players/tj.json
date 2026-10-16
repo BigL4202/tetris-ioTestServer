@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-16T14:08:34.572Z",
+  "updatedAt": "2026-10-16T14:10:07.211Z",
   "lastLogin": "2026-10-16T14:08:15.863Z",
   "moderation": {
     "banned": false,
@@ -20,9 +20,9 @@
     "blockSkin": "bevel",
     "ghostStyle": "fill",
     "boardTheme": "cyan",
-    "lockedBg": "/resources/bg/bg7.jpg",
+    "lockedBg": "/resources/bg/bg3.jpg",
     "keybinds": {
-      "moveLeft": "ArrowLeft",
+      "moveLeft": "KeyA",
       "moveRight": "ArrowRight",
       "rotateCW": "ArrowUp",
       "rotateCCW": "KeyZ",
@@ -34,9 +34,9 @@
     }
   },
   "stats": {
-    "xp": 0,
-    "level": 1,
-    "gamesPlayed": 0,
+    "xp": 134,
+    "level": 2,
+    "gamesPlayed": 1,
     "zenLines": 0,
     "apmTestBest": 0,
     "apmTestLast": 0,
@@ -44,12 +44,21 @@
     "duelWins": 0,
     "duelLosses": 0,
     "tournamentWins": 0,
-    "maxCombo": 0,
-    "totalLinesCleared": 0,
-    "totalAttackSent": 0,
-    "totalReceivedSum": 0,
-    "receivedSamples": 0,
-    "avgReceived": 0
+    "maxCombo": 2,
+    "totalLinesCleared": 21,
+    "totalAttackSent": 6,
+    "totalReceivedSum": 6,
+    "receivedSamples": 1,
+    "avgReceived": 6
   },
-  "matchHistory": []
+  "matchHistory": [
+    {
+      "date": "2026-10-16T14:09:50.770Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 7.6,
+      "lines": 21,
+      "maxCombo": 2
+    }
+  ]
 }
