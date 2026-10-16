@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T13:51:38.016Z",
+    "updatedAt": "2026-10-16T13:54:48.463Z",
     "lastLogin": "2026-10-16T13:41:26.709Z",
     "settings": {
       "das": 115,
@@ -33,21 +33,21 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 15,
+      "gamesPlayed": 16,
       "ffaWins": 5,
-      "duelWins": 2,
+      "duelWins": 3,
       "duelLosses": 0,
       "maxCombo": 13,
-      "totalLinesCleared": 1310,
-      "totalAttackSent": 111,
+      "totalLinesCleared": 1336,
+      "totalAttackSent": 125,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
       "totalReceivedSum": 8,
-      "receivedSamples": 10,
-      "avgReceived": 0.8,
-      "xp": 7957,
-      "level": 10,
+      "receivedSamples": 11,
+      "avgReceived": 0.7,
+      "xp": 8237,
+      "level": 11,
       "zenLines": 867,
       "apmTestBest": 163,
       "apmTestLast": 50,
@@ -178,6 +178,16 @@
         "result": "50 APM",
         "apm": 50,
         "lines": 69,
+        "maxCombo": 7
+      },
+      {
+        "date": "2026-10-16T13:54:48.463Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-1",
+        "opponent": "wavis99",
+        "apm": 37,
+        "lines": 26,
         "maxCombo": 7
       }
     ],
@@ -399,5 +409,71 @@
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
+  },
+  "wavis99": {
+    "username": "wavis99",
+    "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
+    "passwordPlain": "WaverlyH18!",
+    "createdAt": "2026-10-16T13:52:21.058Z",
+    "updatedAt": "2026-10-16T13:55:11.574Z",
+    "lastLogin": "2026-10-16T13:52:21.058Z",
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    },
+    "settings": {
+      "musicVolume": 40,
+      "sfxVolume": 75,
+      "bgInterval": 180,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "boardTheme": "cyan",
+      "lockedBg": "shuffle",
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
+    },
+    "stats": {
+      "xp": 230,
+      "level": 2,
+      "gamesPlayed": 1,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0,
+      "ffaWins": 0,
+      "duelWins": 0,
+      "duelLosses": 1,
+      "tournamentWins": 0,
+      "maxCombo": 8,
+      "totalLinesCleared": 34,
+      "totalAttackSent": 26,
+      "totalReceivedSum": 24,
+      "receivedSamples": 1,
+      "avgReceived": 24
+    },
+    "matchHistory": [
+      {
+        "date": "2026-10-16T13:54:48.463Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-1",
+        "opponent": "BigL_",
+        "apm": 34.1,
+        "lines": 34,
+        "maxCombo": 8
+      }
+    ]
   }
 }
