@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-16T14:15:38.109Z",
+  "updatedAt": "2026-10-16T14:15:45.899Z",
   "lastLogin": "2026-10-16T14:13:55.350Z",
   "moderation": {
     "banned": false,
@@ -22,12 +22,12 @@
     "boardTheme": "cyan",
     "lockedBg": "shuffle",
     "keybinds": {
-      "moveLeft": "KeyA",
-      "moveRight": "KeyD",
-      "rotateCW": "KeyW",
-      "rotateCCW": "ArrowDown",
+      "moveLeft": "ArrowLeft",
+      "moveRight": "ArrowRight",
+      "rotateCW": "ArrowUp",
+      "rotateCCW": "KeyZ",
       "rotate180": "KeyA",
-      "softDrop": "Space",
+      "softDrop": "ArrowDown",
       "hardDrop": "Space",
       "hold": "ShiftLeft",
       "restart": "KeyR"
