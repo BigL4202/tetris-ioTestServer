@@ -3,8 +3,8 @@
   "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   "passwordPlain": "1234",
   "createdAt": "2026-10-15T19:48:42.278Z",
-  "updatedAt": "2026-10-15T21:41:47.625Z",
-  "lastLogin": "2026-10-15T21:40:28.404Z",
+  "updatedAt": "2026-10-16T13:24:21.300Z",
+  "lastLogin": "2026-10-15T20:05:36.432Z",
   "settings": {
     "musicVolume": 0,
     "sfxVolume": 40,
@@ -28,21 +28,21 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "xp": 1249,
-    "level": 4,
-    "gamesPlayed": 7,
+    "xp": 689,
+    "level": 3,
+    "gamesPlayed": 6,
     "zenLines": 0,
     "apmTestBest": 0,
     "apmTestLast": 0,
     "ffaWins": 2,
     "duelWins": 0,
-    "duelLosses": 3,
+    "duelLosses": 2,
     "maxCombo": 8,
     "totalLinesCleared": 38,
     "totalAttackSent": 24,
     "totalReceivedSum": 51,
-    "receivedSamples": 7,
-    "avgReceived": 7.3,
+    "receivedSamples": 6,
+    "avgReceived": 8.5,
     "tournamentWins": 0
   },
   "matchHistory": [
@@ -97,24 +97,6 @@
       "apm": 0,
       "lines": 0,
       "maxCombo": 0
-    },
-    {
-      "date": "2026-10-15T21:41:47.623Z",
-      "mode": "TOURNEY BO3",
-      "result": "LOSS",
-      "score": "0-0",
-      "opponent": "BigL_",
-      "apm": 0,
-      "lines": 0,
-      "maxCombo": 0
-    },
-    {
-      "date": "2026-10-15T21:41:47.625Z",
-      "mode": "TOURNAMENT: Project A² Championship",
-      "result": "RUNNER-UP (2ND)",
-      "apm": 0,
-      "lines": 0,
-      "maxCombo": 8
     }
   ],
   "moderation": {
