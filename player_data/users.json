@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T14:02:51.410Z",
+    "updatedAt": "2026-10-16T14:04:00.424Z",
     "lastLogin": "2026-10-16T13:41:26.709Z",
     "settings": {
       "das": 115,
@@ -33,12 +33,12 @@
       "lockedBg": "/resources/bg/bg3.jpg"
     },
     "stats": {
-      "gamesPlayed": 19,
+      "gamesPlayed": 20,
       "ffaWins": 5,
       "duelWins": 4,
       "duelLosses": 0,
       "maxCombo": 18,
-      "totalLinesCleared": 1587,
+      "totalLinesCleared": 1670,
       "totalAttackSent": 139,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -46,11 +46,11 @@
       "totalReceivedSum": 8,
       "receivedSamples": 12,
       "avgReceived": 0.7,
-      "xp": 9657,
-      "level": 11,
+      "xp": 10155,
+      "level": 12,
       "zenLines": 957,
-      "apmTestBest": 163,
-      "apmTestLast": 125.8,
+      "apmTestBest": 199,
+      "apmTestLast": 199,
       "tournamentWins": 0
     },
     "matchHistory": [
@@ -214,6 +214,14 @@
         "result": "125.8 APM",
         "apm": 125.8,
         "lines": 69,
+        "maxCombo": 18
+      },
+      {
+        "date": "2026-10-16T14:04:00.424Z",
+        "mode": "APM TEST (1:00)",
+        "result": "199 APM",
+        "apm": 199,
+        "lines": 83,
         "maxCombo": 18
       }
     ],
@@ -441,7 +449,7 @@
     "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
     "passwordPlain": "WaverlyH18!",
     "createdAt": "2026-10-16T13:52:21.058Z",
-    "updatedAt": "2026-10-16T14:03:22.101Z",
+    "updatedAt": "2026-10-16T14:04:35.270Z",
     "lastLogin": "2026-10-16T13:56:23.203Z",
     "moderation": {
       "banned": false,
@@ -472,10 +480,10 @@
       }
     },
     "stats": {
-      "xp": 1072,
+      "xp": 1180,
       "level": 4,
       "gamesPlayed": 5,
-      "zenLines": 35,
+      "zenLines": 53,
       "apmTestBest": 34,
       "apmTestLast": 34,
       "ffaWins": 0,
@@ -483,7 +491,7 @@
       "duelLosses": 2,
       "tournamentWins": 0,
       "maxCombo": 8,
-      "totalLinesCleared": 213,
+      "totalLinesCleared": 231,
       "totalAttackSent": 48,
       "totalReceivedSum": 54,
       "receivedSamples": 2,
