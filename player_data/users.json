@@ -415,7 +415,7 @@
     "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
     "passwordPlain": "WaverlyH18!",
     "createdAt": "2026-10-16T13:52:21.058Z",
-    "updatedAt": "2026-10-16T13:55:11.574Z",
+    "updatedAt": "2026-10-16T13:55:21.488Z",
     "lastLogin": "2026-10-16T13:52:21.058Z",
     "moderation": {
       "banned": false,
@@ -432,7 +432,7 @@
       "blockSkin": "bevel",
       "ghostStyle": "fill",
       "boardTheme": "cyan",
-      "lockedBg": "shuffle",
+      "lockedBg": "/resources/bg/bg3.jpg",
       "keybinds": {
         "moveLeft": "ArrowLeft",
         "moveRight": "ArrowRight",
