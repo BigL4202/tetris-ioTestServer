@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T13:08:24.032Z",
+    "updatedAt": "2026-10-16T13:08:27.422Z",
     "lastLogin": "2026-10-16T13:06:27.915Z",
     "settings": {
       "das": 115,
@@ -17,7 +17,7 @@
       "boardShake": true,
       "lockFlash": false,
       "blockSkin": "prism",
-      "ghostStyle": "fill",
+      "ghostStyle": "outline",
       "boardTheme": "cyan",
       "keybinds": {
         "moveLeft": "ArrowLeft",
