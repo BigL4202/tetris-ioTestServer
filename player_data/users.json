@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T13:23:24.374Z",
+    "updatedAt": "2026-10-16T13:41:14.939Z",
     "lastLogin": "2026-10-16T13:06:27.915Z",
     "settings": {
       "das": 115,
@@ -30,7 +30,7 @@
         "hold": "ShiftLeft",
         "restart": "KeyR"
       },
-      "lockedBg": "shuffle"
+      "lockedBg": "/resources/bg/bg9.jpg"
     },
     "stats": {
       "gamesPlayed": 15,
@@ -193,7 +193,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-16T13:26:25.318Z",
+    "updatedAt": "2026-10-16T13:27:11.815Z",
     "lastLogin": "2026-10-16T13:25:06.465Z",
     "settings": {
       "musicVolume": 0,
@@ -218,8 +218,8 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "xp": 200,
-      "level": 2,
+      "xp": 689,
+      "level": 3,
       "gamesPlayed": 6,
       "zenLines": 0,
       "apmTestBest": 0,
