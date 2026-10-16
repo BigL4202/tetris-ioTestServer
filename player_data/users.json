@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-16T13:58:27.436Z",
+    "updatedAt": "2026-10-16T13:58:40.259Z",
     "lastLogin": "2026-10-16T13:41:26.709Z",
     "settings": {
       "das": 115,
@@ -37,8 +37,8 @@
       "ffaWins": 5,
       "duelWins": 4,
       "duelLosses": 0,
-      "maxCombo": 13,
-      "totalLinesCleared": 1350,
+      "maxCombo": 15,
+      "totalLinesCleared": 1370,
       "totalAttackSent": 139,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -46,9 +46,9 @@
       "totalReceivedSum": 8,
       "receivedSamples": 12,
       "avgReceived": 0.7,
-      "xp": 8461,
+      "xp": 8581,
       "level": 11,
-      "zenLines": 871,
+      "zenLines": 891,
       "apmTestBest": 163,
       "apmTestLast": 50,
       "tournamentWins": 0
@@ -425,7 +425,7 @@
     "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
     "passwordPlain": "WaverlyH18!",
     "createdAt": "2026-10-16T13:52:21.058Z",
-    "updatedAt": "2026-10-16T13:58:00.579Z",
+    "updatedAt": "2026-10-16T13:59:14.797Z",
     "lastLogin": "2026-10-16T13:56:23.203Z",
     "moderation": {
       "banned": false,
@@ -456,18 +456,18 @@
       }
     },
     "stats": {
-      "xp": 534,
+      "xp": 694,
       "level": 3,
-      "gamesPlayed": 3,
+      "gamesPlayed": 4,
       "zenLines": 0,
-      "apmTestBest": 17.1,
-      "apmTestLast": 17.1,
+      "apmTestBest": 30,
+      "apmTestLast": 30,
       "ffaWins": 0,
       "duelWins": 0,
       "duelLosses": 2,
       "tournamentWins": 0,
       "maxCombo": 8,
-      "totalLinesCleared": 84,
+      "totalLinesCleared": 120,
       "totalAttackSent": 48,
       "totalReceivedSum": 54,
       "receivedSamples": 2,
@@ -501,6 +501,14 @@
         "apm": 50.8,
         "lines": 22,
         "maxCombo": 4
+      },
+      {
+        "date": "2026-10-16T13:59:14.797Z",
+        "mode": "APM TEST (1:00)",
+        "result": "30 APM",
+        "apm": 30,
+        "lines": 36,
+        "maxCombo": 3
       }
     ]
   }
