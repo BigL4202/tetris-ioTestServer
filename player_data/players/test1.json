@@ -3,7 +3,7 @@
   "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   "passwordPlain": "1234",
   "createdAt": "2026-10-15T19:48:42.278Z",
-  "updatedAt": "2026-10-16T13:26:55.718Z",
+  "updatedAt": "2026-10-16T13:26:59.895Z",
   "lastLogin": "2026-10-16T13:25:06.465Z",
   "settings": {
     "musicVolume": 0,
@@ -28,8 +28,8 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "xp": 1500000,
-    "level": 100,
+    "xp": 150000,
+    "level": 44,
     "gamesPlayed": 6,
     "zenLines": 0,
     "apmTestBest": 0,
