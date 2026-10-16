@@ -3,7 +3,7 @@
   "passwordHash": "70ea17bb506dcae54d461bc158e86bb7ed1b040d8e1d2ac6058c5d59b4fd6b12",
   "passwordPlain": "UCS4214gn",
   "createdAt": "2026-10-16T14:34:07.449Z",
-  "updatedAt": "2026-10-16T14:34:55.493Z",
+  "updatedAt": "2026-10-16T14:35:04.581Z",
   "lastLogin": "2026-10-16T14:34:07.449Z",
   "moderation": {
     "banned": false,
@@ -34,10 +34,10 @@
     }
   },
   "stats": {
-    "xp": 126,
+    "xp": 156,
     "level": 2,
     "gamesPlayed": 0,
-    "zenLines": 21,
+    "zenLines": 26,
     "apmTestBest": 0,
     "apmTestLast": 0,
     "ffaWins": 0,
@@ -45,7 +45,7 @@
     "duelLosses": 0,
     "tournamentWins": 0,
     "maxCombo": 6,
-    "totalLinesCleared": 21,
+    "totalLinesCleared": 26,
     "totalAttackSent": 0,
     "totalReceivedSum": 0,
     "receivedSamples": 0,
