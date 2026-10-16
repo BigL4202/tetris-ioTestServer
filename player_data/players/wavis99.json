@@ -1,0 +1,55 @@
+{
+  "username": "wavis99",
+  "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
+  "passwordPlain": "WaverlyH18!",
+  "createdAt": "2026-10-16T13:52:21.058Z",
+  "updatedAt": "2026-10-16T13:52:21.058Z",
+  "lastLogin": "2026-10-16T13:52:21.058Z",
+  "moderation": {
+    "banned": false,
+    "banReason": "",
+    "timeoutUntil": 0,
+    "mutedUntil": 0
+  },
+  "settings": {
+    "musicVolume": 40,
+    "sfxVolume": 75,
+    "bgInterval": 180,
+    "boardShake": true,
+    "lockFlash": true,
+    "blockSkin": "bevel",
+    "ghostStyle": "fill",
+    "boardTheme": "cyan",
+    "lockedBg": "shuffle",
+    "keybinds": {
+      "moveLeft": "ArrowLeft",
+      "moveRight": "ArrowRight",
+      "rotateCW": "ArrowUp",
+      "rotateCCW": "KeyZ",
+      "rotate180": "KeyA",
+      "softDrop": "ArrowDown",
+      "hardDrop": "Space",
+      "hold": "ShiftLeft",
+      "restart": "KeyR"
+    }
+  },
+  "stats": {
+    "xp": 0,
+    "level": 1,
+    "gamesPlayed": 0,
+    "zenLines": 0,
+    "apmTestBest": 0,
+    "apmTestLast": 0,
+    "ffaWins": 0,
+    "duelWins": 0,
+    "duelLosses": 0,
+    "tournamentWins": 0,
+    "maxCombo": 0,
+    "totalLinesCleared": 0,
+    "totalAttackSent": 0,
+    "totalReceivedSum": 0,
+    "receivedSamples": 0,
+    "avgReceived": 0
+  },
+  "matchHistory": []
+}
