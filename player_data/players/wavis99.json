@@ -3,7 +3,7 @@
   "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
   "passwordPlain": "WaverlyH18!",
   "createdAt": "2026-10-16T13:52:21.058Z",
-  "updatedAt": "2026-10-16T13:58:00.579Z",
+  "updatedAt": "2026-10-16T14:00:26.567Z",
   "lastLogin": "2026-10-16T13:56:23.203Z",
   "moderation": {
     "banned": false,
@@ -34,18 +34,18 @@
     }
   },
   "stats": {
-    "xp": 534,
-    "level": 3,
-    "gamesPlayed": 3,
+    "xp": 862,
+    "level": 4,
+    "gamesPlayed": 5,
     "zenLines": 0,
-    "apmTestBest": 17.1,
-    "apmTestLast": 17.1,
+    "apmTestBest": 34,
+    "apmTestLast": 34,
     "ffaWins": 0,
     "duelWins": 0,
     "duelLosses": 2,
     "tournamentWins": 0,
     "maxCombo": 8,
-    "totalLinesCleared": 84,
+    "totalLinesCleared": 178,
     "totalAttackSent": 48,
     "totalReceivedSum": 54,
     "receivedSamples": 2,
@@ -79,6 +79,22 @@
       "apm": 50.8,
       "lines": 22,
       "maxCombo": 4
+    },
+    {
+      "date": "2026-10-16T13:59:14.797Z",
+      "mode": "APM TEST (1:00)",
+      "result": "30 APM",
+      "apm": 30,
+      "lines": 36,
+      "maxCombo": 3
+    },
+    {
+      "date": "2026-10-16T14:00:26.567Z",
+      "mode": "APM TEST (1:00)",
+      "result": "34 APM",
+      "apm": 34,
+      "lines": 58,
+      "maxCombo": 5
     }
   ]
 }
