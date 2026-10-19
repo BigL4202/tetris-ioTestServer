@@ -577,7 +577,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-19T12:44:06.345Z",
+    "updatedAt": "2026-10-19T12:46:08.886Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -591,9 +591,9 @@
       "bgInterval": 180,
       "boardShake": true,
       "lockFlash": true,
-      "blockSkin": "bevel",
-      "ghostStyle": "fill",
-      "boardTheme": "cyan",
+      "blockSkin": "flat",
+      "ghostStyle": "outline",
+      "boardTheme": "crimson",
       "lockedBg": "shuffle",
       "keybinds": {
         "moveLeft": "KeyA",
@@ -608,10 +608,10 @@
       }
     },
     "stats": {
-      "xp": 12224,
+      "xp": 12260,
       "level": 13,
       "gamesPlayed": 46,
-      "zenLines": 755,
+      "zenLines": 761,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 10,
@@ -619,7 +619,7 @@
       "duelLosses": 3,
       "tournamentWins": 0,
       "maxCombo": 14,
-      "totalLinesCleared": 1839,
+      "totalLinesCleared": 1845,
       "totalAttackSent": 712,
       "totalReceivedSum": 773,
       "receivedSamples": 46,
