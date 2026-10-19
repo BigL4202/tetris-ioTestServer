@@ -1,0 +1,55 @@
+{
+  "username": "BARNESTTV",
+  "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
+  "passwordPlain": "UCE5826tb",
+  "createdAt": "2026-10-19T12:15:50.187Z",
+  "updatedAt": "2026-10-19T12:15:50.187Z",
+  "lastLogin": "2026-10-19T12:15:50.187Z",
+  "moderation": {
+    "banned": false,
+    "banReason": "",
+    "timeoutUntil": 0,
+    "mutedUntil": 0
+  },
+  "settings": {
+    "musicVolume": 40,
+    "sfxVolume": 75,
+    "bgInterval": 180,
+    "boardShake": true,
+    "lockFlash": true,
+    "blockSkin": "bevel",
+    "ghostStyle": "fill",
+    "boardTheme": "cyan",
+    "lockedBg": "shuffle",
+    "keybinds": {
+      "moveLeft": "ArrowLeft",
+      "moveRight": "ArrowRight",
+      "rotateCW": "ArrowUp",
+      "rotateCCW": "KeyZ",
+      "rotate180": "KeyA",
+      "softDrop": "ArrowDown",
+      "hardDrop": "Space",
+      "hold": "ShiftLeft",
+      "restart": "KeyR"
+    }
+  },
+  "stats": {
+    "xp": 0,
+    "level": 1,
+    "gamesPlayed": 0,
+    "zenLines": 0,
+    "apmTestBest": 0,
+    "apmTestLast": 0,
+    "ffaWins": 0,
+    "duelWins": 0,
+    "duelLosses": 0,
+    "tournamentWins": 0,
+    "maxCombo": 0,
+    "totalLinesCleared": 0,
+    "totalAttackSent": 0,
+    "totalReceivedSum": 0,
+    "receivedSamples": 0,
+    "avgReceived": 0
+  },
+  "matchHistory": []
+}
