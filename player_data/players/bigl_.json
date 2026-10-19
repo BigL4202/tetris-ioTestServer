@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-19T13:55:59.002Z",
+  "updatedAt": "2026-10-19T14:07:29.432Z",
   "lastLogin": "2026-10-19T13:50:45.501Z",
   "settings": {
     "das": 115,
@@ -32,21 +32,21 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 26,
-    "ffaWins": 6,
-    "duelWins": 7,
+    "gamesPlayed": 35,
+    "ffaWins": 7,
+    "duelWins": 15,
     "duelLosses": 2,
     "maxCombo": 19,
-    "totalLinesCleared": 2498,
-    "totalAttackSent": 222,
+    "totalLinesCleared": 2803,
+    "totalAttackSent": 501,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 73,
-    "receivedSamples": 18,
-    "avgReceived": 4.1,
-    "xp": 15682,
-    "level": 15,
+    "totalReceivedSum": 139,
+    "receivedSamples": 27,
+    "avgReceived": 5.1,
+    "xp": 18526,
+    "level": 16,
     "zenLines": 1650,
     "apmTestBest": 199,
     "apmTestLast": 199,
@@ -280,6 +280,94 @@
       "apm": 18.8,
       "lines": 48,
       "maxCombo": 8
+    },
+    {
+      "date": "2026-10-19T13:56:46.948Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 103.6,
+      "lines": 18,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-19T13:57:45.730Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 87.4,
+      "lines": 17,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-19T13:59:54.527Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-1",
+      "opponent": "BARNESTTV",
+      "apm": 60.1,
+      "lines": 62,
+      "maxCombo": 9
+    },
+    {
+      "date": "2026-10-19T14:01:32.983Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-1",
+      "opponent": "BARNESTTV",
+      "apm": 40,
+      "lines": 34,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-19T14:03:08.665Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 49.5,
+      "lines": 42,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-19T14:04:28.376Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-1",
+      "opponent": "BARNESTTV",
+      "apm": 59.3,
+      "lines": 26,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-19T14:05:50.545Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 73.2,
+      "lines": 42,
+      "maxCombo": 12
+    },
+    {
+      "date": "2026-10-19T14:06:55.395Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 120.1,
+      "lines": 43,
+      "maxCombo": 11
+    },
+    {
+      "date": "2026-10-19T14:07:29.432Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 43.9,
+      "lines": 21,
+      "maxCombo": 5
     }
   ],
   "moderation": {
