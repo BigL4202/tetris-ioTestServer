@@ -577,7 +577,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-19T12:46:40.483Z",
+    "updatedAt": "2026-10-19T12:46:47.717Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -608,10 +608,10 @@
       }
     },
     "stats": {
-      "xp": 12404,
+      "xp": 12428,
       "level": 13,
       "gamesPlayed": 46,
-      "zenLines": 785,
+      "zenLines": 789,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 10,
@@ -619,7 +619,7 @@
       "duelLosses": 3,
       "tournamentWins": 0,
       "maxCombo": 14,
-      "totalLinesCleared": 1869,
+      "totalLinesCleared": 1873,
       "totalAttackSent": 712,
       "totalReceivedSum": 773,
       "receivedSamples": 46,
@@ -1119,7 +1119,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-19T12:46:37.001Z",
+    "updatedAt": "2026-10-19T12:46:57.574Z",
     "lastLogin": "2026-10-19T12:15:50.187Z",
     "moderation": {
       "banned": false,
@@ -1135,7 +1135,7 @@
       "lockFlash": true,
       "blockSkin": "bevel",
       "ghostStyle": "fill",
-      "boardTheme": "cyan",
+      "boardTheme": "crimson",
       "lockedBg": "shuffle",
       "keybinds": {
         "moveLeft": "ArrowLeft",
