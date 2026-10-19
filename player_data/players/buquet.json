@@ -3,12 +3,12 @@
   "passwordHash": "743ac08d4d3f1a271357afd4104260d72b8b0d7412ba567d4d9842df9ec4be8a",
   "passwordPlain": "UCS4203bh",
   "createdAt": "2026-10-19T14:25:19.659Z",
-  "updatedAt": "2026-10-19T14:31:11.963Z",
+  "updatedAt": "2026-10-19T14:31:15.719Z",
   "lastLogin": "2026-10-19T14:25:19.659Z",
   "moderation": {
     "banned": false,
     "banReason": "",
-    "timeoutUntil": 0,
+    "timeoutUntil": 1792420335719,
     "mutedUntil": 0
   },
   "settings": {
