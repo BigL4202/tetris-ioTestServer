@@ -265,8 +265,8 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-16T14:31:14.744Z",
-    "lastLogin": "2026-10-16T13:25:06.465Z",
+    "updatedAt": "2026-10-15T20:13:13.796Z",
+    "lastLogin": "2026-10-15T20:05:36.432Z",
     "settings": {
       "musicVolume": 0,
       "sfxVolume": 40,
@@ -362,9 +362,9 @@
       }
     ],
     "moderation": {
-      "banned": true,
-      "banReason": "Banned by Admin BigL_",
-      "timeoutUntil": 1792158013493,
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
       "mutedUntil": 0
     }
   },
@@ -373,7 +373,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:57.768Z",
-    "updatedAt": "2026-10-16T14:31:13.290Z",
+    "updatedAt": "2026-10-15T20:18:47.809Z",
     "lastLogin": "2026-10-15T20:05:21.505Z",
     "settings": {
       "musicVolume": 0,
@@ -466,8 +466,8 @@
       }
     ],
     "moderation": {
-      "banned": true,
-      "banReason": "Banned by Admin BigL_",
+      "banned": false,
+      "banReason": "",
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
@@ -577,7 +577,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-16T14:35:56.512Z",
+    "updatedAt": "2026-10-19T12:16:50.871Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -608,22 +608,22 @@
       }
     },
     "stats": {
-      "xp": 4824,
+      "xp": 4954,
       "level": 8,
-      "gamesPlayed": 3,
+      "gamesPlayed": 4,
       "zenLines": 755,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 0,
       "duelWins": 0,
-      "duelLosses": 2,
+      "duelLosses": 3,
       "tournamentWins": 0,
       "maxCombo": 8,
-      "totalLinesCleared": 784,
+      "totalLinesCleared": 798,
       "totalAttackSent": 6,
-      "totalReceivedSum": 38,
-      "receivedSamples": 3,
-      "avgReceived": 12.7
+      "totalReceivedSum": 64,
+      "receivedSamples": 4,
+      "avgReceived": 16
     },
     "matchHistory": [
       {
@@ -653,6 +653,16 @@
         "apm": 0,
         "lines": 6,
         "maxCombo": 1
+      },
+      {
+        "date": "2026-10-19T12:16:50.871Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 0,
+        "lines": 14,
+        "maxCombo": 3
       }
     ]
   },
@@ -765,5 +775,71 @@
       "avgReceived": 0
     },
     "matchHistory": []
+  },
+  "barnesttv": {
+    "username": "BARNESTTV",
+    "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
+    "passwordPlain": "UCE5826tb",
+    "createdAt": "2026-10-19T12:15:50.187Z",
+    "updatedAt": "2026-10-19T12:16:50.870Z",
+    "lastLogin": "2026-10-19T12:15:50.187Z",
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    },
+    "settings": {
+      "musicVolume": 40,
+      "sfxVolume": 75,
+      "bgInterval": 180,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "boardTheme": "cyan",
+      "lockedBg": "shuffle",
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
+    },
+    "stats": {
+      "xp": 255,
+      "level": 2,
+      "gamesPlayed": 1,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0,
+      "ffaWins": 0,
+      "duelWins": 1,
+      "duelLosses": 0,
+      "tournamentWins": 0,
+      "maxCombo": 8,
+      "totalLinesCleared": 21,
+      "totalAttackSent": 31,
+      "totalReceivedSum": 0,
+      "receivedSamples": 1,
+      "avgReceived": 0
+    },
+    "matchHistory": [
+      {
+        "date": "2026-10-19T12:16:50.870Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "TJ",
+        "apm": 99.3,
+        "lines": 21,
+        "maxCombo": 8
+      }
+    ]
   }
 }
