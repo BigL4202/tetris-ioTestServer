@@ -2165,11 +2165,11 @@
     "passwordHash": "3019bc76dae3dfba38d144dcf7835f13df7b2a44662512c8f1db329e630ab064",
     "passwordPlain": "sztdrehsrt",
     "createdAt": "2026-10-19T14:32:05.250Z",
-    "updatedAt": "2026-10-19T14:32:05.250Z",
+    "updatedAt": "2026-10-19T14:32:10.992Z",
     "lastLogin": "2026-10-19T14:32:05.250Z",
     "moderation": {
-      "banned": false,
-      "banReason": "",
+      "banned": true,
+      "banReason": "Banned by Admin BigL_",
       "timeoutUntil": 0,
       "mutedUntil": 0
     },
