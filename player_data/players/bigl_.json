@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-19T14:11:55.046Z",
+  "updatedAt": "2026-10-19T14:12:32.492Z",
   "lastLogin": "2026-10-19T13:50:45.501Z",
   "settings": {
     "das": 115,
@@ -32,21 +32,21 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 42,
+    "gamesPlayed": 43,
     "ffaWins": 12,
     "duelWins": 15,
     "duelLosses": 2,
     "maxCombo": 19,
-    "totalLinesCleared": 3060,
-    "totalAttackSent": 717,
+    "totalLinesCleared": 3093,
+    "totalAttackSent": 755,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 221,
-    "receivedSamples": 34,
-    "avgReceived": 6.5,
-    "xp": 20354,
-    "level": 16,
+    "totalReceivedSum": 242,
+    "receivedSamples": 35,
+    "avgReceived": 6.9,
+    "xp": 20536,
+    "level": 17,
     "zenLines": 1650,
     "apmTestBest": 199,
     "apmTestLast": 199,
@@ -423,6 +423,14 @@
       "result": "1ST (WIN)",
       "apm": 68.3,
       "lines": 30,
+      "maxCombo": 8
+    },
+    {
+      "date": "2026-10-19T14:12:32.492Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 77.5,
+      "lines": 33,
       "maxCombo": 8
     }
   ],
