@@ -577,7 +577,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-19T12:31:37.166Z",
+    "updatedAt": "2026-10-19T12:39:04.634Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -608,22 +608,22 @@
       }
     },
     "stats": {
-      "xp": 8628,
-      "level": 11,
-      "gamesPlayed": 26,
+      "xp": 10722,
+      "level": 12,
+      "gamesPlayed": 36,
       "zenLines": 755,
       "apmTestBest": 0,
       "apmTestLast": 0,
-      "ffaWins": 4,
+      "ffaWins": 7,
       "duelWins": 1,
       "duelLosses": 3,
       "tournamentWins": 0,
-      "maxCombo": 12,
-      "totalLinesCleared": 1325,
-      "totalAttackSent": 318,
-      "totalReceivedSum": 437,
-      "receivedSamples": 26,
-      "avgReceived": 16.8
+      "maxCombo": 14,
+      "totalLinesCleared": 1656,
+      "totalAttackSent": 574,
+      "totalReceivedSum": 623,
+      "receivedSamples": 36,
+      "avgReceived": 17.3
     },
     "matchHistory": [
       {
@@ -841,6 +841,86 @@
         "apm": 56.5,
         "lines": 32,
         "maxCombo": 4
+      },
+      {
+        "date": "2026-10-19T12:32:31.830Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 42.5,
+        "lines": 37,
+        "maxCombo": 6
+      },
+      {
+        "date": "2026-10-19T12:33:34.824Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 32.8,
+        "lines": 52,
+        "maxCombo": 11
+      },
+      {
+        "date": "2026-10-19T12:34:02.356Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 90.1,
+        "lines": 22,
+        "maxCombo": 10
+      },
+      {
+        "date": "2026-10-19T12:34:44.321Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 49.6,
+        "lines": 27,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T12:35:03.620Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 0,
+        "lines": 6,
+        "maxCombo": 1
+      },
+      {
+        "date": "2026-10-19T12:36:02.115Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 33.3,
+        "lines": 51,
+        "maxCombo": 6
+      },
+      {
+        "date": "2026-10-19T12:36:37.478Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 19.8,
+        "lines": 21,
+        "maxCombo": 3
+      },
+      {
+        "date": "2026-10-19T12:37:26.940Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 55.1,
+        "lines": 36,
+        "maxCombo": 14
+      },
+      {
+        "date": "2026-10-19T12:38:22.338Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 15.2,
+        "lines": 43,
+        "maxCombo": 5
+      },
+      {
+        "date": "2026-10-19T12:39:04.634Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 86.2,
+        "lines": 36,
+        "maxCombo": 12
       }
     ]
   },
@@ -959,7 +1039,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-19T12:31:37.165Z",
+    "updatedAt": "2026-10-19T12:39:04.633Z",
     "lastLogin": "2026-10-19T12:15:50.187Z",
     "moderation": {
       "banned": false,
@@ -990,22 +1070,22 @@
       }
     },
     "stats": {
-      "xp": 6151,
-      "level": 9,
-      "gamesPlayed": 23,
+      "xp": 9185,
+      "level": 11,
+      "gamesPlayed": 33,
       "zenLines": 0,
       "apmTestBest": 0,
       "apmTestLast": 0,
-      "ffaWins": 17,
+      "ffaWins": 24,
       "duelWins": 1,
       "duelLosses": 1,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 832,
-      "totalAttackSent": 822,
-      "totalReceivedSum": 137,
-      "receivedSamples": 23,
-      "avgReceived": 6
+      "totalLinesCleared": 1308,
+      "totalAttackSent": 1181,
+      "totalReceivedSum": 249,
+      "receivedSamples": 33,
+      "avgReceived": 7.5
     },
     "matchHistory": [
       {
@@ -1195,6 +1275,86 @@
         "apm": 31.4,
         "lines": 38,
         "maxCombo": 5
+      },
+      {
+        "date": "2026-10-19T12:32:31.829Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 40,
+        "lines": 61,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T12:33:34.824Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 89.7,
+        "lines": 79,
+        "maxCombo": 10
+      },
+      {
+        "date": "2026-10-19T12:34:02.356Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 43.1,
+        "lines": 24,
+        "maxCombo": 5
+      },
+      {
+        "date": "2026-10-19T12:34:44.321Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 51.4,
+        "lines": 49,
+        "maxCombo": 6
+      },
+      {
+        "date": "2026-10-19T12:35:03.619Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 145.9,
+        "lines": 15,
+        "maxCombo": 7
+      },
+      {
+        "date": "2026-10-19T12:36:02.115Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 53.7,
+        "lines": 70,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T12:36:37.477Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 8.8,
+        "lines": 19,
+        "maxCombo": 3
+      },
+      {
+        "date": "2026-10-19T12:37:26.939Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 72.5,
+        "lines": 54,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T12:38:22.338Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 67.3,
+        "lines": 64,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T12:39:04.633Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 42,
+        "lines": 41,
+        "maxCombo": 8
       }
     ]
   }
