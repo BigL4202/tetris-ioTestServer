@@ -335,7 +335,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-15T20:13:13.796Z",
+    "updatedAt": "2026-10-19T14:01:54.704Z",
     "lastLogin": "2026-10-15T20:05:36.432Z",
     "settings": {
       "musicVolume": 0,
@@ -432,8 +432,8 @@
       }
     ],
     "moderation": {
-      "banned": false,
-      "banReason": "",
+      "banned": true,
+      "banReason": "Banned by Admin BigL_",
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
