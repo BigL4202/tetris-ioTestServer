@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-19T14:04:28.376Z",
+    "updatedAt": "2026-10-19T14:08:17.972Z",
     "lastLogin": "2026-10-19T13:50:45.501Z",
     "settings": {
       "das": 115,
@@ -33,21 +33,21 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 32,
-      "ffaWins": 6,
-      "duelWins": 13,
+      "gamesPlayed": 36,
+      "ffaWins": 8,
+      "duelWins": 15,
       "duelLosses": 2,
       "maxCombo": 19,
-      "totalLinesCleared": 2697,
-      "totalAttackSent": 385,
+      "totalLinesCleared": 2857,
+      "totalAttackSent": 539,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 119,
-      "receivedSamples": 24,
-      "avgReceived": 5,
-      "xp": 17577,
-      "level": 15,
+      "totalReceivedSum": 153,
+      "receivedSamples": 28,
+      "avgReceived": 5.5,
+      "xp": 18882,
+      "level": 16,
       "zenLines": 1650,
       "apmTestBest": 199,
       "apmTestLast": 199,
@@ -341,6 +341,42 @@
         "apm": 59.3,
         "lines": 26,
         "maxCombo": 10
+      },
+      {
+        "date": "2026-10-19T14:05:50.545Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 73.2,
+        "lines": 42,
+        "maxCombo": 12
+      },
+      {
+        "date": "2026-10-19T14:06:55.395Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 120.1,
+        "lines": 43,
+        "maxCombo": 11
+      },
+      {
+        "date": "2026-10-19T14:07:29.432Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 43.9,
+        "lines": 21,
+        "maxCombo": 5
+      },
+      {
+        "date": "2026-10-19T14:08:17.972Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 56.4,
+        "lines": 54,
+        "maxCombo": 8
       }
     ],
     "moderation": {
@@ -1219,7 +1255,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-19T14:04:28.377Z",
+    "updatedAt": "2026-10-19T14:08:17.971Z",
     "lastLogin": "2026-10-19T13:50:42.667Z",
     "moderation": {
       "banned": false,
@@ -1250,22 +1286,22 @@
       }
     },
     "stats": {
-      "xp": 15528,
-      "level": 14,
-      "gamesPlayed": 55,
+      "xp": 16928,
+      "level": 15,
+      "gamesPlayed": 59,
       "zenLines": 0,
       "apmTestBest": 83,
       "apmTestLast": 83,
       "ffaWins": 31,
       "duelWins": 4,
-      "duelLosses": 8,
+      "duelLosses": 10,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 2294,
-      "totalAttackSent": 1790,
-      "totalReceivedSum": 550,
-      "receivedSamples": 53,
-      "avgReceived": 10.4
+      "totalLinesCleared": 2542,
+      "totalAttackSent": 1954,
+      "totalReceivedSum": 670,
+      "receivedSamples": 57,
+      "avgReceived": 11.8
     },
     "matchHistory": [
       {
@@ -1731,6 +1767,42 @@
         "apm": 49.3,
         "lines": 44,
         "maxCombo": 6
+      },
+      {
+        "date": "2026-10-19T14:05:50.546Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 62.4,
+        "lines": 96,
+        "maxCombo": 8
+      },
+      {
+        "date": "2026-10-19T14:06:55.396Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 60.4,
+        "lines": 92,
+        "maxCombo": 5
+      },
+      {
+        "date": "2026-10-19T14:07:29.431Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 6.7,
+        "lines": 8,
+        "maxCombo": 3
+      },
+      {
+        "date": "2026-10-19T14:08:17.971Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 44.5,
+        "lines": 52,
+        "maxCombo": 8
       }
     ]
   }
