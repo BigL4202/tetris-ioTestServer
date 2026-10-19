@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-19T12:41:43.112Z",
+  "updatedAt": "2026-10-19T12:42:37.851Z",
   "lastLogin": "2026-10-16T14:13:55.350Z",
   "moderation": {
     "banned": false,
@@ -34,9 +34,9 @@
     }
   },
   "stats": {
-    "xp": 11538,
+    "xp": 11816,
     "level": 13,
-    "gamesPlayed": 42,
+    "gamesPlayed": 43,
     "zenLines": 755,
     "apmTestBest": 0,
     "apmTestLast": 0,
@@ -45,11 +45,11 @@
     "duelLosses": 3,
     "tournamentWins": 0,
     "maxCombo": 14,
-    "totalLinesCleared": 1740,
-    "totalAttackSent": 628,
-    "totalReceivedSum": 698,
-    "receivedSamples": 42,
-    "avgReceived": 16.6
+    "totalLinesCleared": 1797,
+    "totalAttackSent": 656,
+    "totalReceivedSum": 736,
+    "receivedSamples": 43,
+    "avgReceived": 17.1
   },
   "matchHistory": [
     {
@@ -395,6 +395,14 @@
       "apm": 48.7,
       "lines": 12,
       "maxCombo": 3
+    },
+    {
+      "date": "2026-10-19T12:42:37.851Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 36.1,
+      "lines": 57,
+      "maxCombo": 7
     }
   ]
 }
