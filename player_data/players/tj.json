@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-19T12:18:40.790Z",
+  "updatedAt": "2026-10-19T12:21:11.378Z",
   "lastLogin": "2026-10-16T14:13:55.350Z",
   "moderation": {
     "banned": false,
@@ -34,22 +34,22 @@
     }
   },
   "stats": {
-    "xp": 5178,
+    "xp": 5974,
     "level": 9,
-    "gamesPlayed": 6,
+    "gamesPlayed": 9,
     "zenLines": 755,
     "apmTestBest": 0,
     "apmTestLast": 0,
-    "ffaWins": 0,
-    "duelWins": 0,
+    "ffaWins": 2,
+    "duelWins": 1,
     "duelLosses": 3,
     "tournamentWins": 0,
-    "maxCombo": 8,
-    "totalLinesCleared": 829,
-    "totalAttackSent": 7,
-    "totalReceivedSum": 109,
-    "receivedSamples": 6,
-    "avgReceived": 18.2
+    "maxCombo": 9,
+    "totalLinesCleared": 919,
+    "totalAttackSent": 94,
+    "totalReceivedSum": 141,
+    "receivedSamples": 9,
+    "avgReceived": 15.7
   },
   "matchHistory": [
     {
@@ -105,6 +105,32 @@
       "apm": 0,
       "lines": 14,
       "maxCombo": 5
+    },
+    {
+      "date": "2026-10-19T12:19:31.515Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 71,
+      "lines": 6,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-19T12:20:11.031Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 47.8,
+      "lines": 25,
+      "maxCombo": 3
+    },
+    {
+      "date": "2026-10-19T12:21:11.378Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 62,
+      "lines": 59,
+      "maxCombo": 9
     }
   ]
 }
