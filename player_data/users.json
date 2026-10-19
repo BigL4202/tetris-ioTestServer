@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-19T14:24:53.162Z",
+    "updatedAt": "2026-10-19T14:25:31.842Z",
     "lastLogin": "2026-10-19T13:50:45.501Z",
     "settings": {
       "das": 115,
@@ -38,7 +38,7 @@
       "duelWins": 19,
       "duelLosses": 3,
       "maxCombo": 19,
-      "totalLinesCleared": 3423,
+      "totalLinesCleared": 3467,
       "totalAttackSent": 933,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -46,9 +46,9 @@
       "totalReceivedSum": 343,
       "receivedSamples": 42,
       "avgReceived": 8.2,
-      "xp": 23032,
-      "level": 17,
-      "zenLines": 1764,
+      "xp": 23296,
+      "level": 18,
+      "zenLines": 1808,
       "apmTestBest": 199,
       "apmTestLast": 199,
       "tournamentWins": 0
@@ -2049,5 +2049,60 @@
         "maxCombo": 8
       }
     ]
+  },
+  "buquet": {
+    "username": "Buquet",
+    "passwordHash": "743ac08d4d3f1a271357afd4104260d72b8b0d7412ba567d4d9842df9ec4be8a",
+    "passwordPlain": "UCS4203bh",
+    "createdAt": "2026-10-19T14:25:19.659Z",
+    "updatedAt": "2026-10-19T14:25:19.659Z",
+    "lastLogin": "2026-10-19T14:25:19.659Z",
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0
+    },
+    "settings": {
+      "musicVolume": 40,
+      "sfxVolume": 75,
+      "bgInterval": 180,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "boardTheme": "cyan",
+      "lockedBg": "shuffle",
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
+    },
+    "stats": {
+      "xp": 0,
+      "level": 1,
+      "gamesPlayed": 0,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0,
+      "ffaWins": 0,
+      "duelWins": 0,
+      "duelLosses": 0,
+      "tournamentWins": 0,
+      "maxCombo": 0,
+      "totalLinesCleared": 0,
+      "totalAttackSent": 0,
+      "totalReceivedSum": 0,
+      "receivedSamples": 0,
+      "avgReceived": 0
+    },
+    "matchHistory": []
   }
 }
