@@ -3,7 +3,7 @@
   "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
   "passwordPlain": "1024Rosco!",
   "createdAt": "2026-10-16T14:07:06.274Z",
-  "updatedAt": "2026-10-19T12:44:16.589Z",
+  "updatedAt": "2026-10-19T12:44:18.420Z",
   "lastLogin": "2026-10-16T14:13:55.350Z",
   "moderation": {
     "banned": false,
@@ -18,7 +18,7 @@
     "boardShake": true,
     "lockFlash": true,
     "blockSkin": "flat",
-    "ghostStyle": "fill",
+    "ghostStyle": "outline",
     "boardTheme": "cyan",
     "lockedBg": "shuffle",
     "keybinds": {
