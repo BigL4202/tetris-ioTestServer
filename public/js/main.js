@@ -1,5 +1,5 @@
 // ============================================================================
-// PROJECT A^2 CONTROLLER: TOURNAMENTS, BigL_ ADMIN, LIVE APM GRAPH & AFK KICK
+// PROJECT A^2 CONTROLLER: 2v2, DAILY XP, H2H, RGB COLORS, TRAILS & MOD ROLES
 // ============================================================================
 
 (function () {
@@ -7,6 +7,13 @@
     I: '#00e5ff', O: '#ffea00', T: '#d500f9',
     S: '#00e676', Z: '#ff1744', J: '#2979ff',
     L: '#ff9100', G: '#78909c'
+  };
+
+  const DEFAULT_CUSTOM_COLORS = {
+    accentR: 0,   accentG: 229, accentB: 255,
+    menuR: 12,    menuG: 19,    menuB: 33,
+    btnBgR: 25,   btnBgG: 40,   btnBgB: 68,
+    btnTxtR: 230, btnTxtG: 241, btnTxtB: 255
   };
 
   const UNLOCKABLE_SKINS = [
@@ -35,20 +42,6 @@
     { id: 'xray',      name: 'X-Ray Grid',       reqLevel: 80,  desc: 'Internal cross-hatch ghost' },
     { id: 'beacon',    name: 'Solar Beacon',     reqLevel: 90,  desc: 'Golden outlined ghost piece' },
     { id: 'omega',     name: 'Omega Phantom',    reqLevel: 100, desc: 'Level 100 Master diamond ghost' }
-  ];
-
-  const UNLOCKABLE_THEMES = [
-    { id: 'cyan',      name: 'Cyan Core',        reqLevel: 1,   desc: 'Default Project A² neon cyan border' },
-    { id: 'crimson',   name: 'Crimson Pulse',    reqLevel: 10,  desc: 'High-alert red arena border' },
-    { id: 'emerald',   name: 'Emerald Matrix',   reqLevel: 20,  desc: 'Bioluminescent green arena border' },
-    { id: 'gold',      name: 'Solar Gold',       reqLevel: 30,  desc: 'Championship gold arena border' },
-    { id: 'violet',    name: 'Violet Void',      reqLevel: 40,  desc: 'Deep-space purple arena border' },
-    { id: 'cobalt',    name: 'Cobalt Storm',     reqLevel: 50,  desc: 'Electric blue arena border' },
-    { id: 'inferno',   name: 'Inferno Blaze',    reqLevel: 60,  desc: 'Molten orange arena border' },
-    { id: 'sakura',    name: 'Neon Sakura',      reqLevel: 70,  desc: 'Cyberpunk magenta arena border' },
-    { id: 'arctic',    name: 'Arctic Frost',     reqLevel: 80,  desc: 'Sub-zero ice cyan arena border' },
-    { id: 'obsidian',  name: 'Obsidian Chrome',  reqLevel: 90,  desc: 'Platinum silver arena border' },
-    { id: 'celestial', name: 'A² Celestial',     reqLevel: 100, desc: 'Level 100 Master gold & cyan theme' }
   ];
 
   const DEFAULT_KEYBINDS = {
@@ -114,15 +107,23 @@
 
   const activePlayersCountEl = document.getElementById('active-players-count');
   const activePlayersBarEl = document.getElementById('active-players-bar');
+  const dailyChallengesListEl = document.getElementById('daily-challenges-list');
 
   const launchZen4Btn = document.getElementById('launch-zen-4-btn');
   const launchZen10Btn = document.getElementById('launch-zen-10-btn');
   const launchApmTestBtn = document.getElementById('launch-apm-test-btn');
+
   const join1v1QueueBtn = document.getElementById('join-1v1-queue-btn');
   const leave1v1QueueBtn = document.getElementById('leave-1v1-queue-btn');
   const queueWaitingBanner = document.getElementById('queue-waiting-banner');
-  const joinFfaLobbyBtn = document.getElementById('join-ffa-lobby-btn');
   const hub1v1QueueStatus = document.getElementById('hub-1v1-queue-status');
+
+  const join2v2QueueBtn = document.getElementById('join-2v2-queue-btn');
+  const leave2v2QueueBtn = document.getElementById('leave-2v2-queue-btn');
+  const queue2v2WaitingBanner = document.getElementById('queue-2v2-waiting-banner');
+  const hub2v2QueueStatus = document.getElementById('hub-2v2-queue-status');
+
+  const joinFfaLobbyBtn = document.getElementById('join-ffa-lobby-btn');
   const hubFfaStatus = document.getElementById('hub-ffa-status');
   const liveMatchesList = document.getElementById('live-matches-list');
 
@@ -147,7 +148,8 @@
   const selectedTourneyActions = document.getElementById('selected-tourney-actions');
   const selectedTourneyBody = document.getElementById('selected-tourney-body');
 
-  // Admin Console Elements
+  // Admin / Moderator Console Elements
+  const adminOnlyGlobalBox = document.getElementById('admin-only-global-box');
   const adminShoutInput = document.getElementById('admin-shout-input');
   const adminShoutBtn = document.getElementById('admin-shout-btn');
   const adminRestartFfaBtn = document.getElementById('admin-restart-ffa-btn');
@@ -212,8 +214,8 @@
     lockFlash: true,
     blockSkin: 'bevel',
     ghostStyle: 'fill',
-    boardTheme: 'cyan',
     lockedBg: 'shuffle',
+    customColors: { ...DEFAULT_CUSTOM_COLORS },
     keybinds: { ...DEFAULT_KEYBINDS }
   };
 
@@ -221,7 +223,6 @@
   let expandedActivePlayerId = null;
   let pendingDirectChallengeId = null;
   let selectedTourneyId = null;
-  let spectatingMatchId = null;
 
   let shakeOffsetX = 0;
   let shakeOffsetY = 0;
@@ -237,7 +238,6 @@
   let canControlBoard = false;
   let selectedManualTargetId = null;
 
-  // 15-Second AFK / Idle Tracker & Live APM Telemetry Series
   let lastInputTimestamp = performance.now();
   let myApmHistory = [];
   let opponentApmHistory = [];
@@ -259,6 +259,10 @@
     return Boolean(myUserObj && (myUserObj.isAdmin || String(myUserObj.username || '').toLowerCase() === 'bigl_'));
   }
 
+  function isStaffModerator() {
+    return Boolean(isBigLAdmin() || (myUserObj && myUserObj.isModerator));
+  }
+
   function getPieceColor(type) {
     if (window.PIECE_COLORS && window.PIECE_COLORS[type]) return window.PIECE_COLORS[type];
     return FALLBACK_COLORS[type] || '#00e5ff';
@@ -269,17 +273,17 @@
     onCallout: (text) => showCallout(text),
     onBoardImpulse: (vx, vy, isDamage) => triggerBoardImpulse(vx, vy, isDamage),
     onSendGarbage: (lines) => {
-      if (ws && ws.readyState === WebSocket.OPEN && (currentMode === 'duel' || currentMode === 'ffa')) {
+      if (ws && ws.readyState === WebSocket.OPEN && (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa')) {
         ws.send(JSON.stringify({ type: 'send_garbage', lines }));
       }
     },
     onTopOut: (stats) => {
       canControlBoard = false;
-      if (currentMode === 'duel' || currentMode === 'ffa') {
+      if (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa') {
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'player_topout', stats }));
         }
-        showOverlay('TOP OUT', 'Waiting for match result...');
+        showOverlay('ELIMINATED', 'Waiting for match result...');
       } else if (currentMode === 'apm_test') {
         finishApmTest();
       } else {
@@ -309,7 +313,91 @@
     });
 
   // ============================================================================
-  // LIVE APM LINE GRAPH RENDERER (Dual-Line in 1v1, Single-Line in FFA & APM Test)
+  // UNLOCKED RGB "COLORS" SLIDERS APPLICATION
+  // ============================================================================
+
+  function applyCustomColorsToCSS() {
+    const c = userPrefs.customColors || DEFAULT_CUSTOM_COLORS;
+    const root = document.documentElement;
+    root.style.setProperty('--accent-cyan', `rgb(${c.accentR}, ${c.accentG}, ${c.accentB})`);
+    root.style.setProperty('--board-border', `rgb(${c.accentR}, ${c.accentG}, ${c.accentB})`);
+    root.style.setProperty('--panel-border', `rgba(${c.accentR}, ${c.accentG}, ${c.accentB}, 0.32)`);
+    root.style.setProperty('--panel-bg', `rgba(${c.menuR}, ${c.menuG}, ${c.menuB}, 0.88)`);
+    root.style.setProperty('--btn-bg', `rgb(${c.btnBgR}, ${c.btnBgG}, ${c.btnBgB})`);
+    root.style.setProperty('--btn-text', `rgb(${c.btnTxtR}, ${c.btnTxtG}, ${c.btnTxtB})`);
+  }
+
+  function syncColorSlidersFromPrefs() {
+    const c = userPrefs.customColors || DEFAULT_CUSTOM_COLORS;
+    const map = [
+      ['col-accent-r', 'lbl-accent-r', 'accentR'],
+      ['col-accent-g', 'lbl-accent-g', 'accentG'],
+      ['col-accent-b', 'lbl-accent-b', 'accentB'],
+      ['col-menu-r',   'lbl-menu-r',   'menuR'],
+      ['col-menu-g',   'lbl-menu-g',   'menuG'],
+      ['col-menu-b',   'lbl-menu-b',   'menuB'],
+      ['col-btnbg-r',  'lbl-btnbg-r',  'btnBgR'],
+      ['col-btnbg-g',  'lbl-btnbg-g',  'btnBgG'],
+      ['col-btnbg-b',  'lbl-btnbg-b',  'btnBgB'],
+      ['col-btntxt-r', 'lbl-btntxt-r', 'btnTxtR'],
+      ['col-btntxt-g', 'lbl-btntxt-g', 'btnTxtG'],
+      ['col-btntxt-b', 'lbl-btntxt-b', 'btnTxtB']
+    ];
+    map.forEach(([sliderId, lblId, key]) => {
+      const s = document.getElementById(sliderId);
+      const l = document.getElementById(lblId);
+      if (s && l) {
+        s.value = c[key];
+        l.textContent = c[key];
+      }
+    });
+    applyCustomColorsToCSS();
+  }
+
+  function wireColorSliders() {
+    const map = [
+      ['col-accent-r', 'lbl-accent-r', 'accentR'],
+      ['col-accent-g', 'lbl-accent-g', 'accentG'],
+      ['col-accent-b', 'lbl-accent-b', 'accentB'],
+      ['col-menu-r',   'lbl-menu-r',   'menuR'],
+      ['col-menu-g',   'lbl-menu-g',   'menuG'],
+      ['col-menu-b',   'lbl-menu-b',   'menuB'],
+      ['col-btnbg-r',  'lbl-btnbg-r',  'btnBgR'],
+      ['col-btnbg-g',  'lbl-btnbg-g',  'btnBgG'],
+      ['col-btnbg-b',  'lbl-btnbg-b',  'btnBgB'],
+      ['col-btntxt-r', 'lbl-btntxt-r', 'btnTxtR'],
+      ['col-btntxt-g', 'lbl-btntxt-g', 'btnTxtG'],
+      ['col-btntxt-b', 'lbl-btntxt-b', 'btnTxtB']
+    ];
+    map.forEach(([sliderId, lblId, key]) => {
+      const s = document.getElementById(sliderId);
+      const l = document.getElementById(lblId);
+      if (!s || !l) return;
+      s.addEventListener('input', () => {
+        const val = Number(s.value);
+        l.textContent = val;
+        userPrefs.customColors[key] = val;
+        applyCustomColorsToCSS();
+      });
+      s.addEventListener('change', () => {
+        saveUserSettingsToServer();
+      });
+    });
+
+    const resetBtn = document.getElementById('reset-colors-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        userPrefs.customColors = { ...DEFAULT_CUSTOM_COLORS };
+        syncColorSlidersFromPrefs();
+        saveUserSettingsToServer();
+      });
+    }
+  }
+
+  wireColorSliders();
+
+  // ============================================================================
+  // LIVE APM LINE GRAPH RENDERER
   // ============================================================================
 
   function drawApmChartOnCanvas(ctx, width, height, seriesList) {
@@ -392,7 +480,7 @@
   }
 
   // ============================================================================
-  // AUTHENTICATION, AUTO-SESSION RESTORE & LEVEL BAR
+  // AUTHENTICATION, AUTO-SESSION RESTORE, DAILY CHALLENGES & LEVEL BAR
   // ============================================================================
 
   function showAuthError(msg) {
@@ -447,6 +535,28 @@
       .catch(() => {});
   }
 
+  function renderDailyChallengesBox() {
+    if (!dailyChallengesListEl || !myUserObj || !myUserObj.dailyChallenges) return;
+    dailyChallengesListEl.innerHTML = '';
+    const chList = myUserObj.dailyChallenges.challenges || [];
+
+    chList.forEach(ch => {
+      const pct = Math.min(100, Math.round((ch.progress / Math.max(1, ch.target)) * 100));
+      const div = document.createElement('div');
+      div.className = `daily-challenge-item ${ch.claimed ? 'completed' : ''}`;
+      div.innerHTML = `
+        <div class="dc-top">
+          <span>${escapeHtml(ch.title)}</span>
+          <span style="color:var(--accent-gold);">${ch.claimed ? 'COMPLETED' : `${ch.progress}/${ch.target}`} (+${ch.rewardXp} XP)</span>
+        </div>
+        <div class="dc-bar-bg">
+          <div class="dc-bar-fill" style="width:${pct}%;"></div>
+        </div>
+      `;
+      dailyChallengesListEl.appendChild(div);
+    });
+  }
+
   function updateTopLevelBar(u) {
     if (!u || !u.stats) return;
     myUserObj = u;
@@ -461,15 +571,27 @@
     navXpFill.style.width = `${pct}%`;
     navXpText.textContent = `${xp} XP`;
 
-    // Show/Hide BigL_ Admin UI
+    renderDailyChallengesBox();
+
     if (isBigLAdmin()) {
+      navAdminTag.textContent = 'ADMIN';
       navAdminTag.classList.remove('hidden');
+      hubTabAdmin.textContent = 'ADMIN CONSOLE (BigL_)';
       hubTabAdmin.classList.remove('hidden');
       adminTourneyCreator.classList.remove('hidden');
+      adminOnlyGlobalBox.classList.remove('hidden');
+    } else if (isStaffModerator()) {
+      navAdminTag.textContent = 'MOD';
+      navAdminTag.classList.remove('hidden');
+      hubTabAdmin.textContent = 'MODERATION CONSOLE';
+      hubTabAdmin.classList.remove('hidden');
+      adminTourneyCreator.classList.add('hidden');
+      adminOnlyGlobalBox.classList.add('hidden');
     } else {
       navAdminTag.classList.add('hidden');
       hubTabAdmin.classList.add('hidden');
       adminTourneyCreator.classList.add('hidden');
+      adminOnlyGlobalBox.classList.add('hidden');
     }
   }
 
@@ -497,12 +619,12 @@
 
     userPrefs.blockSkin = settings.blockSkin || 'bevel';
     userPrefs.ghostStyle = settings.ghostStyle || 'fill';
-    userPrefs.boardTheme = settings.boardTheme || 'cyan';
     userPrefs.lockedBg = settings.lockedBg || 'shuffle';
-    document.body.setAttribute('data-theme', userPrefs.boardTheme);
+    userPrefs.customColors = { ...DEFAULT_CUSTOM_COLORS, ...(settings.customColors || {}) };
     window.BackgroundController.setLockedBackground(userPrefs.lockedBg);
 
     userPrefs.keybinds = { ...DEFAULT_KEYBINDS, ...(settings.keybinds || {}) };
+    syncColorSlidersFromPrefs();
     renderKeybindsModalList();
     renderUnlockGrids();
     renderBackgroundThumbnailsGrid();
@@ -523,8 +645,8 @@
           lockFlash: userPrefs.lockFlash,
           blockSkin: userPrefs.blockSkin,
           ghostStyle: userPrefs.ghostStyle,
-          boardTheme: userPrefs.boardTheme,
           lockedBg: userPrefs.lockedBg,
+          customColors: userPrefs.customColors,
           keybinds: userPrefs.keybinds
         }
       })
@@ -593,7 +715,7 @@
           <strong>${escapeHtml(p.username)} ${isMe ? '(YOU)' : ''}</strong>
           <div class="sub-hint">LVL ${p.level || 1} • ${Number(p.apm || 0).toFixed(1)} APM</div>
         </div>
-        <span class="badge">${p.inDuel ? 'IN 1v1' : p.mode.toUpperCase()}</span>
+        <span class="badge">${p.inDuel ? 'IN MATCH' : p.mode.toUpperCase()}</span>
       `;
       item.appendChild(topRow);
 
@@ -652,7 +774,7 @@
   });
 
   // ============================================================================
-  // 4-COLUMN CUSTOMIZATION: BG THUMBNAILS + BigL_ ALL UNLOCKED OVERRIDE
+  // 4-COLUMN CUSTOMIZATION: 2-PER-COLUMN SQUARE THUMBNAILS (NO PICTURE NAMES)
   // ============================================================================
 
   function renderBackgroundThumbnailsGrid() {
@@ -660,15 +782,13 @@
     if (!grid) return;
     grid.innerHTML = '';
 
+    // 1. Square Shuffle Default Tile
     const shuffleCard = document.createElement('div');
     const isShuffleEquipped = !userPrefs.lockedBg || userPrefs.lockedBg === 'shuffle';
-    shuffleCard.className = `bg-thumb-card shuffle-card ${isShuffleEquipped ? 'equipped' : ''}`;
-    shuffleCard.innerHTML = `
-      <div class="bg-thumb-preview" style="background: linear-gradient(135deg, #00e5ff 0%, #2979ff 50%, #d500f9 100%); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.8rem;">
-        SHUFFLE ALL (DEFAULT 3M)
-      </div>
-      <div class="bg-thumb-label">${isShuffleEquipped ? 'ACTIVE: SHUFFLING' : 'CLICK TO SHUFFLE ALL'}</div>
-    `;
+    shuffleCard.className = `bg-thumb-card ${isShuffleEquipped ? 'equipped' : ''}`;
+    shuffleCard.style.backgroundImage = 'linear-gradient(135deg, #00e5ff 0%, #2979ff 50%, #d500f9 100%)';
+    shuffleCard.title = 'Shuffle All Backgrounds (Default)';
+    shuffleCard.innerHTML = `<span class="shuffle-icon-symbol">SHUFFLE</span>`;
     shuffleCard.addEventListener('click', () => {
       userPrefs.lockedBg = 'shuffle';
       window.BackgroundController.setLockedBackground('shuffle');
@@ -677,46 +797,26 @@
     });
     grid.appendChild(shuffleCard);
 
+    // 2. Square Picture Thumbnails (2 per row, NO text names, scrollable)
     const catalog = window.BackgroundController.getCatalog();
-    if (catalog.length === 0) {
-      const emptyNote = document.createElement('div');
-      emptyNote.className = 'sub-hint';
-      emptyNote.style.gridColumn = 'span 2';
-      emptyNote.textContent = 'Drop images into /resources/bg/ to populate thumbnails.';
-      grid.appendChild(emptyNote);
-      return;
-    }
-
     catalog.forEach(item => {
       const isLockedToThis = userPrefs.lockedBg === item.id;
       const card = document.createElement('div');
       card.className = `bg-thumb-card ${isLockedToThis ? 'equipped' : ''}`;
-
-      const previewDiv = document.createElement('div');
-      previewDiv.className = 'bg-thumb-preview';
-      previewDiv.style.backgroundImage = item.cssValue;
-
-      const labelDiv = document.createElement('div');
-      labelDiv.className = 'bg-thumb-label';
-      labelDiv.textContent = isLockedToThis ? `LOCKED: ${item.label}` : item.label;
-
-      card.appendChild(previewDiv);
-      card.appendChild(labelDiv);
-
+      card.style.backgroundImage = item.cssValue;
       card.addEventListener('click', () => {
         userPrefs.lockedBg = item.id;
         window.BackgroundController.setLockedBackground(item.id);
         saveUserSettingsToServer();
         renderBackgroundThumbnailsGrid();
       });
-
       grid.appendChild(card);
     });
   }
 
   function renderUnlockGrids() {
     const myLvl = (myUserObj && myUserObj.stats && myUserObj.stats.level) ? myUserObj.stats.level : 1;
-    const adminBypass = isBigLAdmin(); // BigL_ has EVERY unlockable unlocked regardless of level
+    const adminBypass = isBigLAdmin();
 
     const buildGrid = (containerId, catalog, currentId, onSelect) => {
       const container = document.getElementById(containerId);
@@ -750,14 +850,10 @@
 
     buildGrid('skins-unlock-grid', UNLOCKABLE_SKINS, userPrefs.blockSkin, id => { userPrefs.blockSkin = id; });
     buildGrid('ghosts-unlock-grid', UNLOCKABLE_GHOSTS, userPrefs.ghostStyle, id => { userPrefs.ghostStyle = id; });
-    buildGrid('themes-unlock-grid', UNLOCKABLE_THEMES, userPrefs.boardTheme, id => {
-      userPrefs.boardTheme = id;
-      document.body.setAttribute('data-theme', id);
-    });
   }
 
   // ============================================================================
-  // TOURNAMENT SYSTEM UI (Registration, Brackets, Queue Match & BigL_ Controls)
+  // TOURNAMENT SYSTEM UI
   // ============================================================================
 
   document.getElementById('t-create-submit-btn').addEventListener('click', () => {
@@ -824,7 +920,6 @@
     const myName = myUserObj ? myUserObj.username : '';
     const isRegistered = t.registeredPlayers.includes(myName);
 
-    // Registration Action Buttons
     if (t.status === 'registration') {
       if (!isRegistered && t.registeredPlayers.length < t.maxPlayers) {
         const regBtn = document.createElement('button');
@@ -888,7 +983,6 @@
       selectedTourneyBody.appendChild(champBanner);
     }
 
-    // Check if the logged-in player has a ready match they can queue for right now
     const myReadyMatch = t.matches.find(m => m.status === 'ready' && (m.p1 === myName || m.p2 === myName));
     if (myReadyMatch) {
       const oppName = myReadyMatch.p1 === myName ? myReadyMatch.p2 : myReadyMatch.p1;
@@ -914,7 +1008,6 @@
       selectedTourneyBody.appendChild(qBox);
     }
 
-    // Render Winners Bracket, Losers Bracket, and Grand Finals
     const renderBracketGroup = (title, bracketKey) => {
       const groupMatches = t.matches.filter(m => m.bracket === bracketKey);
       if (groupMatches.length === 0) return;
@@ -967,7 +1060,6 @@
             node.appendChild(specBtn);
           }
 
-          // Admin Force-Advance Buttons on Ready Matches
           if (isBigLAdmin() && (m.status === 'ready' || m.status === 'live') && m.p1 && m.p2 && m.p1 !== 'BYE' && m.p2 !== 'BYE') {
             const adminRow = document.createElement('div');
             adminRow.className = 'admin-inject-row';
@@ -1019,37 +1111,45 @@
   }
 
   // ============================================================================
-  // BigL_ MASTER ADMIN CONSOLE UI (Stat Editor, View Passwords, Moderation, Shout)
+  // BigL_ ADMIN & MODERATOR CONSOLE UI
+  // Moderators ONLY see Ban / Unban / Timeout / End Timeout / Mute / Dismiss Mute.
+  // Passwords, Stat Editors, Moderator Promotion, Shout & Lobby Reset are ONLY for BigL_!
   // ============================================================================
 
-  adminShoutBtn.addEventListener('click', () => {
-    const text = adminShoutInput.value.trim();
-    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({
-      type: 'admin_action',
-      action: 'shout',
-      text
-    }));
-    adminShoutInput.value = '';
-  });
+  if (adminShoutBtn) {
+    adminShoutBtn.addEventListener('click', () => {
+      if (!isBigLAdmin()) return;
+      const text = adminShoutInput.value.trim();
+      if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({
+        type: 'admin_action',
+        action: 'shout',
+        text
+      }));
+      adminShoutInput.value = '';
+    });
+  }
 
-  adminRestartFfaBtn.addEventListener('click', () => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({
-      type: 'admin_action',
-      action: 'restart_lobby',
-      lobbyId: 'ffa_main'
-    }));
-  });
+  if (adminRestartFfaBtn) {
+    adminRestartFfaBtn.addEventListener('click', () => {
+      if (!isBigLAdmin() || !ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify({
+        type: 'admin_action',
+        action: 'restart_lobby',
+        lobbyId: 'ffa_main'
+      }));
+    });
+  }
 
   function renderAdminConsole() {
-    if (!isBigLAdmin() || !adminPlayersList) return;
+    if (!isStaffModerator() || !adminPlayersList) return;
     adminPlayersList.innerHTML = '';
 
     cachedAllPlayers.forEach(p => {
       const row = document.createElement('div');
       row.className = 'pilot-row';
       const modFlags = [];
+      if (p.isModerator) modFlags.push('MODERATOR');
       if (p.moderation && p.moderation.banned) modFlags.push('BANNED');
       if (p.moderation && p.moderation.timeoutUntil > Date.now()) modFlags.push('TIMED OUT');
       if (p.moderation && p.moderation.mutedUntil > Date.now()) modFlags.push('MUTED');
@@ -1070,18 +1170,34 @@
     adminSelectedUserTitle.textContent = `MANAGE ACCOUNT: ${p.username.toUpperCase()}`;
     const s = p.stats;
     const mod = p.moderation || {};
+    const callerIsBigL = isBigLAdmin();
 
-    adminSelectedUserBody.innerHTML = `
+    // Build HTML based on whether caller is BigL_ (full powers) or a Moderator (strictly Ban/Timeout/Mute)
+    let html = `
       <div class="stat-grid-boxes">
+        ${callerIsBigL ? `
         <div class="stat-card">
-          <span class="stat-title">SAVED PASSWORD (VIEW ONLY)</span>
+          <span class="stat-title">SAVED PASSWORD (BigL_ ONLY)</span>
           <span class="stat-val" style="color:var(--accent-gold);">${escapeHtml(p.passwordPlain || '(hidden)')}</span>
+        </div>
+        ` : ''}
+        <div class="stat-card">
+          <span class="stat-title">ACCOUNT ROLE</span>
+          <span class="stat-val">${p.isAdmin ? 'MASTER ADMIN (BigL_)' : (p.isModerator ? 'MODERATOR' : 'PLAYER')}</span>
         </div>
         <div class="stat-card">
           <span class="stat-title">MODERATION STATUS</span>
           <span class="stat-val">${mod.banned ? 'BANNED' : (mod.timeoutUntil > Date.now() ? 'TIMED OUT' : (mod.mutedUntil > Date.now() ? 'MUTED' : 'ACTIVE'))}</span>
         </div>
       </div>
+
+      ${callerIsBigL && !p.isAdmin ? `
+      <div class="t-form-row">
+        <button class="btn ${p.isModerator ? 'btn-danger' : 'btn-primary'} btn-sm" id="adm-toggle-mod-btn">
+          ${p.isModerator ? 'REVOKE MODERATOR ROLE' : 'GRANT MODERATOR ROLE'}
+        </button>
+      </div>
+      ` : ''}
 
       <h4 style="color:var(--accent-cyan);font-size:0.8rem;">MODERATION CONTROLS (BAN / TIMEOUT / MUTE)</h4>
       <div class="t-form-row" style="gap:8px;flex-wrap:wrap;">
@@ -1094,36 +1210,42 @@
         <button class="btn btn-warning btn-sm" id="adm-mute-btn">MUTE CHAT</button>
         <button class="btn btn-primary btn-sm" id="adm-unmute-btn">DISMISS MUTE</button>
       </div>
-
-      <h4 style="color:var(--accent-cyan);font-size:0.8rem;">ACCOUNT, STAT & LEADERBOARD EDITOR</h4>
-      <div class="stat-grid-boxes">
-        <div class="stat-card">
-          <span class="stat-title">XP</span>
-          <input type="number" id="adm-edit-xp" value="${s.xp}" />
-        </div>
-        <div class="stat-card">
-          <span class="stat-title">OFFICIAL APM</span>
-          <input type="number" step="0.1" id="adm-edit-apm" value="${s.apmTestBest}" />
-        </div>
-        <div class="stat-card">
-          <span class="stat-title">ZEN LINES</span>
-          <input type="number" id="adm-edit-zen" value="${s.zenLines}" />
-        </div>
-        <div class="stat-card">
-          <span class="stat-title">1v1 WINS</span>
-          <input type="number" id="adm-edit-duelwins" value="${s.duelWins}" />
-        </div>
-        <div class="stat-card">
-          <span class="stat-title">FFA WINS</span>
-          <input type="number" id="adm-edit-ffawins" value="${s.ffaWins}" />
-        </div>
-        <div class="stat-card">
-          <span class="stat-title">MAX COMBO</span>
-          <input type="number" id="adm-edit-combo" value="${s.maxCombo}" />
-        </div>
-      </div>
-      <button class="btn btn-success" id="adm-save-stats-btn">SAVE EDITED STATS TO LEADERBOARD & GITHUB</button>
     `;
+
+    if (callerIsBigL) {
+      html += `
+        <h4 style="color:var(--accent-cyan);font-size:0.8rem;">ACCOUNT, STAT & LEADERBOARD EDITOR (BigL_ ONLY)</h4>
+        <div class="stat-grid-boxes">
+          <div class="stat-card">
+            <span class="stat-title">XP</span>
+            <input type="number" id="adm-edit-xp" value="${s.xp}" />
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">OFFICIAL APM</span>
+            <input type="number" step="0.1" id="adm-edit-apm" value="${s.apmTestBest}" />
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">ZEN LINES</span>
+            <input type="number" id="adm-edit-zen" value="${s.zenLines}" />
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">1v1 WINS</span>
+            <input type="number" id="adm-edit-duelwins" value="${s.duelWins}" />
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">FFA WINS</span>
+            <input type="number" id="adm-edit-ffawins" value="${s.ffaWins}" />
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">MAX COMBO</span>
+            <input type="number" id="adm-edit-combo" value="${s.maxCombo}" />
+          </div>
+        </div>
+        <button class="btn btn-success" id="adm-save-stats-btn">SAVE EDITED STATS TO LEADERBOARD & GITHUB</button>
+      `;
+    }
+
+    adminSelectedUserBody.innerHTML = html;
 
     const sendMod = (subAction) => {
       const minutes = Number(document.getElementById('adm-mod-mins').value) || 15;
@@ -1143,19 +1265,33 @@
     document.getElementById('adm-mute-btn').addEventListener('click', () => sendMod('mute'));
     document.getElementById('adm-unmute-btn').addEventListener('click', () => sendMod('unmute'));
 
-    document.getElementById('adm-save-stats-btn').addEventListener('click', () => {
-      ws.send(JSON.stringify({
-        type: 'admin_action',
-        action: 'edit_stats',
-        targetUsername: p.username,
-        xp: Number(document.getElementById('adm-edit-xp').value),
-        apmTestBest: Number(document.getElementById('adm-edit-apm').value),
-        zenLines: Number(document.getElementById('adm-edit-zen').value),
-        duelWins: Number(document.getElementById('adm-edit-duelwins').value),
-        ffaWins: Number(document.getElementById('adm-edit-ffawins').value),
-        maxCombo: Number(document.getElementById('adm-edit-combo').value)
-      }));
-    });
+    const toggleModBtn = document.getElementById('adm-toggle-mod-btn');
+    if (toggleModBtn && callerIsBigL) {
+      toggleModBtn.addEventListener('click', () => {
+        ws.send(JSON.stringify({
+          type: 'admin_action',
+          action: 'toggle_moderator',
+          targetUsername: p.username
+        }));
+      });
+    }
+
+    const saveStatsBtn = document.getElementById('adm-save-stats-btn');
+    if (saveStatsBtn && callerIsBigL) {
+      saveStatsBtn.addEventListener('click', () => {
+        ws.send(JSON.stringify({
+          type: 'admin_action',
+          action: 'edit_stats',
+          targetUsername: p.username,
+          xp: Number(document.getElementById('adm-edit-xp').value),
+          apmTestBest: Number(document.getElementById('adm-edit-apm').value),
+          zenLines: Number(document.getElementById('adm-edit-zen').value),
+          duelWins: Number(document.getElementById('adm-edit-duelwins').value),
+          ffaWins: Number(document.getElementById('adm-edit-ffawins').value),
+          maxCombo: Number(document.getElementById('adm-edit-combo').value)
+        }));
+      });
+    }
   }
 
   // ============================================================================
@@ -1197,7 +1333,7 @@
   });
 
   // ============================================================================
-  // HUB NAVIGATION & LEADERBOARDS
+  // HUB NAVIGATION, LEADERBOARDS & HEAD-TO-HEAD RIVALRY INSPECTOR
   // ============================================================================
 
   function navigateToHub() {
@@ -1213,6 +1349,7 @@
     hubScreen.classList.remove('hidden');
 
     renderActivePlayersBar();
+    renderDailyChallengesBox();
     renderLeaderboard();
     renderPlayersDirectory();
     renderUnlockGrids();
@@ -1237,6 +1374,7 @@
     switchHubTab(hubTabCustomize, hubCustomizeView);
     renderUnlockGrids();
     renderBackgroundThumbnailsGrid();
+    syncColorSlidersFromPrefs();
   });
   hubTabStats.addEventListener('click', () => {
     switchHubTab(hubTabStats, hubStatsView);
@@ -1348,6 +1486,19 @@
   function inspectPlayerProfile(p) {
     inspectedPilotTitle.textContent = `PLAYER STATS: ${p.username.toUpperCase()} (LVL ${p.stats.level})`;
     const s = p.stats;
+
+    // Calculate Head-to-Head Record between logged-in player and inspected player
+    let h2hBannerHtml = '';
+    if (myUserObj && myUserObj.username.toLowerCase() !== p.username.toLowerCase()) {
+      const myH2H = (myUserObj.headToHead && myUserObj.headToHead[p.username.toLowerCase()]) || { wins: 0, losses: 0 };
+      h2hBannerHtml = `
+        <div class="h2h-banner">
+          <span>HEAD-TO-HEAD RIVALRY RECORD</span>
+          <span style="color:var(--accent-gold);">${escapeHtml(myUserObj.username)} ${myH2H.wins}W — ${myH2H.losses}L ${escapeHtml(p.username)}</span>
+        </div>
+      `;
+    }
+
     const historyHtml = (p.matchHistory || []).slice().reverse().slice(0, 10).map(m => `
       <tr>
         <td>${escapeHtml(m.mode || '-')}</td>
@@ -1359,12 +1510,13 @@
     `).join('') || `<tr><td colspan="5">No matches logged yet</td></tr>`;
 
     inspectedPilotBody.innerHTML = `
+      ${h2hBannerHtml}
       <div class="stat-grid-boxes">
         <div class="stat-card"><span class="stat-title">ACCOUNT LEVEL</span><span class="stat-val">LVL ${s.level} (${s.xp} XP)</span></div>
         <div class="stat-card"><span class="stat-title">OFFICIAL APM (BEST)</span><span class="stat-val">${Number(s.apmTestBest || 0).toFixed(1)} APM</span></div>
-        <div class="stat-card"><span class="stat-title">LAST APM TEST</span><span class="stat-val">${Number(s.apmTestLast || 0).toFixed(1)} APM</span></div>
         <div class="stat-card"><span class="stat-title">ZEN LINES CLEARED</span><span class="stat-val">${s.zenLines || 0}</span></div>
         <div class="stat-card"><span class="stat-title">1v1 RECORD</span><span class="stat-val">${s.duelWins || 0}W - ${s.duelLosses || 0}L</span></div>
+        <div class="stat-card"><span class="stat-title">2v2 TEAM RECORD</span><span class="stat-val">${s.teamWins || 0}W - ${s.teamLosses || 0}L</span></div>
         <div class="stat-card"><span class="stat-title">FFA WINS</span><span class="stat-val">${s.ffaWins || 0}</span></div>
         <div class="stat-card"><span class="stat-title">TOURNEY WINS</span><span class="stat-val">${s.tournamentWins || 0}</span></div>
         <div class="stat-card"><span class="stat-title">MAX COMBO</span><span class="stat-val">${s.maxCombo || 0}x</span></div>
@@ -1380,7 +1532,7 @@
   }
 
   // ============================================================================
-  // GAME MODE LAUNCHERS & DYNAMIC COUNTDOWN ENGINE
+  // GAME MODE LAUNCHERS & COUNTDOWN ENGINE
   // ============================================================================
 
   function setFfaTargetModeUI(mode) {
@@ -1435,7 +1587,7 @@
         showOverlay('GO!', '');
         window.AudioController.playSFX('rotate');
         engine.startTime = performance.now();
-        lastInputTimestamp = performance.now(); // Start 15s AFK timer
+        lastInputTimestamp = performance.now();
         canControlBoard = true;
         if (onGoCallback) onGoCallback();
       } else {
@@ -1460,8 +1612,7 @@
     tugOfWarWrap.classList.add('hidden');
     multiOpponentsGrid.innerHTML = '';
 
-    // Show Live APM Graph in 1v1, FFA, and APM Test
-    if (modeKey === 'duel' || modeKey === 'ffa' || modeKey === 'apm_test') {
+    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa' || modeKey === 'apm_test') {
       liveApmGraphBox.classList.remove('hidden');
     } else {
       liveApmGraphBox.classList.add('hidden');
@@ -1495,9 +1646,9 @@
       ffaTargetBar.classList.add('hidden');
     }
 
-    if (modeKey === 'duel' || modeKey === 'ffa') {
+    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa') {
       multiOpponentsPanel.classList.remove('hidden');
-      multiOppHeader.textContent = modeKey === 'ffa' ? 'FFA OPPONENTS (CLICK TO TARGET)' : 'OPPONENT MATRIX';
+      multiOppHeader.textContent = modeKey === 'ffa' ? 'FFA OPPONENTS (CLICK TO TARGET)' : 'LIVE MATRICES';
       arenaRestartBtn.classList.add('hidden');
     } else {
       multiOpponentsPanel.classList.add('hidden');
@@ -1547,6 +1698,7 @@
 
   join1v1QueueBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
+      queue2v2WaitingBanner.classList.add('hidden');
       ws.send(JSON.stringify({ type: 'join_1v1_queue' }));
       queueWaitingBanner.classList.remove('hidden');
     }
@@ -1556,6 +1708,21 @@
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'leave_1v1_queue' }));
       queueWaitingBanner.classList.add('hidden');
+    }
+  });
+
+  join2v2QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      queueWaitingBanner.classList.add('hidden');
+      ws.send(JSON.stringify({ type: 'join_2v2_queue' }));
+      queue2v2WaitingBanner.classList.remove('hidden');
+    }
+  });
+
+  leave2v2QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'leave_2v2_queue' }));
+      queue2v2WaitingBanner.classList.add('hidden');
     }
   });
 
@@ -1571,6 +1738,7 @@
   function leaveCurrentArenaOrQueue() {
     flushZenLines();
     queueWaitingBanner.classList.add('hidden');
+    queue2v2WaitingBanner.classList.add('hidden');
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'leave_active_mode' }));
     }
@@ -1581,7 +1749,7 @@
   arenaLeaveBtn.addEventListener('click', leaveCurrentArenaOrQueue);
 
   arenaRestartBtn.addEventListener('click', () => {
-    if (currentMode === 'duel' || currentMode === 'ffa' || currentMode === 'spectate') return;
+    if (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa' || currentMode === 'spectate') return;
     flushZenLines();
     if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
     startCountdownWithDuration(Date.now(), currentCols, 3000);
@@ -1617,7 +1785,6 @@
       tbody.appendChild(tr);
     });
 
-    // Draw Match APM Telemetry Graph on Summary Modal
     const series = Array.isArray(msg.graphSeries) && msg.graphSeries.length > 0
       ? msg.graphSeries
       : [{ label: 'YOU', color: '#00e5ff', data: myApmHistory }];
@@ -1651,7 +1818,7 @@
   }
 
   // ============================================================================
-  // WEBSOCKET CLIENT, MULTI-BOARD RENDERING & ADMIN SPECTATOR GARBAGE INJECTOR
+  // WEBSOCKET CLIENT & MULTI-BOARD RENDERING
   // ============================================================================
 
   function updateSuddenDeathAndTugUI(sdMult, tug) {
@@ -1674,7 +1841,6 @@
     if (!Array.isArray(boardsList)) return;
     multiOpponentsGrid.innerHTML = '';
 
-    // In 1v1, track opponent's live APM for the dual-line APM graph
     if (currentMode === 'duel' && boardsList[0]) {
       opponentApmHistory.push(Number(boardsList[0].apm || 0));
       if (opponentApmHistory.length > 80) opponentApmHistory.shift();
@@ -1689,15 +1855,14 @@
         <canvas width="72" height="468"></canvas>
       `;
 
-      // Admin BigL_ Spectator Garbage Injector Buttons (+1, +4, +10 Lines)
-      if (isBigLAdmin() && (currentMode === 'spectate' || currentMode === 'ffa' || currentMode === 'duel')) {
+      // Admin BigL_ Spectator Garbage Injector Buttons (Reserved strictly for BigL_)
+      if (isBigLAdmin() && (currentMode === 'spectate' || currentMode === 'ffa' || currentMode === 'duel' || currentMode === 'team2v2')) {
         const injectRow = document.createElement('div');
         injectRow.className = 'admin-inject-row';
         [1, 4, 10].forEach(lineAmt => {
           const btn = document.createElement('button');
           btn.className = 'btn btn-danger btn-sm';
           btn.textContent = `+${lineAmt}L`;
-          btn.title = `Admin BigL_: Send +${lineAmt} garbage lines to ${b.username}`;
           btn.addEventListener('click', (ev) => {
             ev.stopPropagation();
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -1805,7 +1970,7 @@
           break;
 
         case 'force_logout':
-          forceLogoutToScreen(msg.reason || 'Disconnected by Admin.');
+          forceLogoutToScreen(msg.reason || 'Disconnected by Moderation.');
           break;
 
         case 'admin_shout':
@@ -1822,6 +1987,7 @@
         case 'hub_sync':
           cachedOnlinePlayers = msg.onlinePlayers || [];
           hub1v1QueueStatus.textContent = `In Queue: ${msg.queue1v1Count || 0}`;
+          if (hub2v2QueueStatus) hub2v2QueueStatus.textContent = `In Queue: ${msg.queue2v2Count || 0} / 4`;
           hubFfaStatus.textContent = `In Lobby: ${msg.ffaPlayerCount || 0}`;
           if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
           if (msg.leaderboards) cachedLeaderboards = msg.leaderboards;
@@ -1857,6 +2023,7 @@
 
         case 'duel_init':
           queueWaitingBanner.classList.add('hidden');
+          queue2v2WaitingBanner.classList.add('hidden');
           challengeToast.classList.add('hidden');
           enterArenaMode('duel', `1v1 BEST OF ${msg.bestOf || 3} • ${msg.p1.username} vs ${msg.p2.username}`, 4);
           arenaScoreStrip.textContent = `${msg.p1.username} (0) - (0) ${msg.p2.username} | ROUND 1`;
@@ -1870,16 +2037,31 @@
           }
           break;
 
+        case 'team2v2_init':
+          queueWaitingBanner.classList.add('hidden');
+          queue2v2WaitingBanner.classList.add('hidden');
+          enterArenaMode('team2v2', `2v2 TEAM BATTLE (YOU: TEAM ${msg.myTeam.toUpperCase()})`, 4);
+          arenaScoreStrip.textContent = `ALPHA (${msg.alphaScore}) — (${msg.bravoScore}) BRAVO | ROUND 1`;
+          tugOfWarWrap.classList.remove('hidden');
+          break;
+
+        case 'team2v2_round_countdown':
+          arenaScoreStrip.textContent = `ALPHA (${msg.alphaScore}) — (${msg.bravoScore}) BRAVO | ROUND ${msg.round} (BO3)`;
+          if (currentMode === 'team2v2') {
+            startCountdownWithDuration(msg.seed, 4, msg.countdownMs || 3000);
+          }
+          break;
+
         case 'duel_round_result':
           canControlBoard = false;
           arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score}`;
-          if (currentMode === 'duel') {
+          if (currentMode === 'duel' || currentMode === 'team2v2') {
             if (msg.roundWinnerId === myId) {
               window.AudioController.playSFX('win');
               showOverlay(`ROUND ${msg.round} WON`, `Score: ${msg.p1Score} - ${msg.p2Score}`);
             } else {
               window.AudioController.playSFX('lose');
-              showOverlay(`ROUND ${msg.round} LOST`, `${msg.roundWinnerName} won the round`);
+              showOverlay(`ROUND ${msg.round} OVER`, `${msg.roundWinnerName} won the round`);
             }
           }
           break;
@@ -1912,7 +2094,6 @@
           break;
 
         case 'spectate_init':
-          spectatingMatchId = msg.matchId || null;
           enterArenaMode('spectate', msg.title || 'LIVE SPECTATOR MODE', 4);
           break;
 
@@ -1952,7 +2133,7 @@
 
   function sendBoardSync() {
     if (!ws || ws.readyState !== WebSocket.OPEN || !isAuthenticated) return;
-    if (currentMode !== 'duel' && currentMode !== 'ffa') return;
+    if (currentMode !== 'duel' && currentMode !== 'team2v2' && currentMode !== 'ffa') return;
     const m = engine.getLiveMetrics();
     ws.send(JSON.stringify({
       type: 'board_sync',
@@ -1970,7 +2151,7 @@
   }
 
   setInterval(() => {
-    if (isAuthenticated && canControlBoard && (currentMode === 'duel' || currentMode === 'ffa')) {
+    if (isAuthenticated && canControlBoard && (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa')) {
       sendBoardSync();
     }
   }, 250);
@@ -2100,7 +2281,6 @@
 
     if (isTyping() || activeScreen !== 'arena') return;
 
-    // Reset 15-second AFK timer on any arena keypress
     lastInputTimestamp = performance.now();
 
     const kb = userPrefs.keybinds;
@@ -2118,7 +2298,7 @@
     if (e.repeat) return;
     keysDown.add(e.code);
 
-    if (e.code === kb.restart && currentMode !== 'duel' && currentMode !== 'ffa' && currentMode !== 'spectate') {
+    if (e.code === kb.restart && currentMode !== 'duel' && currentMode !== 'team2v2' && currentMode !== 'ffa' && currentMode !== 'spectate') {
       flushZenLines();
       if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
       startCountdownWithDuration(Date.now(), currentCols, 3000);
@@ -2194,7 +2374,7 @@
   }
 
   // ============================================================================
-  // 11-TIER SKIN & GHOST RENDERERS
+  // 11-TIER SKIN, GHOST, MOTION TRAILS & PARTICLE SHATTER RENDERERS
   // ============================================================================
 
   function drawStyledBlock(ctx, x, y, size, color, alpha = 1.0, skin = 'bevel') {
@@ -2382,6 +2562,25 @@
     boardCtx.lineTo(cols * cellSize, engine.bufferRows * cellSize);
     boardCtx.stroke();
 
+    // Render Hard-Drop Motion Trails behind pieces
+    if (Array.isArray(engine.hardDropTrails) && engine.hardDropTrails.length > 0) {
+      engine.hardDropTrails = engine.hardDropTrails.filter(t => t.expiresAt > now);
+      engine.hardDropTrails.forEach(t => {
+        const life = Math.max(0, (t.expiresAt - now) / 180);
+        const topPx = t.startY * cellSize;
+        const heightPx = Math.max(cellSize, (t.endY - t.startY) * cellSize);
+        const grad = boardCtx.createLinearGradient(0, topPx, 0, topPx + heightPx);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        grad.addColorStop(1, t.color);
+        boardCtx.save();
+        boardCtx.globalAlpha = life * 0.42;
+        boardCtx.fillStyle = grad;
+        boardCtx.fillRect(t.x * cellSize + 3, topPx, cellSize - 6, heightPx);
+        boardCtx.restore();
+      });
+    }
+
+    // Locked blocks
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const cell = engine.grid[r][c];
@@ -2391,6 +2590,7 @@
       }
     }
 
+    // Lock Flash
     if (userPrefs.lockFlash && Array.isArray(engine.lockFlashCells) && engine.lockFlashCells.length > 0) {
       engine.lockFlashCells = engine.lockFlashCells.filter(f => f.expiresAt > now);
       boardCtx.save();
@@ -2401,6 +2601,7 @@
       boardCtx.restore();
     }
 
+    // Ghost & Active Piece
     if (engine.activePiece && !engine.gameOver) {
       const p = engine.activePiece;
       const ghostY = engine.getGhostY();
@@ -2420,6 +2621,17 @@
           }
         }
       }
+    }
+
+    // Render Line-Clear Shatter Particles
+    if (Array.isArray(engine.clearParticles) && engine.clearParticles.length > 0) {
+      boardCtx.save();
+      engine.clearParticles.forEach(pt => {
+        boardCtx.globalAlpha = Math.max(0, pt.alpha);
+        boardCtx.fillStyle = pt.color;
+        boardCtx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+      });
+      boardCtx.restore();
     }
 
     holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
@@ -2454,13 +2666,12 @@
     statB2b.textContent = `${m.b2b}x`;
     garbageMeterFill.style.height = `${Math.min(100, (m.pendingGarbage / 20) * 100)}%`;
 
-    // Render Live In-Arena APM Graph (Dual-line in 1v1, Single-line in FFA & APM Test)
     if (currentMode === 'duel') {
       drawApmChartOnCanvas(liveApmCtx, liveApmCanvas.width, liveApmCanvas.height, [
         { label: 'YOU', color: '#00e5ff', data: myApmHistory },
         { label: 'OPP', color: '#ff3d57', data: opponentApmHistory }
       ]);
-    } else if (currentMode === 'ffa' || currentMode === 'apm_test') {
+    } else if (currentMode === 'team2v2' || currentMode === 'ffa' || currentMode === 'apm_test') {
       drawApmChartOnCanvas(liveApmCtx, liveApmCanvas.width, liveApmCanvas.height, [
         { label: 'YOU', color: '#00e5ff', data: myApmHistory }
       ]);
@@ -2475,7 +2686,6 @@
     if (activeScreen === 'arena') {
       updateBoardShakePhysics(dtMs);
       if (canControlBoard && !engine.gameOver) {
-        // 15-Second Idle / AFK Kick Check
         if (now - lastInputTimestamp >= 15000) {
           canControlBoard = false;
           if (ws && ws.readyState === WebSocket.OPEN) {
@@ -2489,7 +2699,6 @@
         updateInput(dtMs);
         engine.update(dtMs);
 
-        // Sample APM every 500ms for the Live APM Graph
         apmSampleTimer += dtMs;
         if (apmSampleTimer >= 500) {
           apmSampleTimer = 0;
@@ -2505,6 +2714,8 @@
             finishApmTest();
           }
         }
+      } else {
+        engine.updateParticles(dtMs);
       }
       renderArena(now);
     }
