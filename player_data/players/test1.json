@@ -3,8 +3,8 @@
   "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
   "passwordPlain": "1234",
   "createdAt": "2026-10-15T19:48:42.278Z",
-  "updatedAt": "2026-10-16T14:31:14.744Z",
-  "lastLogin": "2026-10-16T13:25:06.465Z",
+  "updatedAt": "2026-10-20T00:24:55.617Z",
+  "lastLogin": "2026-10-15T20:05:36.432Z",
   "settings": {
     "musicVolume": 0,
     "sfxVolume": 40,
@@ -102,7 +102,7 @@
   "moderation": {
     "banned": true,
     "banReason": "Banned by Admin BigL_",
-    "timeoutUntil": 1792158013493,
+    "timeoutUntil": 0,
     "mutedUntil": 0
   }
 }
