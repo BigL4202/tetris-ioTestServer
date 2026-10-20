@@ -1,0 +1,20 @@
+{
+  "bigl_": {
+    "username": "BigL_",
+    "isModerator": false,
+    "banned": false,
+    "banReason": "",
+    "timeoutUntil": 0,
+    "mutedUntil": 0,
+    "updatedAt": 1792530345802
+  },
+  "barnesttv": {
+    "username": "BARNESTTV",
+    "isModerator": true,
+    "banned": false,
+    "banReason": "",
+    "timeoutUntil": 1792506919951,
+    "mutedUntil": 0,
+    "updatedAt": 1792530738863
+  }
+}
