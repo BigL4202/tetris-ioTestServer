@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T13:52:50.101Z",
+    "updatedAt": "2026-10-20T13:53:29.831Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -33,20 +33,20 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 67,
-      "ffaWins": 19,
+      "gamesPlayed": 69,
+      "ffaWins": 20,
       "duelWins": 23,
       "duelLosses": 3,
       "maxCombo": 28,
-      "totalLinesCleared": 4337,
-      "totalAttackSent": 1264,
+      "totalLinesCleared": 4365,
+      "totalAttackSent": 1281,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 459,
-      "receivedSamples": 57,
+      "totalReceivedSum": 478,
+      "receivedSamples": 59,
       "avgReceived": 8.1,
-      "xp": 29643,
+      "xp": 29945,
       "level": 20,
       "zenLines": 2154,
       "apmTestBest": 220,
@@ -643,6 +643,22 @@
         "apm": 49.8,
         "lines": 27,
         "maxCombo": 3
+      },
+      {
+        "date": "2026-10-20T13:53:08.762Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 86.2,
+        "lines": 17,
+        "maxCombo": 6
+      },
+      {
+        "date": "2026-10-20T13:53:29.831Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 9.2,
+        "lines": 11,
+        "maxCombo": 2
       }
     ],
     "moderation": {
@@ -1587,7 +1603,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-20T13:52:50.100Z",
+    "updatedAt": "2026-10-20T13:53:29.830Z",
     "lastLogin": "2026-10-20T13:50:55.315Z",
     "moderation": {
       "banned": false,
@@ -1618,22 +1634,22 @@
       }
     },
     "stats": {
-      "xp": 25000,
+      "xp": 25306,
       "level": 18,
-      "gamesPlayed": 89,
+      "gamesPlayed": 91,
       "zenLines": 1,
       "apmTestBest": 83,
       "apmTestLast": 83,
-      "ffaWins": 45,
+      "ffaWins": 46,
       "duelWins": 6,
       "duelLosses": 17,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 3725,
-      "totalAttackSent": 2884,
-      "totalReceivedSum": 1082,
-      "receivedSamples": 86,
-      "avgReceived": 12.6
+      "totalLinesCleared": 3754,
+      "totalAttackSent": 2915,
+      "totalReceivedSum": 1097,
+      "receivedSamples": 88,
+      "avgReceived": 12.5
     },
     "matchHistory": [
       {
@@ -2393,6 +2409,22 @@
         "apm": 106.6,
         "lines": 25,
         "maxCombo": 10
+      },
+      {
+        "date": "2026-10-20T13:53:08.761Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 5.7,
+        "lines": 9,
+        "maxCombo": 1
+      },
+      {
+        "date": "2026-10-20T13:53:29.830Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 138.8,
+        "lines": 20,
+        "maxCombo": 8
       }
     ]
   },
