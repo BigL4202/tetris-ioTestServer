@@ -3,13 +3,14 @@
   "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
   "passwordPlain": "UCE5826tb",
   "createdAt": "2026-10-19T12:15:50.187Z",
-  "updatedAt": "2026-10-20T14:34:19.951Z",
-  "lastLogin": "2026-10-20T13:50:55.315Z",
+  "updatedAt": "2026-10-20T21:12:18.863Z",
+  "lastLogin": "2026-10-20T14:36:36.071Z",
   "moderation": {
     "banned": false,
     "banReason": "",
     "timeoutUntil": 1792506919951,
-    "mutedUntil": 0
+    "mutedUntil": 0,
+    "updatedAt": 1792530738863
   },
   "settings": {
     "musicVolume": 40,
@@ -31,6 +32,20 @@
       "hardDrop": "Space",
       "hold": "ShiftLeft",
       "restart": "KeyR"
+    },
+    "customColors": {
+      "accentR": 0,
+      "accentG": 229,
+      "accentB": 255,
+      "menuR": 12,
+      "menuG": 19,
+      "menuB": 33,
+      "btnBgR": 25,
+      "btnBgG": 40,
+      "btnBgB": 68,
+      "btnTxtR": 230,
+      "btnTxtG": 241,
+      "btnTxtB": 255
     }
   },
   "stats": {
@@ -49,7 +64,9 @@
     "totalAttackSent": 4435,
     "totalReceivedSum": 1894,
     "receivedSamples": 128,
-    "avgReceived": 14.8
+    "avgReceived": 14.8,
+    "teamWins": 0,
+    "teamLosses": 0
   },
   "matchHistory": [
     {
@@ -1194,5 +1211,36 @@
       "lines": 27,
       "maxCombo": 6
     }
-  ]
+  ],
+  "isModerator": true,
+  "headToHead": {},
+  "dailyChallenges": {
+    "date": "2026-10-20",
+    "challenges": [
+      {
+        "id": "lines_40",
+        "title": "Clear 40 Lines in Any Mode",
+        "progress": 0,
+        "target": 40,
+        "rewardXp": 200,
+        "claimed": false
+      },
+      {
+        "id": "combo_6",
+        "title": "Reach a 6x Combo or Higher",
+        "progress": 0,
+        "target": 6,
+        "rewardXp": 250,
+        "claimed": false
+      },
+      {
+        "id": "matches_2",
+        "title": "Finish 2 Multiplayer or APM Test Matches",
+        "progress": 0,
+        "target": 2,
+        "rewardXp": 300,
+        "claimed": false
+      }
+    ]
+  }
 }
