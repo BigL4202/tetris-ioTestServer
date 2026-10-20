@@ -4,8 +4,8 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-19T14:47:09.393Z",
-    "lastLogin": "2026-10-19T13:50:45.501Z",
+    "updatedAt": "2026-10-20T00:24:39.280Z",
+    "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
       "arr": 10,
@@ -579,7 +579,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:42.278Z",
-    "updatedAt": "2026-10-19T14:01:54.704Z",
+    "updatedAt": "2026-10-15T20:13:13.796Z",
     "lastLogin": "2026-10-15T20:05:36.432Z",
     "settings": {
       "musicVolume": 0,
@@ -676,8 +676,8 @@
       }
     ],
     "moderation": {
-      "banned": true,
-      "banReason": "Banned by Admin BigL_",
+      "banned": false,
+      "banReason": "",
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
@@ -687,7 +687,7 @@
     "passwordHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
     "passwordPlain": "1234",
     "createdAt": "2026-10-15T19:48:57.768Z",
-    "updatedAt": "2026-10-19T14:01:56.609Z",
+    "updatedAt": "2026-10-15T20:18:47.809Z",
     "lastLogin": "2026-10-15T20:05:21.505Z",
     "settings": {
       "musicVolume": 0,
@@ -780,8 +780,8 @@
       }
     ],
     "moderation": {
-      "banned": true,
-      "banReason": "Banned by Admin BigL_",
+      "banned": false,
+      "banReason": "",
       "timeoutUntil": 0,
       "mutedUntil": 0
     }
