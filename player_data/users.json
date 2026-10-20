@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T13:01:46.728Z",
+    "updatedAt": "2026-10-20T13:04:02.099Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -33,20 +33,20 @@
       "lockedBg": "/resources/bg/PetersCreek_FCC_VladKarpinsky-1024x683.avif"
     },
     "stats": {
-      "gamesPlayed": 60,
-      "ffaWins": 18,
-      "duelWins": 22,
+      "gamesPlayed": 64,
+      "ffaWins": 19,
+      "duelWins": 23,
       "duelLosses": 3,
       "maxCombo": 19,
-      "totalLinesCleared": 4058,
-      "totalAttackSent": 1135,
+      "totalLinesCleared": 4145,
+      "totalAttackSent": 1249,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 392,
-      "receivedSamples": 52,
-      "avgReceived": 7.5,
-      "xp": 27788,
+      "totalReceivedSum": 437,
+      "receivedSamples": 56,
+      "avgReceived": 7.8,
+      "xp": 28541,
       "level": 19,
       "zenLines": 2154,
       "apmTestBest": 199,
@@ -585,6 +585,40 @@
         "apm": 77.3,
         "lines": 18,
         "maxCombo": 9
+      },
+      {
+        "date": "2026-10-20T13:02:35.270Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 155.7,
+        "lines": 15,
+        "maxCombo": 11
+      },
+      {
+        "date": "2026-10-20T13:03:22.412Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 95,
+        "lines": 43,
+        "maxCombo": 9
+      },
+      {
+        "date": "2026-10-20T13:03:43.291Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 4.7,
+        "lines": 12,
+        "maxCombo": 3
+      },
+      {
+        "date": "2026-10-20T13:04:02.099Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 192.6,
+        "lines": 17,
+        "maxCombo": 12
       }
     ],
     "moderation": {
@@ -1529,7 +1563,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-20T13:01:46.729Z",
+    "updatedAt": "2026-10-20T13:04:02.092Z",
     "lastLogin": "2026-10-19T13:50:42.667Z",
     "moderation": {
       "banned": false,
@@ -1560,22 +1594,22 @@
       }
     },
     "stats": {
-      "xp": 23692,
+      "xp": 24494,
       "level": 18,
-      "gamesPlayed": 83,
+      "gamesPlayed": 87,
       "zenLines": 1,
       "apmTestBest": 83,
       "apmTestLast": 83,
-      "ffaWins": 42,
+      "ffaWins": 44,
       "duelWins": 6,
-      "duelLosses": 16,
+      "duelLosses": 17,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 3516,
-      "totalAttackSent": 2739,
-      "totalReceivedSum": 1009,
-      "receivedSamples": 81,
-      "avgReceived": 12.5
+      "totalLinesCleared": 3614,
+      "totalAttackSent": 2852,
+      "totalReceivedSum": 1069,
+      "receivedSamples": 85,
+      "avgReceived": 12.6
     },
     "matchHistory": [
       {
@@ -2285,6 +2319,40 @@
         "apm": 48.7,
         "lines": 38,
         "maxCombo": 5
+      },
+      {
+        "date": "2026-10-20T13:02:35.270Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 5.3,
+        "lines": 20,
+        "maxCombo": 10
+      },
+      {
+        "date": "2026-10-20T13:03:22.412Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 132.6,
+        "lines": 46,
+        "maxCombo": 15
+      },
+      {
+        "date": "2026-10-20T13:03:43.290Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 150.4,
+        "lines": 19,
+        "maxCombo": 5
+      },
+      {
+        "date": "2026-10-20T13:04:02.092Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 61.4,
+        "lines": 13,
+        "maxCombo": 6
       }
     ]
   },
