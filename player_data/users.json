@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T13:51:55.841Z",
+    "updatedAt": "2026-10-20T13:52:50.101Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -12,7 +12,7 @@
       "sdf": 40,
       "musicVolume": 33,
       "sfxVolume": 40,
-      "bgInterval": 60,
+      "bgInterval": 120,
       "preferredCols": 4,
       "boardShake": true,
       "lockFlash": true,
@@ -30,23 +30,23 @@
         "hold": "ShiftLeft",
         "restart": "KeyR"
       },
-      "lockedBg": "/resources/bg/PetersCreek_FCC_VladKarpinsky-1024x683.avif"
+      "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 66,
+      "gamesPlayed": 67,
       "ffaWins": 19,
       "duelWins": 23,
       "duelLosses": 3,
       "maxCombo": 28,
-      "totalLinesCleared": 4310,
-      "totalAttackSent": 1249,
+      "totalLinesCleared": 4337,
+      "totalAttackSent": 1264,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 437,
-      "receivedSamples": 56,
-      "avgReceived": 7.8,
-      "xp": 29485,
+      "totalReceivedSum": 459,
+      "receivedSamples": 57,
+      "avgReceived": 8.1,
+      "xp": 29643,
       "level": 20,
       "zenLines": 2154,
       "apmTestBest": 220,
@@ -635,6 +635,14 @@
         "apm": 152,
         "lines": 83,
         "maxCombo": 11
+      },
+      {
+        "date": "2026-10-20T13:52:50.101Z",
+        "mode": "FFA",
+        "result": "TOP OUT",
+        "apm": 49.8,
+        "lines": 27,
+        "maxCombo": 3
       }
     ],
     "moderation": {
@@ -1579,7 +1587,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-20T13:52:13.740Z",
+    "updatedAt": "2026-10-20T13:52:50.100Z",
     "lastLogin": "2026-10-20T13:50:55.315Z",
     "moderation": {
       "banned": false,
@@ -1610,21 +1618,21 @@
       }
     },
     "stats": {
-      "xp": 24760,
+      "xp": 25000,
       "level": 18,
-      "gamesPlayed": 88,
+      "gamesPlayed": 89,
       "zenLines": 1,
       "apmTestBest": 83,
       "apmTestLast": 83,
-      "ffaWins": 44,
+      "ffaWins": 45,
       "duelWins": 6,
       "duelLosses": 17,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 3700,
-      "totalAttackSent": 2852,
-      "totalReceivedSum": 1069,
-      "receivedSamples": 85,
+      "totalLinesCleared": 3725,
+      "totalAttackSent": 2884,
+      "totalReceivedSum": 1082,
+      "receivedSamples": 86,
       "avgReceived": 12.6
     },
     "matchHistory": [
@@ -2377,6 +2385,14 @@
         "apm": 83,
         "lines": 86,
         "maxCombo": 12
+      },
+      {
+        "date": "2026-10-20T13:52:50.100Z",
+        "mode": "FFA",
+        "result": "1ST (WIN)",
+        "apm": 106.6,
+        "lines": 25,
+        "maxCombo": 10
       }
     ]
   },
