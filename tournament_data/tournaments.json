@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "tourney_1792506986041_tq82",
+    "name": "Project A² Championship",
+    "createdBy": "BigL_",
+    "createdAt": "2026-10-20T14:36:26.041Z",
+    "bestOf": 5,
+    "winsNeeded": 3,
+    "maxPlayers": 4,
+    "registrationDays": 1,
+    "registrationEndsAt": 1792593386041,
+    "daysPerMatch": 1,
+    "format": "single",
+    "seeding": "apm",
+    "status": "registration",
+    "registeredPlayers": [],
+    "matches": [],
+    "champion": null
+  }
+]
