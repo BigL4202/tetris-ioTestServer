@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T21:13:44.460Z",
+  "updatedAt": "2026-10-20T21:13:45.506Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -29,7 +29,7 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "/resources/bg/KIC3213-Rain-Forest-Landscape-Hoh-Rain-Forest-Olympic-NP-Washington.webp",
+    "lockedBg": "/resources/bg/Dive-Site-Giannis-D-Wreck-Red-Sea.jpg",
     "customColors": {
       "accentR": 25,
       "accentG": 87,
