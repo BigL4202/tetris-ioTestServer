@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T14:35:30.792Z",
+  "updatedAt": "2026-10-20T14:38:22.867Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -32,21 +32,21 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 109,
+    "gamesPlayed": 110,
     "ffaWins": 33,
     "duelWins": 37,
-    "duelLosses": 13,
+    "duelLosses": 14,
     "maxCombo": 28,
-    "totalLinesCleared": 5928,
-    "totalAttackSent": 2791,
+    "totalLinesCleared": 5932,
+    "totalAttackSent": 2793,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
     "totalReceivedSum": 1066,
-    "receivedSamples": 99,
-    "avgReceived": 10.8,
-    "xp": 42058,
-    "level": 23,
+    "receivedSamples": 100,
+    "avgReceived": 10.7,
+    "xp": 42638,
+    "level": 24,
     "zenLines": 2208,
     "apmTestBest": 220,
     "apmTestLast": 152,
@@ -1026,6 +1026,24 @@
       "apm": 42.7,
       "lines": 34,
       "maxCombo": 9
+    },
+    {
+      "date": "2026-10-20T14:38:22.863Z",
+      "mode": "TOURNEY BO5",
+      "result": "LOSS",
+      "score": "1-2",
+      "opponent": "BARNESTTV",
+      "apm": 10.4,
+      "lines": 4,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-20T14:38:22.867Z",
+      "mode": "TOURNAMENT: Project A² Championship",
+      "result": "RUNNER-UP (2ND)",
+      "apm": 220,
+      "lines": 0,
+      "maxCombo": 28
     }
   ],
   "moderation": {
