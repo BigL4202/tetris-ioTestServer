@@ -6,7 +6,7 @@
   <title>Project A² | Competitive Stacker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body data-theme="cyan">
+<body>
   <!-- Dynamic Shuffling / Locked Background Container -->
   <div id="bg-stage">
     <div class="bg-layer active-bg"></div>
@@ -83,11 +83,11 @@
         <button id="hub-tab-tourney" class="btn mode-btn">TOURNAMENTS</button>
         <button id="hub-tab-customize" class="btn mode-btn">CUSTOMIZATION</button>
         <button id="hub-tab-stats" class="btn mode-btn">PLAYER STATS DIRECTORY</button>
-        <button id="hub-tab-admin" class="btn mode-btn btn-warning hidden">ADMIN CONSOLE (BigL_)</button>
+        <button id="hub-tab-admin" class="btn mode-btn btn-warning hidden">ADMIN CONSOLE</button>
       </div>
     </div>
 
-    <!-- HUB VIEW A: Active Players Bar on Left + Singleplayer + Multiplayer + Leaderboards -->
+    <!-- HUB VIEW A: Active Players Bar + Singleplayer & Daily XP Challenges + Multiplayer (1v1, 2v2, FFA) + Leaderboards -->
     <div id="hub-play-view" class="hub-grid">
       <!-- Far-Left Column: Scrollable Active Players Bar -->
       <div class="hub-column">
@@ -99,7 +99,7 @@
         </div>
       </div>
 
-      <!-- Singleplayer Column -->
+      <!-- Singleplayer & Daily XP Challenges Column -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
@@ -123,11 +123,17 @@
               <div class="mc-desc">1-Minute high-intensity attack sprint with live APM Graph. Sets your official Leaderboard APM.</div>
               <span class="badge gold-badge">60 SECONDS • OFFICIAL APM</span>
             </div>
+
+            <!-- Daily XP Challenges Box -->
+            <div class="daily-challenges-box">
+              <div class="spectate-header">DAILY XP CHALLENGES</div>
+              <div id="daily-challenges-list" class="daily-challenges-list"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Multiplayer Column -->
+      <!-- Multiplayer Column (1v1, 2v2 Team Battles & FFA) -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
@@ -136,7 +142,7 @@
           <div class="mode-cards-list">
             <div class="mode-select-card mp-card" id="join-1v1-queue-btn">
               <div class="mc-title">1v1 MATCHMAKING QUEUE</div>
-              <div class="mc-desc">Queue up. When 2 players are queued, both enter an isolated Best-of-3 match with Sudden Death.</div>
+              <div class="mc-desc">Queue up. When 2 players are queued, both enter an isolated Best-of-3 match.</div>
               <div class="mc-status-row">
                 <span class="badge">BEST OF 3</span>
                 <span id="hub-1v1-queue-status" class="queue-pill">In Queue: 0</span>
@@ -146,6 +152,20 @@
             <div id="queue-waiting-banner" class="challenge-box hidden">
               <div>Searching for 1v1 Opponent (Best of 3)...</div>
               <button id="leave-1v1-queue-btn" class="btn btn-danger btn-sm">LEAVE QUEUE</button>
+            </div>
+
+            <div class="mode-select-card mp-card" id="join-2v2-queue-btn">
+              <div class="mc-title">2v2 TEAM BATTLES</div>
+              <div class="mc-desc">Queue up for 2v2! When 4 players are queued, Team Alpha vs Team Bravo begins (Best of 3).</div>
+              <div class="mc-status-row">
+                <span class="badge">2v2 TEAMS • BO3</span>
+                <span id="hub-2v2-queue-status" class="queue-pill">In Queue: 0 / 4</span>
+              </div>
+            </div>
+
+            <div id="queue-2v2-waiting-banner" class="challenge-box hidden">
+              <div>Searching for 2v2 Players (Need 4)...</div>
+              <button id="leave-2v2-queue-btn" class="btn btn-danger btn-sm">LEAVE 2v2 QUEUE</button>
             </div>
 
             <div class="mode-select-card mp-card" id="join-ffa-lobby-btn">
@@ -185,13 +205,12 @@
       </div>
     </div>
 
-    <!-- HUB VIEW B: TOURNAMENTS (Registration, Brackets, Queue Match & Admin Creator) -->
+    <!-- HUB VIEW B: TOURNAMENTS -->
     <div id="hub-tourney-view" class="hub-tourney-view hidden">
       <div class="panel-card tourney-sidebar-card">
         <div class="card-header">
           <h3>TOURNAMENTS</h3>
         </div>
-        <!-- Admin Tournament Creator Box (Visible only to BigL_) -->
         <div id="admin-tourney-creator" class="admin-tourney-creator hidden">
           <h4>CREATE NEW TOURNAMENT (BigL_)</h4>
           <input type="text" id="t-create-name" placeholder="Tournament Title..." maxlength="36" />
@@ -246,7 +265,7 @@
       </div>
     </div>
 
-    <!-- HUB VIEW C: CUSTOMIZATION (4 Columns: Left = Background Thumbnails, + Skins, Ghosts & Themes up to Level 100) -->
+    <!-- HUB VIEW C: CUSTOMIZATION (4 Columns: Left = 2-per-row Square BG Thumbnails, Block Skins, Ghost Styles, & Unlocked RGB COLORS) -->
     <div id="hub-customize-view" class="hub-customize-view hidden">
       <div class="panel-card">
         <div class="card-header">
@@ -270,15 +289,45 @@
         <div id="ghosts-unlock-grid" class="unlock-grid"></div>
       </div>
 
+      <!-- 4th Column: COLORS (Unlocked RGB Sliders for Board/Accent, Navy Menu Panels, Button BG & Button Text) -->
       <div class="panel-card">
         <div class="card-header">
-          <h3>BOARD THEMES (LVL 1 - 100)</h3>
+          <h3>COLORS</h3>
+          <button id="reset-colors-btn" class="btn btn-sm">RESET DEFAULT</button>
         </div>
-        <div id="themes-unlock-grid" class="unlock-grid"></div>
+        <div id="custom-colors-panel" class="unlock-grid colors-sliders-panel">
+          <div class="color-slider-group">
+            <div class="color-group-title">BOARD & ACCENT COLOR</div>
+            <label>R: <span id="lbl-accent-r">0</span> <input type="range" id="col-accent-r" min="0" max="255" value="0" /></label>
+            <label>G: <span id="lbl-accent-g">229</span> <input type="range" id="col-accent-g" min="0" max="255" value="229" /></label>
+            <label>B: <span id="lbl-accent-b">255</span> <input type="range" id="col-accent-b" min="0" max="255" value="255" /></label>
+          </div>
+
+          <div class="color-slider-group">
+            <div class="color-group-title">MENU PANELS (NAVY BACKGROUND)</div>
+            <label>R: <span id="lbl-menu-r">12</span> <input type="range" id="col-menu-r" min="0" max="255" value="12" /></label>
+            <label>G: <span id="lbl-menu-g">19</span> <input type="range" id="col-menu-g" min="0" max="255" value="19" /></label>
+            <label>B: <span id="lbl-menu-b">33</span> <input type="range" id="col-menu-b" min="0" max="255" value="33" /></label>
+          </div>
+
+          <div class="color-slider-group">
+            <div class="color-group-title">BUTTON BACKGROUND COLOR</div>
+            <label>R: <span id="lbl-btnbg-r">25</span> <input type="range" id="col-btnbg-r" min="0" max="255" value="25" /></label>
+            <label>G: <span id="lbl-btnbg-g">40</span> <input type="range" id="col-btnbg-g" min="0" max="255" value="40" /></label>
+            <label>B: <span id="lbl-btnbg-b">68</span> <input type="range" id="col-btnbg-b" min="0" max="255" value="68" /></label>
+          </div>
+
+          <div class="color-slider-group">
+            <div class="color-group-title">BUTTON TEXT COLOR</div>
+            <label>R: <span id="lbl-btntxt-r">230</span> <input type="range" id="col-btntxt-r" min="0" max="255" value="230" /></label>
+            <label>G: <span id="lbl-btntxt-g">241</span> <input type="range" id="col-btntxt-g" min="0" max="255" value="241" /></label>
+            <label>B: <span id="lbl-btntxt-b">255</span> <input type="range" id="col-btntxt-b" min="0" max="255" value="255" /></label>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- HUB VIEW D: Every Player's Stats Directory -->
+    <!-- HUB VIEW D: Every Player's Stats Directory (Includes Head-to-Head Tracker) -->
     <div id="hub-stats-view" class="hub-stats-view hidden">
       <div class="panel-card directory-list-card">
         <div class="card-header">
@@ -293,18 +342,19 @@
           <h3 id="inspected-pilot-title">SELECT A PLAYER TO INSPECT</h3>
         </div>
         <div id="inspected-pilot-body" class="inspected-pilot-body">
-          <p class="sub-hint">Click any player on the left to view their Level, XP, Official APM, Zen Lines, 1v1 & FFA records, and recent match log.</p>
+          <p class="sub-hint">Click any player on the left to view your Head-to-Head record against them, Level, XP, Official APM, Zen Lines, and match log.</p>
         </div>
       </div>
     </div>
 
-    <!-- HUB VIEW E: BigL_ MASTER ADMIN CONSOLE -->
+    <!-- HUB VIEW E: BigL_ ADMIN & MODERATOR CONSOLE -->
     <div id="hub-admin-view" class="hub-stats-view hidden">
       <div class="panel-card directory-list-card">
         <div class="card-header">
-          <h3>ADMIN: GLOBAL CONTROLS & PLAYERS</h3>
+          <h3 id="admin-console-left-header">ADMIN & MODERATION PLAYERS LIST</h3>
         </div>
-        <div class="admin-global-box">
+        <!-- Global Admin Box (Strictly Hidden for Moderators; Visible ONLY to BigL_) -->
+        <div id="admin-only-global-box" class="admin-global-box hidden">
           <label>ADMIN SHOUT (BIG SCREEN BROADCAST):</label>
           <div class="chat-input-row">
             <input type="text" id="admin-shout-input" placeholder="Type message to display over all screens..." maxlength="120" />
@@ -319,10 +369,10 @@
 
       <div class="panel-card directory-detail-card">
         <div class="card-header">
-          <h3 id="admin-selected-user-title">ADMIN ACCOUNT, STAT & MODERATION EDITOR</h3>
+          <h3 id="admin-selected-user-title">SELECT AN ACCOUNT</h3>
         </div>
         <div id="admin-selected-user-body" class="inspected-pilot-body">
-          <p class="sub-hint">Select any account on the left to view their saved password, edit their Level/XP/APM/Zen Lines/Wins, or Ban / Timeout / Mute them.</p>
+          <p class="sub-hint">Select any account on the left to manage moderation.</p>
         </div>
       </div>
     </div>
@@ -414,7 +464,6 @@
             <canvas id="next-canvas" width="110" height="380"></canvas>
           </div>
 
-          <!-- Live In-Arena APM Graph Box (Visible in 1v1, FFA, and APM Test) -->
           <div id="live-apm-graph-box" class="hud-box apm-graph-box hidden">
             <div class="hud-label">LIVE APM GRAPH</div>
             <canvas id="live-apm-canvas" width="136" height="90"></canvas>
@@ -431,7 +480,7 @@
     </div>
   </main>
 
-  <!-- 4. 5-SECOND POST-MATCH STATS SUMMARY OVERLAY + APM GRAPH (1v1 & FFA) -->
+  <!-- 4. 5-SECOND POST-MATCH STATS SUMMARY OVERLAY + APM GRAPH -->
   <div id="post-match-screen" class="fullscreen-overlay hidden">
     <div class="summary-card">
       <div id="summary-mode-title" class="summary-title">MATCH COMPLETE</div>
