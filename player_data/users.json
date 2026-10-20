@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T14:32:09.489Z",
+    "updatedAt": "2026-10-20T14:35:19.432Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -38,7 +38,7 @@
       "duelWins": 37,
       "duelLosses": 13,
       "maxCombo": 28,
-      "totalLinesCleared": 5874,
+      "totalLinesCleared": 5915,
       "totalAttackSent": 2791,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -46,9 +46,9 @@
       "totalReceivedSum": 1066,
       "receivedSamples": 99,
       "avgReceived": 10.8,
-      "xp": 41734,
+      "xp": 41980,
       "level": 23,
-      "zenLines": 2154,
+      "zenLines": 2195,
       "apmTestBest": 220,
       "apmTestLast": 152,
       "tournamentWins": 0
@@ -1353,7 +1353,7 @@
     "passwordHash": "d478cb8a1aa5521199356ddd3c38dbe7a34afe8be44e90e2f1b7d1c28b37b81f",
     "passwordPlain": "1024Rosco!",
     "createdAt": "2026-10-16T14:07:06.274Z",
-    "updatedAt": "2026-10-20T14:33:47.767Z",
+    "updatedAt": "2026-10-20T14:34:02.087Z",
     "lastLogin": "2026-10-16T14:13:55.350Z",
     "moderation": {
       "banned": false,
@@ -1384,8 +1384,8 @@
       }
     },
     "stats": {
-      "xp": 146240,
-      "level": 43,
+      "xp": 14624,
+      "level": 14,
       "gamesPlayed": 55,
       "zenLines": 862,
       "apmTestBest": 0,
@@ -1971,12 +1971,12 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-20T14:33:36.823Z",
+    "updatedAt": "2026-10-20T14:34:19.951Z",
     "lastLogin": "2026-10-20T13:50:55.315Z",
     "moderation": {
       "banned": false,
       "banReason": "",
-      "timeoutUntil": 0,
+      "timeoutUntil": 1792506919951,
       "mutedUntil": 0
     },
     "settings": {
