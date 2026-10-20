@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T14:38:22.867Z",
+  "updatedAt": "2026-10-20T21:05:45.803Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -29,7 +29,21 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "shuffle"
+    "lockedBg": "/resources/bg/Hoh_trail_Trees-250.webp",
+    "customColors": {
+      "accentR": 0,
+      "accentG": 229,
+      "accentB": 255,
+      "menuR": 12,
+      "menuG": 19,
+      "menuB": 33,
+      "btnBgR": 25,
+      "btnBgG": 40,
+      "btnBgB": 68,
+      "btnTxtR": 230,
+      "btnTxtG": 241,
+      "btnTxtB": 255
+    }
   },
   "stats": {
     "gamesPlayed": 110,
@@ -50,7 +64,9 @@
     "zenLines": 2208,
     "apmTestBest": 220,
     "apmTestLast": 152,
-    "tournamentWins": 0
+    "tournamentWins": 0,
+    "teamWins": 0,
+    "teamLosses": 0
   },
   "matchHistory": [
     {
@@ -1050,6 +1066,38 @@
     "banned": false,
     "banReason": "",
     "timeoutUntil": 0,
-    "mutedUntil": 0
+    "mutedUntil": 0,
+    "updatedAt": 1792530345802
+  },
+  "isModerator": false,
+  "headToHead": {},
+  "dailyChallenges": {
+    "date": "2026-10-20",
+    "challenges": [
+      {
+        "id": "lines_40",
+        "title": "Clear 40 Lines in Any Mode",
+        "progress": 0,
+        "target": 40,
+        "rewardXp": 200,
+        "claimed": false
+      },
+      {
+        "id": "combo_6",
+        "title": "Reach a 6x Combo or Higher",
+        "progress": 0,
+        "target": 6,
+        "rewardXp": 250,
+        "claimed": false
+      },
+      {
+        "id": "matches_2",
+        "title": "Finish 2 Multiplayer or APM Test Matches",
+        "progress": 0,
+        "target": 2,
+        "rewardXp": 300,
+        "claimed": false
+      }
+    ]
   }
 }
