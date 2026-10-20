@@ -3,8 +3,8 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-19T14:35:57.476Z",
-  "lastLogin": "2026-10-19T13:50:45.501Z",
+  "updatedAt": "2026-10-20T00:25:46.420Z",
+  "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
     "arr": 10,
@@ -32,22 +32,22 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 50,
-    "ffaWins": 12,
-    "duelWins": 19,
+    "gamesPlayed": 58,
+    "ffaWins": 18,
+    "duelWins": 20,
     "duelLosses": 3,
     "maxCombo": 19,
-    "totalLinesCleared": 3689,
-    "totalAttackSent": 933,
+    "totalLinesCleared": 3896,
+    "totalAttackSent": 1073,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 343,
-    "receivedSamples": 42,
-    "avgReceived": 8.2,
-    "xp": 24628,
-    "level": 18,
-    "zenLines": 2030,
+    "totalReceivedSum": 381,
+    "receivedSamples": 50,
+    "avgReceived": 7.6,
+    "xp": 26574,
+    "level": 19,
+    "zenLines": 2050,
     "apmTestBest": 199,
     "apmTestLast": 199,
     "tournamentWins": 0
@@ -498,6 +498,72 @@
       "apm": 84.8,
       "lines": 32,
       "maxCombo": 8
+    },
+    {
+      "date": "2026-10-19T14:43:10.562Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "Buquet",
+      "apm": 31.7,
+      "lines": 38,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-19T14:43:49.514Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 63.9,
+      "lines": 18,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-19T14:44:18.320Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 37.8,
+      "lines": 20,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-19T14:44:46.137Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 33.7,
+      "lines": 17,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-19T14:45:16.467Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 126.6,
+      "lines": 23,
+      "maxCombo": 12
+    },
+    {
+      "date": "2026-10-19T14:46:14.508Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 18,
+      "lines": 36,
+      "maxCombo": 3
+    },
+    {
+      "date": "2026-10-19T14:46:56.211Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 28.5,
+      "lines": 33,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-19T14:47:09.393Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 0,
+      "lines": 2,
+      "maxCombo": 1
     }
   ],
   "moderation": {
