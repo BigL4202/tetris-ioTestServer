@@ -3,20 +3,20 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T00:29:38.415Z",
-  "lastLogin": "2026-10-20T00:27:56.132Z",
+  "updatedAt": "2026-10-20T12:57:18.327Z",
+  "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
     "arr": 10,
     "sdf": 40,
     "musicVolume": 33,
     "sfxVolume": 40,
-    "bgInterval": 15,
+    "bgInterval": 60,
     "preferredCols": 4,
     "boardShake": true,
     "lockFlash": true,
-    "blockSkin": "flat",
-    "ghostStyle": "fill",
+    "blockSkin": "prism",
+    "ghostStyle": "dashed",
     "boardTheme": "sakura",
     "keybinds": {
       "moveLeft": "ArrowLeft",
@@ -29,7 +29,7 @@
       "hold": "ShiftLeft",
       "restart": "KeyR"
     },
-    "lockedBg": "shuffle"
+    "lockedBg": "/resources/bg/Hoh_trail_Trees-250.webp"
   },
   "stats": {
     "gamesPlayed": 58,
@@ -37,7 +37,7 @@
     "duelWins": 20,
     "duelLosses": 3,
     "maxCombo": 19,
-    "totalLinesCleared": 3959,
+    "totalLinesCleared": 3896,
     "totalAttackSent": 1073,
     "totalApmSum": 0,
     "apmSamples": 1,
@@ -45,9 +45,9 @@
     "totalReceivedSum": 381,
     "receivedSamples": 50,
     "avgReceived": 7.6,
-    "xp": 26952,
+    "xp": 26574,
     "level": 19,
-    "zenLines": 2113,
+    "zenLines": 2050,
     "apmTestBest": 199,
     "apmTestLast": 199,
     "tournamentWins": 0
