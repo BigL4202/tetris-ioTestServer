@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T21:06:55.379Z",
+  "updatedAt": "2026-10-20T21:06:58.146Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -32,7 +32,7 @@
     "lockedBg": "/resources/bg/Hoh_trail_Trees-250.webp",
     "customColors": {
       "accentR": 15,
-      "accentG": 24,
+      "accentG": 105,
       "accentB": 255,
       "menuR": 12,
       "menuG": 19,
