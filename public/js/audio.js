@@ -6,11 +6,11 @@ class AudioManager {
     this.sfxFiles = new Map();
     this.currentMusicIndex = 0;
     this.musicElement = new Audio();
-    this.musicElement.crossOrigin = 'anonymous';
     this.musicElement.preload = 'auto';
     this.isPlayingMusic = false;
+    this.manifestLoaded = false;
 
-    // Procedural Synthwave Fallback Sequencer if /resources/music/ has 0 files
+    // Fallback Synthwave Sequencer if /resources/music/ has 0 files
     this.synthTimer = null;
     this.synthStep = 0;
     this.synthPatternIndex = 0;
@@ -27,15 +27,22 @@ class AudioManager {
       this.nextTrack();
     });
 
-    this.musicElement.addEventListener('error', () => {
-      this.startSynthFallbackMusic();
+    this.musicElement.addEventListener('error', (e) => {
+      console.warn('[Project A^2 Audio] Track failed to load, trying next track:', this.musicElement.src);
+      if (this.musicTracks.length > 1) {
+        this.currentMusicIndex = (this.currentMusicIndex + 1) % this.musicTracks.length;
+        this.playCurrentMusic();
+      } else {
+        this.startSynthFallbackMusic();
+      }
     });
 
+    // Unlock audio on any click or keypress
     const tryStartAudio = () => {
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
-      if (!this.isPlayingMusic && this.musicVolume > 0) {
+      if (this.manifestLoaded && !this.isPlayingMusic && this.musicVolume > 0) {
         this.playCurrentMusic();
       }
     };
@@ -48,7 +55,10 @@ class AudioManager {
     if (resourceManifest && Array.isArray(resourceManifest.music) && resourceManifest.music.length > 0) {
       this.musicTracks = this.shuffle([...resourceManifest.music]);
       console.log('[Project A^2 Audio] Loaded Music Tracks:', this.musicTracks);
+    } else {
+      console.warn('[Project A^2 Audio] No files in /resources/music/ — using synthwave fallback.');
     }
+
     if (resourceManifest && Array.isArray(resourceManifest.sfx)) {
       resourceManifest.sfx.forEach(url => {
         const filename = decodeURIComponent(url.split('/').pop()).toLowerCase();
@@ -56,6 +66,10 @@ class AudioManager {
         this.sfxFiles.set(baseName, url);
       });
     }
+
+    this.manifestLoaded = true;
+    // Immediately attempt to start music as soon as the manifest finishes loading!
+    this.playCurrentMusic();
   }
 
   shuffle(arr) {
@@ -69,8 +83,12 @@ class AudioManager {
   setMusicVolume(val) {
     this.musicVolume = Math.max(0, Math.min(1, val));
     this.musicElement.volume = this.musicVolume;
-    if (this.musicVolume === 0 && this.synthTimer) {
+    if (this.musicVolume === 0) {
+      this.musicElement.pause();
       this.stopSynthFallbackMusic();
+      this.isPlayingMusic = false;
+    } else if (!this.isPlayingMusic && this.manifestLoaded) {
+      this.playCurrentMusic();
     }
   }
 
@@ -121,22 +139,25 @@ class AudioManager {
   }
 
   playCurrentMusic() {
-    if (this.musicVolume <= 0) return;
+    if (this.musicVolume <= 0 || !this.manifestLoaded) return;
 
     if (this.musicTracks.length > 0) {
       this.stopSynthFallbackMusic();
       const trackUrl = this.musicTracks[this.currentMusicIndex % this.musicTracks.length];
-      this.musicElement.src = trackUrl;
+      if (this.musicElement.getAttribute('data-track') !== trackUrl) {
+        this.musicElement.src = trackUrl;
+        this.musicElement.setAttribute('data-track', trackUrl);
+      }
       this.musicElement.volume = this.musicVolume;
       this.musicElement.play()
         .then(() => {
           this.isPlayingMusic = true;
         })
         .catch(() => {
+          // Browser waiting for first click or keydown
           this.isPlayingMusic = false;
         });
     } else {
-      // No external mp3s found — start procedural synthwave loop so music always works
       this.startSynthFallbackMusic();
     }
   }
@@ -150,7 +171,17 @@ class AudioManager {
       if (this.currentMusicIndex === 0 && this.musicTracks.length > 1) {
         this.musicTracks = this.shuffle(this.musicTracks);
       }
-      this.playCurrentMusic();
+      const trackUrl = this.musicTracks[this.currentMusicIndex];
+      this.musicElement.src = trackUrl;
+      this.musicElement.setAttribute('data-track', trackUrl);
+      this.musicElement.volume = this.musicVolume;
+      this.musicElement.play()
+        .then(() => {
+          this.isPlayingMusic = true;
+        })
+        .catch(() => {
+          this.isPlayingMusic = false;
+        });
     } else {
       this.synthPatternIndex = (this.synthPatternIndex + 1) % this.synthPatterns.length;
       this.startSynthFallbackMusic();
