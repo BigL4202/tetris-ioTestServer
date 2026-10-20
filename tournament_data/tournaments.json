@@ -12,12 +12,30 @@
     "daysPerMatch": 1,
     "format": "single",
     "seeding": "apm",
-    "status": "registration",
+    "status": "active",
     "registeredPlayers": [
       "BigL_",
       "BARNESTTV"
     ],
-    "matches": [],
+    "matches": [
+      {
+        "id": "W_R1_M0",
+        "bracket": "winners",
+        "round": 1,
+        "index": 0,
+        "p1": "BigL_",
+        "p2": "BARNESTTV",
+        "p1Queued": false,
+        "p2Queued": false,
+        "score1": 0,
+        "score2": 0,
+        "winner": null,
+        "loser": null,
+        "status": "ready",
+        "liveRoomId": null,
+        "deadlineAt": 1792593430857
+      }
+    ],
     "champion": null
   }
 ]
