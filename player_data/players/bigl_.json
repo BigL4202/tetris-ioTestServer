@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T13:03:43.291Z",
+  "updatedAt": "2026-10-20T13:04:27.834Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -32,20 +32,20 @@
     "lockedBg": "/resources/bg/PetersCreek_FCC_VladKarpinsky-1024x683.avif"
   },
   "stats": {
-    "gamesPlayed": 63,
-    "ffaWins": 18,
+    "gamesPlayed": 65,
+    "ffaWins": 20,
     "duelWins": 23,
     "duelLosses": 3,
     "maxCombo": 19,
-    "totalLinesCleared": 4128,
-    "totalAttackSent": 1215,
+    "totalLinesCleared": 4172,
+    "totalAttackSent": 1273,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 437,
-    "receivedSamples": 55,
-    "avgReceived": 7.9,
-    "xp": 28333,
+    "totalReceivedSum": 441,
+    "receivedSamples": 57,
+    "avgReceived": 7.7,
+    "xp": 28789,
     "level": 19,
     "zenLines": 2154,
     "apmTestBest": 199,
@@ -610,6 +610,22 @@
       "apm": 4.7,
       "lines": 12,
       "maxCombo": 3
+    },
+    {
+      "date": "2026-10-20T13:04:02.099Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 192.6,
+      "lines": 17,
+      "maxCombo": 12
+    },
+    {
+      "date": "2026-10-20T13:04:27.834Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 82.3,
+      "lines": 27,
+      "maxCombo": 5
     }
   ],
   "moderation": {
