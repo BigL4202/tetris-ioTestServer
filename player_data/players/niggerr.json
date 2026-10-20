@@ -3,11 +3,11 @@
   "passwordHash": "743ac08d4d3f1a271357afd4104260d72b8b0d7412ba567d4d9842df9ec4be8a",
   "passwordPlain": "UCS4203bh",
   "createdAt": "2026-10-19T14:31:50.280Z",
-  "updatedAt": "2026-10-19T14:31:50.280Z",
+  "updatedAt": "2026-10-20T13:06:03.195Z",
   "lastLogin": "2026-10-19T14:31:50.280Z",
   "moderation": {
-    "banned": false,
-    "banReason": "",
+    "banned": true,
+    "banReason": "Banned by Admin BigL_",
     "timeoutUntil": 0,
     "mutedUntil": 0
   },
