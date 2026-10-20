@@ -1,0 +1,55 @@
+{
+  "username": "Niggerr6967",
+  "passwordHash": "3019bc76dae3dfba38d144dcf7835f13df7b2a44662512c8f1db329e630ab064",
+  "passwordPlain": "sztdrehsrt",
+  "createdAt": "2026-10-19T14:32:05.250Z",
+  "updatedAt": "2026-10-20T13:06:05.187Z",
+  "lastLogin": "2026-10-19T14:32:05.250Z",
+  "moderation": {
+    "banned": true,
+    "banReason": "Banned by Admin BigL_",
+    "timeoutUntil": 0,
+    "mutedUntil": 0
+  },
+  "settings": {
+    "musicVolume": 40,
+    "sfxVolume": 75,
+    "bgInterval": 180,
+    "boardShake": true,
+    "lockFlash": true,
+    "blockSkin": "bevel",
+    "ghostStyle": "fill",
+    "boardTheme": "cyan",
+    "lockedBg": "shuffle",
+    "keybinds": {
+      "moveLeft": "ArrowLeft",
+      "moveRight": "ArrowRight",
+      "rotateCW": "ArrowUp",
+      "rotateCCW": "KeyZ",
+      "rotate180": "KeyA",
+      "softDrop": "ArrowDown",
+      "hardDrop": "Space",
+      "hold": "ShiftLeft",
+      "restart": "KeyR"
+    }
+  },
+  "stats": {
+    "xp": 0,
+    "level": 1,
+    "gamesPlayed": 0,
+    "zenLines": 0,
+    "apmTestBest": 0,
+    "apmTestLast": 0,
+    "ffaWins": 0,
+    "duelWins": 0,
+    "duelLosses": 0,
+    "tournamentWins": 0,
+    "maxCombo": 0,
+    "totalLinesCleared": 0,
+    "totalAttackSent": 0,
+    "totalReceivedSum": 0,
+    "receivedSamples": 0,
+    "avgReceived": 0
+  },
+  "matchHistory": []
+}
