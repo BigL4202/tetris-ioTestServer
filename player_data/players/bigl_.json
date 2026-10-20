@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T14:08:28.637Z",
+  "updatedAt": "2026-10-20T14:12:43.496Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -32,21 +32,21 @@
     "lockedBg": "shuffle"
   },
   "stats": {
-    "gamesPlayed": 81,
+    "gamesPlayed": 85,
     "ffaWins": 21,
-    "duelWins": 28,
-    "duelLosses": 9,
+    "duelWins": 31,
+    "duelLosses": 10,
     "maxCombo": 28,
-    "totalLinesCleared": 5008,
-    "totalAttackSent": 1741,
+    "totalLinesCleared": 5182,
+    "totalAttackSent": 1891,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 786,
-    "receivedSamples": 71,
-    "avgReceived": 11.1,
-    "xp": 34377,
-    "level": 21,
+    "totalReceivedSum": 860,
+    "receivedSamples": 75,
+    "avgReceived": 11.5,
+    "xp": 35757,
+    "level": 22,
     "zenLines": 2154,
     "apmTestBest": 220,
     "apmTestLast": 152,
@@ -776,6 +776,46 @@
       "apm": 46.4,
       "lines": 70,
       "maxCombo": 8
+    },
+    {
+      "date": "2026-10-20T14:09:24.074Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 54.4,
+      "lines": 53,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-20T14:10:19.514Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 208.6,
+      "lines": 11,
+      "maxCombo": 13
+    },
+    {
+      "date": "2026-10-20T14:11:34.513Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 89.6,
+      "lines": 82,
+      "maxCombo": 14
+    },
+    {
+      "date": "2026-10-20T14:12:43.496Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 50.4,
+      "lines": 28,
+      "maxCombo": 10
     }
   ],
   "moderation": {
