@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-20T12:59:33.051Z",
+  "updatedAt": "2026-10-20T13:03:22.412Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -32,20 +32,20 @@
     "lockedBg": "/resources/bg/PetersCreek_FCC_VladKarpinsky-1024x683.avif"
   },
   "stats": {
-    "gamesPlayed": 58,
+    "gamesPlayed": 62,
     "ffaWins": 18,
-    "duelWins": 20,
+    "duelWins": 23,
     "duelLosses": 3,
     "maxCombo": 19,
-    "totalLinesCleared": 4000,
-    "totalAttackSent": 1073,
+    "totalLinesCleared": 4116,
+    "totalAttackSent": 1214,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 381,
-    "receivedSamples": 50,
-    "avgReceived": 7.6,
-    "xp": 27198,
+    "totalReceivedSum": 419,
+    "receivedSamples": 54,
+    "avgReceived": 7.8,
+    "xp": 28235,
     "level": 19,
     "zenLines": 2154,
     "apmTestBest": 199,
@@ -564,6 +564,44 @@
       "apm": 0,
       "lines": 2,
       "maxCombo": 1
+    },
+    {
+      "date": "2026-10-20T13:00:58.430Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-1",
+      "opponent": "BARNESTTV",
+      "apm": 108,
+      "lines": 40,
+      "maxCombo": 10
+    },
+    {
+      "date": "2026-10-20T13:01:46.728Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 77.3,
+      "lines": 18,
+      "maxCombo": 9
+    },
+    {
+      "date": "2026-10-20T13:02:35.270Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 155.7,
+      "lines": 15,
+      "maxCombo": 11
+    },
+    {
+      "date": "2026-10-20T13:03:22.412Z",
+      "mode": "FFA",
+      "result": "TOP OUT",
+      "apm": 95,
+      "lines": 43,
+      "maxCombo": 9
     }
   ],
   "moderation": {
