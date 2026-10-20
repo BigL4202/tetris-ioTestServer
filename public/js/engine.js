@@ -1,5 +1,5 @@
 // ============================================================================
-// TETR.IO 4x26 & 10x26 CORE STACKER ENGINE (SRS, 7-BAG, GARBAGE, T-SPIN)
+// PROJECT A^2 CORE STACKER ENGINE (SRS, 7-BAG, TRAILS & PARTICLE SHATTER)
 // ============================================================================
 
 const PIECE_COLORS = {
@@ -10,10 +10,9 @@ const PIECE_COLORS = {
   Z: '#ff1744',
   J: '#2979ff',
   L: '#ff9100',
-  G: '#78909c' // Garbage block color
+  G: '#78909c'
 };
 
-// 4 rotation states (0: North, 1: East, 2: South, 3: West) for all 7 Tetrominoes
 const TETROMINO_MATRICES = {
   I: [
     [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -59,7 +58,6 @@ const TETROMINO_MATRICES = {
   ]
 };
 
-// Standard SRS Kick Table for J, L, S, T, Z (Note: +y is downward on screen)
 const SRS_JLSTZ_KICKS = {
   '0>1': [[0,0], [-1,0], [-1,-1], [0, 2], [-1, 2]],
   '1>0': [[0,0], [ 1,0], [ 1, 1], [0,-2], [ 1,-2]],
@@ -69,14 +67,12 @@ const SRS_JLSTZ_KICKS = {
   '3>2': [[0,0], [-1,0], [-1, 1], [0,-2], [-1,-2]],
   '3>0': [[0,0], [-1,0], [-1, 1], [0,-2], [-1,-2]],
   '0>3': [[0,0], [ 1,0], [ 1,-1], [0, 2], [ 1, 2]],
-  // 180-degree rotation kicks
   '0>2': [[0,0], [0,-1], [1,-1], [-1,-1], [1,0], [-1,0]],
   '2>0': [[0,0], [0, 1], [-1,1], [ 1, 1], [-1,0], [1,0]],
   '1>3': [[0,0], [1, 0], [1,-1], [ 1, 1], [0,-1], [0,1]],
   '3>1': [[0,0], [-1,0], [-1,-1],[-1, 1], [0,-1], [0,1]]
 };
 
-// Standard SRS Kick Table for I Piece (+ extended 4-wide wall recovery offsets)
 const SRS_I_KICKS = {
   '0>1': [[0,0], [-2,0], [ 1,0], [-2, 1], [ 1,-2], [-1,0], [0,-1]],
   '1>0': [[0,0], [ 2,0], [-1,0], [ 2,-1], [-1, 2], [ 1,0], [0, 1]],
@@ -92,20 +88,21 @@ const SRS_I_KICKS = {
   '3>1': [[0,0], [-1,0], [ 1,0], [0,-1]]
 };
 
-// TETR.IO Combo Garbage Bonus Table
 const COMBO_GARBAGE_TABLE = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7];
 
 class StackerEngine {
   constructor(cols = 4, rows = 26, visibleRows = 20, callbacks = {}) {
-    this.cols = cols; // 4 for 4x26 mode, 10 for 10x26 mode
-    this.rows = rows; // 26 total rows (6 buffer + 20 visible)
+    this.cols = cols;
+    this.rows = rows;
     this.visibleRows = visibleRows;
-    this.bufferRows = rows - visibleRows; // 6 hidden buffer rows (y = 0..5)
+    this.bufferRows = rows - visibleRows;
     this.callbacks = callbacks;
+    this.lockFlashCells = [];
+    this.hardDropTrails = []; // [{ x, startY, endY, color, createdAt, expiresAt }]
+    this.clearParticles = []; // [{ x, y, vx, vy, size, color, alpha }]
     this.reset(Math.floor(Math.random() * 2147483647), cols);
   }
 
-  // Deterministic Mulberry32 PRNG for synchronized 1v1 7-Bag generation
   createPRNG(seed) {
     let a = seed >>> 0;
     return function() {
@@ -128,9 +125,11 @@ class StackerEngine {
 
     this.activePiece = null;
     this.gameOver = false;
+    this.lockFlashCells = [];
+    this.hardDropTrails = [];
+    this.clearParticles = [];
 
-    // Timing & Lock Delay
-    this.gravityInterval = 850; // ms per row drop
+    this.gravityInterval = 850;
     this.gravityTimer = 0;
     this.lockDelayMax = 500;
     this.lockTimer = 0;
@@ -138,7 +137,6 @@ class StackerEngine {
     this.maxLockMoveResets = 15;
     this.lowestYReached = 0;
 
-    // Combat & Telemetry Metrics
     this.startTime = performance.now();
     this.piecesPlaced = 0;
     this.linesCleared = 0;
@@ -150,7 +148,6 @@ class StackerEngine {
     this.lastMoveWasRotation = false;
     this.lastKickIndex = 0;
 
-    // Incoming Garbage Queue: [{ lines, holeCol }]
     this.garbageQueue = [];
     this.currentGarbageHole = Math.floor(this.rng() * this.cols);
 
@@ -182,9 +179,7 @@ class StackerEngine {
   spawnPieceOfType(type) {
     const matrix = TETROMINO_MATRICES[type][0];
     const pWidth = matrix[0].length;
-    // Center horizontally inside 4-wide or 10-wide playfield
     const spawnX = Math.max(0, Math.floor((this.cols - pWidth) / 2));
-    // Spawn in buffer zone right above visible ceiling (y = 4)
     const spawnY = 4;
 
     this.activePiece = {
@@ -200,9 +195,7 @@ class StackerEngine {
     this.lowestYReached = spawnY;
     this.lastMoveWasRotation = false;
 
-    // Check immediate block-out collision in spawn zone
     if (!this.isValidPosition(this.activePiece.x, this.activePiece.y, this.activePiece.matrix)) {
-      // Try spawning 1 or 2 rows higher in the buffer zone before declaring Top-Out
       if (this.isValidPosition(this.activePiece.x, this.activePiece.y - 1, this.activePiece.matrix)) {
         this.activePiece.y -= 1;
       } else if (this.isValidPosition(this.activePiece.x, this.activePiece.y - 2, this.activePiece.matrix)) {
@@ -240,7 +233,6 @@ class StackerEngine {
   }
 
   rotate(dir) {
-    // dir: 1 = CW, 3 = CCW, 2 = 180
     if (this.gameOver || !this.activePiece) return false;
     const p = this.activePiece;
     const oldRot = p.rot;
@@ -297,13 +289,39 @@ class StackerEngine {
 
   hardDrop() {
     if (this.gameOver || !this.activePiece) return;
+    const p = this.activePiece;
+    const startY = p.y;
     let droppedRows = 0;
-    while (this.isValidPosition(this.activePiece.x, this.activePiece.y + 1, this.activePiece.matrix)) {
-      this.activePiece.y += 1;
+    while (this.isValidPosition(p.x, p.y + 1, p.matrix)) {
+      p.y += 1;
       droppedRows += 1;
     }
-    if (droppedRows > 0) this.lastMoveWasRotation = false;
+
+    // Record Hard-Drop Motion Trail for each column of the piece
+    if (droppedRows > 1) {
+      const now = performance.now();
+      const color = PIECE_COLORS[p.type] || '#00e5ff';
+      for (let r = 0; r < p.matrix.length; r++) {
+        for (let c = 0; c < p.matrix[r].length; c++) {
+          if (p.matrix[r][c]) {
+            this.hardDropTrails.push({
+              x: p.x + c,
+              startY: startY + r,
+              endY: p.y + r,
+              color,
+              createdAt: now,
+              expiresAt: now + 180
+            });
+          }
+        }
+      }
+      this.lastMoveWasRotation = false;
+    }
+
     if (this.callbacks.onSfx) this.callbacks.onSfx('harddrop');
+    if (this.callbacks.onBoardImpulse) {
+      this.callbacks.onBoardImpulse(0, Math.min(7, 2.5 + droppedRows * 0.2), false);
+    }
     this.lockPiece();
   }
 
@@ -343,7 +361,6 @@ class StackerEngine {
     }
   }
 
-  // 3-Corner T-Spin Detection
   detectTSpin() {
     const p = this.activePiece;
     if (!p || p.type !== 'T' || !this.lastMoveWasRotation) {
@@ -353,10 +370,10 @@ class StackerEngine {
     const cx = p.x + 1;
     const cy = p.y + 1;
     const corners = [
-      [cx - 1, cy - 1], // Top-Left
-      [cx + 1, cy - 1], // Top-Right
-      [cx + 1, cy + 1], // Bottom-Right
-      [cx - 1, cy + 1]  // Bottom-Left
+      [cx - 1, cy - 1],
+      [cx + 1, cy - 1],
+      [cx + 1, cy + 1],
+      [cx - 1, cy + 1]
     ];
 
     let occupiedCount = 0;
@@ -374,7 +391,6 @@ class StackerEngine {
 
     if (occupiedCount < 3) return { isTSpin: false, isMini: false };
 
-    // Front corners based on T orientation (0: N, 1: E, 2: S, 3: W)
     const frontIndices = [
       [0, 1],
       [1, 2],
@@ -387,10 +403,35 @@ class StackerEngine {
     return { isTSpin: true, isMini };
   }
 
+  spawnLineClearParticles(rowIndex, rowCells) {
+    const cellSize = 32;
+    for (let c = 0; c < this.cols; c++) {
+      const cellType = rowCells[c];
+      const color = PIECE_COLORS[cellType] || '#00e5ff';
+      const baseX = (c + 0.5) * cellSize;
+      const baseY = (rowIndex + 0.5) * cellSize;
+
+      for (let i = 0; i < 5; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 60 + Math.random() * 190;
+        this.clearParticles.push({
+          x: baseX + (Math.random() - 0.5) * 14,
+          y: baseY + (Math.random() - 0.5) * 14,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 60,
+          size: 4 + Math.random() * 5,
+          color,
+          alpha: 1.0
+        });
+      }
+    }
+  }
+
   lockPiece() {
     if (!this.activePiece || this.gameOver) return;
     const p = this.activePiece;
     const tSpinCheck = this.detectTSpin();
+    const flashExpire = performance.now() + 115;
 
     let lockedEntirelyAboveVisible = true;
     for (let r = 0; r < p.matrix.length; r++) {
@@ -400,6 +441,7 @@ class StackerEngine {
         const gy = p.y + r;
         if (gy >= 0 && gy < this.rows && gx >= 0 && gx < this.cols) {
           this.grid[gy][gx] = p.type;
+          this.lockFlashCells.push({ x: gx, y: gy, expiresAt: flashExpire });
           if (gy >= this.bufferRows) {
             lockedEntirelyAboveVisible = false;
           }
@@ -409,23 +451,22 @@ class StackerEngine {
 
     this.piecesPlaced += 1;
 
-    // Lock-out condition: piece locked completely inside the 6 buffer rows
     if (lockedEntirelyAboveVisible) {
       this.triggerTopOut();
       return;
     }
 
-    // Evaluate completed lines across all 26 rows
     const clearedRowIndices = [];
     for (let r = 0; r < this.rows; r++) {
       if (this.grid[r].every(cell => cell !== null)) {
         clearedRowIndices.push(r);
+        // Trigger Line-Clear Particle Shatter for this row!
+        this.spawnLineClearParticles(r, this.grid[r]);
       }
     }
 
     const clearedCount = clearedRowIndices.length;
     if (clearedCount > 0) {
-      // Remove completed rows and unshift empty buffer rows at top
       for (let i = clearedRowIndices.length - 1; i >= 0; i--) {
         this.grid.splice(clearedRowIndices[i], 1);
       }
@@ -434,13 +475,8 @@ class StackerEngine {
       }
     }
 
-    // Check Perfect Clear (All Clear)
     const isPerfectClear = this.grid.every(row => row.every(cell => cell === null));
-
-    // Calculate Attack & Garbage Cancellation
     this.processLineClearAttack(clearedCount, tSpinCheck, isPerfectClear);
-
-    // Spawn next piece
     this.spawnNextPiece();
 
     if (this.callbacks.onSync) {
@@ -451,7 +487,7 @@ class StackerEngine {
   processLineClearAttack(cleared, tSpin, isPC) {
     let baseAttack = 0;
     let difficultClear = false;
-    let calloutText = '';
+    const parts = [];
 
     if (cleared > 0) {
       this.combo += 1;
@@ -462,50 +498,53 @@ class StackerEngine {
         difficultClear = true;
         if (tSpin.isMini) {
           baseAttack = cleared === 1 ? 1 : 2;
-          calloutText = `T-SPIN MINI ${cleared === 1 ? 'SINGLE' : 'DOUBLE'}`;
+          parts.push(`T-SPIN MINI ${cleared === 1 ? 'SINGLE' : 'DOUBLE'}`);
         } else {
-          baseAttack = cleared * 2; // Single: 2, Double: 4, Triple: 6
-          calloutText = `T-SPIN ${['', 'SINGLE', 'DOUBLE', 'TRIPLE'][cleared] || 'QUAD'}`;
+          baseAttack = cleared * 2;
+          parts.push(`T-SPIN ${['', 'SINGLE', 'DOUBLE', 'TRIPLE'][cleared] || 'QUAD'}`);
         }
       } else {
         if (cleared === 1) {
           baseAttack = 0;
-          // In 4x26 mode, clearing a 4-wide quad is a single row clear, so we reward combos and 4-row quads
+          parts.push('SINGLE');
         } else if (cleared === 2) {
           baseAttack = 1;
-          calloutText = 'DOUBLE';
+          parts.push('DOUBLE');
         } else if (cleared === 3) {
           baseAttack = 2;
-          calloutText = 'TRIPLE';
+          parts.push('TRIPLE');
         } else if (cleared >= 4) {
           baseAttack = 4;
           difficultClear = true;
-          calloutText = 'QUAD / TETRIS!';
+          parts.push('QUAD');
         }
       }
 
       if (difficultClear) {
         this.b2b += 1;
         if (this.b2b > 0) {
-          baseAttack += 1; // B2B bonus (+1 line, +2 at higher chains)
+          baseAttack += 1;
           if (this.b2b >= 3) baseAttack += 1;
-          calloutText = `B2B x${this.b2b} ${calloutText}`;
+          parts.unshift(`B2B x${this.b2b}`);
         }
       } else {
         this.b2b = -1;
       }
 
-      // Add Combo Bonus
       const comboBonus = COMBO_GARBAGE_TABLE[Math.min(this.combo, COMBO_GARBAGE_TABLE.length - 1)];
       let totalAttack = baseAttack + comboBonus;
 
+      if (this.combo >= 1) {
+        parts.push(`${this.combo}x COMBO`);
+      }
+
       if (isPC) {
         totalAttack += 10;
-        calloutText = 'ALL CLEAR (+10)';
-      } else if (this.combo >= 2 && !calloutText) {
-        calloutText = `${this.combo} COMBO`;
-      } else if (this.combo >= 2) {
-        calloutText += ` (${this.combo}x COMBO)`;
+        parts.push('ALL CLEAR');
+      }
+
+      if (totalAttack > 0) {
+        parts.push(`+${totalAttack} LINES`);
       }
 
       if (tSpin.isTSpin) {
@@ -514,11 +553,10 @@ class StackerEngine {
         if (this.callbacks.onSfx) this.callbacks.onSfx('combo', this.combo + 1);
       }
 
-      if (calloutText && this.callbacks.onCallout) {
-        this.callbacks.onCallout(calloutText);
+      if (parts.length > 0 && this.callbacks.onCallout) {
+        this.callbacks.onCallout(parts.join(' • '));
       }
 
-      // First cancel incoming garbage in queue before dispatching outgoing garbage
       if (totalAttack > 0) {
         const netOutgoing = this.cancelIncomingGarbage(totalAttack);
         if (netOutgoing > 0) {
@@ -529,7 +567,6 @@ class StackerEngine {
         }
       }
     } else {
-      // Piece locked with 0 lines cleared -> combo resets & queued garbage rises onto board
       this.combo = -1;
       if (tSpin.isTSpin && this.callbacks.onCallout) {
         this.callbacks.onCallout('T-SPIN');
@@ -545,6 +582,9 @@ class StackerEngine {
     if (lines <= 0 || this.gameOver) return;
     this.garbageQueue.push({ lines });
     if (this.callbacks.onSfx) this.callbacks.onSfx('garbage_in');
+    if (this.callbacks.onBoardImpulse) {
+      this.callbacks.onBoardImpulse((Math.random() > 0.5 ? 1 : -1) * Math.min(8, lines * 1.4), 3, true);
+    }
   }
 
   getPendingGarbageCount() {
@@ -569,7 +609,6 @@ class StackerEngine {
   tankQueuedGarbage() {
     if (this.garbageQueue.length === 0) return;
 
-    // Cap garbage insertion per piece lock at 8 lines (TETR.IO style passthrough cap)
     let toInsert = 0;
     const maxPerLock = 8;
 
@@ -585,7 +624,6 @@ class StackerEngine {
     this.garbageReceivedTotal += toInsert;
 
     for (let i = 0; i < toInsert; i++) {
-      // 75% chance to keep garbage hole in the same column for clean downstacking
       if (this.rng() > 0.75 || this.currentGarbageHole >= this.cols) {
         this.currentGarbageHole = Math.floor(this.rng() * this.cols);
       }
@@ -627,7 +665,23 @@ class StackerEngine {
     };
   }
 
+  updateParticles(dtMs) {
+    if (this.clearParticles.length === 0) return;
+    const dt = dtMs / 1000;
+    for (let i = this.clearParticles.length - 1; i >= 0; i--) {
+      const pt = this.clearParticles[i];
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+      pt.vy += 380 * dt; // Gravity
+      pt.alpha -= dt * 1.9;
+      if (pt.alpha <= 0) {
+        this.clearParticles.splice(i, 1);
+      }
+    }
+  }
+
   update(dtMs) {
+    this.updateParticles(dtMs);
     if (this.gameOver || !this.activePiece) return;
 
     if (this.isGrounded()) {
