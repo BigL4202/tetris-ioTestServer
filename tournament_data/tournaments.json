@@ -13,7 +13,9 @@
     "format": "single",
     "seeding": "apm",
     "status": "registration",
-    "registeredPlayers": [],
+    "registeredPlayers": [
+      "BigL_"
+    ],
     "matches": [],
     "champion": null
   }
