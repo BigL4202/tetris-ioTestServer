@@ -3,7 +3,7 @@
   "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
   "passwordPlain": "UCE5826tb",
   "createdAt": "2026-10-19T12:15:50.187Z",
-  "updatedAt": "2026-10-20T14:11:34.514Z",
+  "updatedAt": "2026-10-20T14:17:26.038Z",
   "lastLogin": "2026-10-20T13:50:55.315Z",
   "moderation": {
     "banned": false,
@@ -34,22 +34,22 @@
     }
   },
   "stats": {
-    "xp": 30989,
-    "level": 20,
-    "gamesPlayed": 106,
+    "xp": 32384,
+    "level": 21,
+    "gamesPlayed": 111,
     "zenLines": 1,
     "apmTestBest": 83,
     "apmTestLast": 83,
     "ffaWins": 46,
-    "duelWins": 12,
-    "duelLosses": 25,
+    "duelWins": 13,
+    "duelLosses": 29,
     "tournamentWins": 0,
     "maxCombo": 20,
-    "totalLinesCleared": 4609,
-    "totalAttackSent": 3890,
-    "totalReceivedSum": 1412,
-    "receivedSamples": 103,
-    "avgReceived": 13.7
+    "totalLinesCleared": 4810,
+    "totalAttackSent": 3994,
+    "totalReceivedSum": 1534,
+    "receivedSamples": 108,
+    "avgReceived": 14.2
   },
   "matchHistory": [
     {
@@ -973,6 +973,56 @@
       "apm": 128.9,
       "lines": 134,
       "maxCombo": 14
+    },
+    {
+      "date": "2026-10-20T14:12:43.495Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 156.8,
+      "lines": 19,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-20T14:13:41.905Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 51.5,
+      "lines": 72,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-20T14:14:23.867Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 31.5,
+      "lines": 20,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-20T14:15:22.064Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-1",
+      "opponent": "BigL_",
+      "apm": 0,
+      "lines": 26,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-20T14:17:26.038Z",
+      "mode": "1v1 BO3",
+      "result": "LOSS",
+      "score": "2-1",
+      "opponent": "BigL_",
+      "apm": 18.2,
+      "lines": 64,
+      "maxCombo": 19
     }
   ]
 }
