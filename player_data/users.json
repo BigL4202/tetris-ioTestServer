@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T14:10:19.514Z",
+    "updatedAt": "2026-10-20T14:13:41.904Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -33,21 +33,21 @@
       "lockedBg": "shuffle"
     },
     "stats": {
-      "gamesPlayed": 83,
+      "gamesPlayed": 86,
       "ffaWins": 21,
-      "duelWins": 30,
-      "duelLosses": 9,
+      "duelWins": 32,
+      "duelLosses": 10,
       "maxCombo": 28,
-      "totalLinesCleared": 5072,
-      "totalAttackSent": 1798,
+      "totalLinesCleared": 5217,
+      "totalAttackSent": 1918,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 800,
-      "receivedSamples": 73,
-      "avgReceived": 11,
-      "xp": 34997,
-      "level": 21,
+      "totalReceivedSum": 860,
+      "receivedSamples": 76,
+      "avgReceived": 11.3,
+      "xp": 36082,
+      "level": 22,
       "zenLines": 2154,
       "apmTestBest": 220,
       "apmTestLast": 152,
@@ -797,6 +797,36 @@
         "apm": 208.6,
         "lines": 11,
         "maxCombo": 13
+      },
+      {
+        "date": "2026-10-20T14:11:34.513Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 89.6,
+        "lines": 82,
+        "maxCombo": 14
+      },
+      {
+        "date": "2026-10-20T14:12:43.496Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 50.4,
+        "lines": 28,
+        "maxCombo": 10
+      },
+      {
+        "date": "2026-10-20T14:13:41.904Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 60.2,
+        "lines": 35,
+        "maxCombo": 8
       }
     ],
     "moderation": {
@@ -1741,7 +1771,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-20T14:10:19.514Z",
+    "updatedAt": "2026-10-20T14:13:41.905Z",
     "lastLogin": "2026-10-20T13:50:55.315Z",
     "moderation": {
       "banned": false,
@@ -1772,22 +1802,22 @@
       }
     },
     "stats": {
-      "xp": 30259,
+      "xp": 31654,
       "level": 20,
-      "gamesPlayed": 105,
+      "gamesPlayed": 108,
       "zenLines": 1,
       "apmTestBest": 83,
       "apmTestLast": 83,
       "ffaWins": 46,
-      "duelWins": 12,
-      "duelLosses": 24,
+      "duelWins": 13,
+      "duelLosses": 26,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 4475,
-      "totalAttackSent": 3686,
-      "totalReceivedSum": 1378,
-      "receivedSamples": 102,
-      "avgReceived": 13.5
+      "totalLinesCleared": 4700,
+      "totalAttackSent": 3970,
+      "totalReceivedSum": 1446,
+      "receivedSamples": 105,
+      "avgReceived": 13.8
     },
     "matchHistory": [
       {
@@ -2701,6 +2731,36 @@
         "apm": 0,
         "lines": 14,
         "maxCombo": 6
+      },
+      {
+        "date": "2026-10-20T14:11:34.514Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 128.9,
+        "lines": 134,
+        "maxCombo": 14
+      },
+      {
+        "date": "2026-10-20T14:12:43.495Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 156.8,
+        "lines": 19,
+        "maxCombo": 6
+      },
+      {
+        "date": "2026-10-20T14:13:41.905Z",
+        "mode": "1v1 BO3",
+        "result": "LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 51.5,
+        "lines": 72,
+        "maxCombo": 4
       }
     ]
   },
