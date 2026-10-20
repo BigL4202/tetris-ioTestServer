@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T21:06:14.116Z",
+    "updatedAt": "2026-10-20T21:06:21.294Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -35,7 +35,7 @@
         "accentR": 214,
         "accentG": 165,
         "accentB": 136,
-        "menuR": 12,
+        "menuR": 29,
         "menuG": 19,
         "menuB": 33,
         "btnBgR": 25,
