@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T21:11:07.889Z",
+    "updatedAt": "2026-10-20T21:11:10.610Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -52,7 +52,7 @@
       "duelWins": 37,
       "duelLosses": 14,
       "maxCombo": 28,
-      "totalLinesCleared": 5938,
+      "totalLinesCleared": 5939,
       "totalAttackSent": 2793,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -60,9 +60,9 @@
       "totalReceivedSum": 1066,
       "receivedSamples": 100,
       "avgReceived": 10.7,
-      "xp": 42674,
+      "xp": 42680,
       "level": 24,
-      "zenLines": 2214,
+      "zenLines": 2215,
       "apmTestBest": 220,
       "apmTestLast": 152,
       "tournamentWins": 0,
@@ -1078,7 +1078,7 @@
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 6,
+          "progress": 7,
           "target": 40,
           "rewardXp": 200,
           "claimed": false
