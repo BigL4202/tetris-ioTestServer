@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-20T21:15:09.668Z",
+    "updatedAt": "2026-10-21T01:52:05.432Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -1073,12 +1073,12 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 13,
+          "progress": 0,
           "target": 40,
           "rewardXp": 200,
           "claimed": false
@@ -1086,7 +1086,7 @@
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 4,
+          "progress": 0,
           "target": 6,
           "rewardXp": 250,
           "claimed": false
@@ -1229,7 +1229,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -1381,7 +1381,7 @@
     },
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -1529,7 +1529,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -2085,7 +2085,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -2188,7 +2188,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -2291,7 +2291,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -3537,7 +3537,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -3715,7 +3715,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -3818,7 +3818,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
@@ -3921,7 +3921,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-20",
+      "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
