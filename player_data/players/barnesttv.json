@@ -3,14 +3,14 @@
   "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
   "passwordPlain": "UCE5826tb",
   "createdAt": "2026-10-19T12:15:50.187Z",
-  "updatedAt": "2026-10-20T21:12:21.441Z",
+  "updatedAt": "2026-10-21T14:20:46.179Z",
   "lastLogin": "2026-10-20T14:36:36.071Z",
   "moderation": {
     "banned": false,
     "banReason": "",
     "timeoutUntil": 1792506919951,
     "mutedUntil": 0,
-    "updatedAt": 1792530741441
+    "updatedAt": 1792592446179
   },
   "settings": {
     "musicVolume": 40,
@@ -66,7 +66,9 @@
     "receivedSamples": 128,
     "avgReceived": 14.8,
     "teamWins": 0,
-    "teamLosses": 0
+    "teamLosses": 0,
+    "sprint40Best": 0,
+    "sprint40Last": 0
   },
   "matchHistory": [
     {
@@ -1212,10 +1214,10 @@
       "maxCombo": 6
     }
   ],
-  "isModerator": false,
+  "isModerator": true,
   "headToHead": {},
   "dailyChallenges": {
-    "date": "2026-10-20",
+    "date": "2026-10-21",
     "challenges": [
       {
         "id": "lines_40",
@@ -1242,5 +1244,9 @@
         "claimed": false
       }
     ]
+  },
+  "replays": {
+    "apmTest": null,
+    "sprint40": null
   }
 }
