@@ -1,5 +1,5 @@
 // ============================================================================
-// PROJECT A^2 CONTROLLER: 2v2, DAILY XP, H2H, RGB COLORS, TRAILS & MOD ROLES
+// PROJECT A^2 CONTROLLER: REPLAYS, 40L, PACEMAKER, VS AI (1-10) & BLIND 1v1
 // ============================================================================
 
 (function () {
@@ -112,11 +112,19 @@
   const launchZen4Btn = document.getElementById('launch-zen-4-btn');
   const launchZen10Btn = document.getElementById('launch-zen-10-btn');
   const launchApmTestBtn = document.getElementById('launch-apm-test-btn');
+  const launchSprint40Btn = document.getElementById('launch-sprint-40-btn');
+  const aiDifficultySelect = document.getElementById('ai-difficulty-select');
+  const launchVsAiBtn = document.getElementById('launch-vs-ai-btn');
 
   const join1v1QueueBtn = document.getElementById('join-1v1-queue-btn');
   const leave1v1QueueBtn = document.getElementById('leave-1v1-queue-btn');
   const queueWaitingBanner = document.getElementById('queue-waiting-banner');
   const hub1v1QueueStatus = document.getElementById('hub-1v1-queue-status');
+
+  const joinBlind1v1QueueBtn = document.getElementById('join-blind-1v1-queue-btn');
+  const leaveBlind1v1QueueBtn = document.getElementById('leave-blind-1v1-queue-btn');
+  const queueBlindWaitingBanner = document.getElementById('queue-blind-waiting-banner');
+  const hubBlind1v1QueueStatus = document.getElementById('hub-blind-1v1-queue-status');
 
   const join2v2QueueBtn = document.getElementById('join-2v2-queue-btn');
   const leave2v2QueueBtn = document.getElementById('leave-2v2-queue-btn');
@@ -194,6 +202,8 @@
   const statRecv = document.getElementById('stat-recv');
   const statCombo = document.getElementById('stat-combo');
   const statB2b = document.getElementById('stat-b2b');
+  const pacemakerCard = document.getElementById('pacemaker-card');
+  const statPacemaker = document.getElementById('stat-pacemaker');
   const garbageMeterFill = document.getElementById('garbage-meter-fill');
   const actionFeedCard = document.getElementById('action-feed-card');
   const actionCallout = document.getElementById('action-callout');
@@ -233,9 +243,10 @@
   let myUserObj = null;
   let isAuthenticated = false;
   let activeScreen = 'auth';
-  let currentMode = 'hub';
+  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'sprint_40', 'vs_ai', 'replay', 'duel', 'team2v2', 'ffa', 'spectate'
   let currentCols = 4;
   let canControlBoard = false;
+  let isBlindArena = false; // True in Blind 1v1 Queue (hides locked matrix cells)
   let selectedManualTargetId = null;
 
   let lastInputTimestamp = performance.now();
@@ -243,13 +254,24 @@
   let opponentApmHistory = [];
   let apmSampleTimer = 0;
 
+  // Deterministic Replay Recorder & Playback State
+  let currentRunSeed = 12345;
+  let currentReplayEvents = []; // [[elapsedMs, actionCode], ...]
+  let activeReplayPlayback = null; // { events, index, startTime }
+
+  // Standalone AI Bot State (For Play vs AI [BETA])
+  let aiController = null;
+  let aiEngine = null;
+  let currentAiDifficulty = 5;
+
   let countdownInterval = null;
   let summaryInterval = null;
   let apmTestRemainingMs = 60000;
+  let sprintElapsedMs = 0;
   let lastReportedZenLines = 0;
 
   let activeLeaderboardTab = 'byApm';
-  let cachedLeaderboards = { byApm: [], byZen: [], byWins: [], byCombo: [], byDuels: [] };
+  let cachedLeaderboards = { byApm: [], bySprint: [], byZen: [], byWins: [], byCombo: [], byDuels: [] };
   let cachedAllPlayers = [];
   let cachedOnlinePlayers = [];
   let cachedTournaments = [];
@@ -273,6 +295,10 @@
     onCallout: (text) => showCallout(text),
     onBoardImpulse: (vx, vy, isDamage) => triggerBoardImpulse(vx, vy, isDamage),
     onSendGarbage: (lines) => {
+      if (currentMode === 'vs_ai' && aiEngine && !aiEngine.gameOver) {
+        aiEngine.queueIncomingGarbage(lines);
+        return;
+      }
       if (ws && ws.readyState === WebSocket.OPEN && (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa')) {
         ws.send(JSON.stringify({ type: 'send_garbage', lines }));
       }
@@ -284,8 +310,14 @@
           ws.send(JSON.stringify({ type: 'player_topout', stats }));
         }
         showOverlay('ELIMINATED', 'Waiting for match result...');
+      } else if (currentMode === 'vs_ai') {
+        showOverlay('AI WINS!', 'Press Restart Key or click RESTART to battle again');
       } else if (currentMode === 'apm_test') {
         finishApmTest();
+      } else if (currentMode === 'sprint_40') {
+        showOverlay('TOP OUT', 'Press Restart Key to retry 40-Line Sprint');
+      } else if (currentMode === 'replay') {
+        showOverlay('REPLAY ENDED', 'Click RETURN TO HUB');
       } else {
         flushZenLines();
         showOverlay('TOP OUT', 'Press Restart Key or click RESTART');
@@ -294,6 +326,8 @@
     onSync: () => {
       if (currentMode === 'zen4' || currentMode === 'zen10') {
         flushZenLines();
+      } else if (currentMode === 'sprint_40' && engine.linesCleared >= 40) {
+        finishSprint40();
       }
       sendBoardSync();
     }
@@ -313,7 +347,7 @@
     });
 
   // ============================================================================
-  // UNLOCKED RGB "COLORS" SLIDERS APPLICATION
+  // UNLOCKED RGB "COLORS" SLIDERS
   // ============================================================================
 
   function applyCustomColorsToCSS() {
@@ -480,7 +514,7 @@
   }
 
   // ============================================================================
-  // AUTHENTICATION, AUTO-SESSION RESTORE, DAILY CHALLENGES & LEVEL BAR
+  // AUTHENTICATION, AUTO-SESSION RESTORE & LEVEL BAR
   // ============================================================================
 
   function showAuthError(msg) {
@@ -774,7 +808,7 @@
   });
 
   // ============================================================================
-  // 4-COLUMN CUSTOMIZATION: 2-PER-COLUMN SQUARE THUMBNAILS (NO PICTURE NAMES)
+  // 4-COLUMN CUSTOMIZATION: NON-OVERLAPPING 2-PER-ROW SQUARE THUMBNAILS
   // ============================================================================
 
   function renderBackgroundThumbnailsGrid() {
@@ -782,7 +816,6 @@
     if (!grid) return;
     grid.innerHTML = '';
 
-    // 1. Square Shuffle Default Tile
     const shuffleCard = document.createElement('div');
     const isShuffleEquipped = !userPrefs.lockedBg || userPrefs.lockedBg === 'shuffle';
     shuffleCard.className = `bg-thumb-card ${isShuffleEquipped ? 'equipped' : ''}`;
@@ -797,7 +830,6 @@
     });
     grid.appendChild(shuffleCard);
 
-    // 2. Square Picture Thumbnails (2 per row, NO text names, scrollable)
     const catalog = window.BackgroundController.getCatalog();
     catalog.forEach(item => {
       const isLockedToThis = userPrefs.lockedBg === item.id;
@@ -1112,8 +1144,6 @@
 
   // ============================================================================
   // BigL_ ADMIN & MODERATOR CONSOLE UI
-  // Moderators ONLY see Ban / Unban / Timeout / End Timeout / Mute / Dismiss Mute.
-  // Passwords, Stat Editors, Moderator Promotion, Shout & Lobby Reset are ONLY for BigL_!
   // ============================================================================
 
   if (adminShoutBtn) {
@@ -1172,7 +1202,6 @@
     const mod = p.moderation || {};
     const callerIsBigL = isBigLAdmin();
 
-    // Build HTML based on whether caller is BigL_ (full powers) or a Moderator (strictly Ban/Timeout/Mute)
     let html = `
       <div class="stat-grid-boxes">
         ${callerIsBigL ? `
@@ -1333,13 +1362,15 @@
   });
 
   // ============================================================================
-  // HUB NAVIGATION, LEADERBOARDS & HEAD-TO-HEAD RIVALRY INSPECTOR
+  // HUB NAVIGATION, REPLAY LAUNCHER & LEADERBOARDS
   // ============================================================================
 
   function navigateToHub() {
     activeScreen = 'hub';
     currentMode = 'hub';
     canControlBoard = false;
+    isBlindArena = false;
+    activeReplayPlayback = null;
     if (countdownInterval) clearInterval(countdownInterval);
     if (summaryInterval) clearInterval(summaryInterval);
 
@@ -1384,6 +1415,27 @@
     switchHubTab(hubTabAdmin, hubAdminView);
     renderAdminConsole();
   });
+
+  async function fetchAndPlaySavedReplay(username, modeKey) {
+    try {
+      const res = await fetch(`/api/replay/${encodeURIComponent(username)}/${encodeURIComponent(modeKey)}`);
+      const data = await res.json();
+      if (!res.ok || !data.ok || !data.replay) return;
+
+      const rep = data.replay;
+      const modeName = modeKey === 'sprint40' ? '40 LINES REPLAY' : 'APM TEST REPLAY';
+      enterArenaMode('replay', `${modeName}: ${username.toUpperCase()} (${rep.metricLabel || ''})`, rep.cols || 4, rep.seed);
+
+      startCountdownWithDuration(rep.seed, rep.cols || 4, 3000, () => {
+        canControlBoard = false; // Replay drives the engine
+        activeReplayPlayback = {
+          events: rep.events || [],
+          index: 0,
+          startTime: performance.now()
+        };
+      });
+    } catch (e) {}
+  }
 
   function renderLiveSpectateMatches(matches) {
     if (!liveMatchesList) return;
@@ -1431,8 +1483,18 @@
       const div = document.createElement('div');
       div.className = 'lb-row';
       let val = '';
+      let replayBtnHtml = '';
+
       if (activeLeaderboardTab === 'byApm') {
         val = `${Number(r.apm || 0).toFixed(1)} APM`;
+        if (r.hasApmReplay) {
+          replayBtnHtml = `<button class="btn btn-sm btn-primary watch-rep-btn" data-user="${escapeHtml(r.username)}" data-mode="apmTest">REPLAY</button>`;
+        }
+      } else if (activeLeaderboardTab === 'bySprint') {
+        val = `${Number(r.sprint40 || 0).toFixed(2)}s`;
+        if (r.hasSprintReplay) {
+          replayBtnHtml = `<button class="btn btn-sm btn-primary watch-rep-btn" data-user="${escapeHtml(r.username)}" data-mode="sprint40">REPLAY</button>`;
+        }
       } else if (activeLeaderboardTab === 'byZen') {
         val = `${r.zenLines || 0} Lines`;
       } else if (activeLeaderboardTab === 'byWins') {
@@ -1447,7 +1509,16 @@
         <span class="lb-rank">#${idx + 1}</span>
         <span class="lb-user">${escapeHtml(r.username)} <small style="color:#ffca28">LVL ${r.level || 1}</small></span>
         <span class="lb-val">${val}</span>
+        ${replayBtnHtml}
       `;
+
+      const repBtn = div.querySelector('.watch-rep-btn');
+      if (repBtn) {
+        repBtn.addEventListener('click', () => {
+          fetchAndPlaySavedReplay(r.username, repBtn.dataset.mode);
+        });
+      }
+
       lbContentEl.appendChild(div);
     });
   }
@@ -1487,7 +1558,6 @@
     inspectedPilotTitle.textContent = `PLAYER STATS: ${p.username.toUpperCase()} (LVL ${p.stats.level})`;
     const s = p.stats;
 
-    // Calculate Head-to-Head Record between logged-in player and inspected player
     let h2hBannerHtml = '';
     if (myUserObj && myUserObj.username.toLowerCase() !== p.username.toLowerCase()) {
       const myH2H = (myUserObj.headToHead && myUserObj.headToHead[p.username.toLowerCase()]) || { wins: 0, losses: 0 };
@@ -1513,12 +1583,20 @@
       ${h2hBannerHtml}
       <div class="stat-grid-boxes">
         <div class="stat-card"><span class="stat-title">ACCOUNT LEVEL</span><span class="stat-val">LVL ${s.level} (${s.xp} XP)</span></div>
-        <div class="stat-card"><span class="stat-title">OFFICIAL APM (BEST)</span><span class="stat-val">${Number(s.apmTestBest || 0).toFixed(1)} APM</span></div>
+        <div class="stat-card">
+          <span class="stat-title">OFFICIAL APM (BEST)</span>
+          <span class="stat-val">${Number(s.apmTestBest || 0).toFixed(1)} APM</span>
+          ${p.hasApmReplay ? `<button class="btn btn-sm btn-primary" id="dir-watch-apm-rep" style="margin-top:4px;">WATCH APM REPLAY</button>` : ''}
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">40 LINES SPRINT (BEST)</span>
+          <span class="stat-val">${s.sprint40Best > 0 ? s.sprint40Best.toFixed(2) + 's' : '—'}</span>
+          ${p.hasSprintReplay ? `<button class="btn btn-sm btn-primary" id="dir-watch-sprint-rep" style="margin-top:4px;">WATCH 40L REPLAY</button>` : ''}
+        </div>
         <div class="stat-card"><span class="stat-title">ZEN LINES CLEARED</span><span class="stat-val">${s.zenLines || 0}</span></div>
         <div class="stat-card"><span class="stat-title">1v1 RECORD</span><span class="stat-val">${s.duelWins || 0}W - ${s.duelLosses || 0}L</span></div>
         <div class="stat-card"><span class="stat-title">2v2 TEAM RECORD</span><span class="stat-val">${s.teamWins || 0}W - ${s.teamLosses || 0}L</span></div>
         <div class="stat-card"><span class="stat-title">FFA WINS</span><span class="stat-val">${s.ffaWins || 0}</span></div>
-        <div class="stat-card"><span class="stat-title">TOURNEY WINS</span><span class="stat-val">${s.tournamentWins || 0}</span></div>
         <div class="stat-card"><span class="stat-title">MAX COMBO</span><span class="stat-val">${s.maxCombo || 0}x</span></div>
       </div>
       <h4 style="color:var(--accent-cyan);font-size:0.82rem;">RECENT MATCH HISTORY</h4>
@@ -1529,10 +1607,15 @@
         <tbody>${historyHtml}</tbody>
       </table>
     `;
+
+    const apmRepBtn = document.getElementById('dir-watch-apm-rep');
+    if (apmRepBtn) apmRepBtn.addEventListener('click', () => fetchAndPlaySavedReplay(p.username, 'apmTest'));
+    const sprRepBtn = document.getElementById('dir-watch-sprint-rep');
+    if (sprRepBtn) sprRepBtn.addEventListener('click', () => fetchAndPlaySavedReplay(p.username, 'sprint40'));
   }
 
   // ============================================================================
-  // GAME MODE LAUNCHERS & COUNTDOWN ENGINE
+  // GAME MODE LAUNCHERS, INSTANT CLEAR "GO!" COUNTDOWN & PACEMAKER
   // ============================================================================
 
   function setFfaTargetModeUI(mode) {
@@ -1551,11 +1634,14 @@
 
   function configureBoardDimensions(cols) {
     currentCols = cols;
+    const widthPx = cols * 32;
+    const heightPx = 26 * 32;
+    boardCanvas.width = widthPx;
+    boardCanvas.height = heightPx;
     if (boardFrame) {
-      boardFrame.style.aspectRatio = `${cols} / 26`;
+      // Explicit pixel width prevents flexbox from ever collapsing the board!
+      boardFrame.style.width = `${cols === 10 ? 330 : 132}px`;
     }
-    boardCanvas.width = cols * 32;
-    boardCanvas.height = 26 * 32;
   }
 
   function startCountdownWithDuration(seed, cols, durationMs = 3000, onGoCallback = null) {
@@ -1564,17 +1650,39 @@
     postMatchScreen.classList.add('hidden');
 
     canControlBoard = false;
+    activeReplayPlayback = null;
+    currentRunSeed = seed;
+    currentReplayEvents = [];
+
     playerPlayfieldWrapper.classList.remove('hidden');
     configureBoardDimensions(cols);
     engine.reset(seed, cols);
     lastReportedZenLines = 0;
+    sprintElapsedMs = 0;
     myApmHistory = [0];
     opponentApmHistory = [0];
     apmSampleTimer = 0;
     actionCallout.textContent = '—';
     suddenDeathBadge.classList.add('hidden');
 
+    if (currentMode === 'vs_ai') {
+      aiEngine = new window.StackerEngine(4, 26, 20, {
+        onSendGarbage: (lines) => {
+          if (canControlBoard && !engine.gameOver) engine.queueIncomingGarbage(lines);
+        },
+        onTopOut: () => {
+          canControlBoard = false;
+          window.AudioController.playSFX('win');
+          showOverlay(`YOU DEFEATED AI (LVL ${currentAiDifficulty})!`, 'Press Restart Key or click RESTART');
+        }
+      });
+      aiController = new window.StackerAI(currentAiDifficulty);
+      aiController.bindEngine(aiEngine);
+      aiController.reset(seed + 777, 4);
+    }
+
     let remSec = Math.max(1, Math.ceil(durationMs / 1000));
+    overlayBanner.classList.remove('go-transparent');
     showOverlay(String(remSec), 'GET READY');
     window.AudioController.playSFX('move');
 
@@ -1583,17 +1691,21 @@
       if (remSec > 0) {
         showOverlay(String(remSec), 'GET READY');
         window.AudioController.playSFX('move');
-      } else if (remSec === 0) {
+      } else {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        // Make overlay background 100% transparent the exact millisecond "GO!" appears so board is never grey!
+        overlayBanner.classList.add('go-transparent');
         showOverlay('GO!', '');
         window.AudioController.playSFX('rotate');
         engine.startTime = performance.now();
         lastInputTimestamp = performance.now();
         canControlBoard = true;
         if (onGoCallback) onGoCallback();
-      } else {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-        hideOverlay();
+        setTimeout(() => {
+          hideOverlay();
+          overlayBanner.classList.remove('go-transparent');
+        }, 220);
       }
     }, 1000);
   }
@@ -1612,10 +1724,19 @@
     tugOfWarWrap.classList.add('hidden');
     multiOpponentsGrid.innerHTML = '';
 
-    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa' || modeKey === 'apm_test') {
+    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa' || modeKey === 'apm_test' || modeKey === 'vs_ai') {
       liveApmGraphBox.classList.remove('hidden');
     } else {
       liveApmGraphBox.classList.add('hidden');
+    }
+
+    // Show Live PB Pace-Maker in APM Test & 40-Line Sprint
+    if (modeKey === 'apm_test' || modeKey === 'sprint_40') {
+      pacemakerCard.classList.remove('hidden');
+      statPacemaker.textContent = 'EVEN PACE';
+      pacemakerCard.className = 'stat-card pacemaker-card';
+    } else {
+      pacemakerCard.classList.add('hidden');
     }
 
     if (modeKey === 'spectate') {
@@ -1635,6 +1756,10 @@
       apmTestRemainingMs = 60000;
       arenaTimerDisplay.textContent = '60.0s';
       arenaTimerDisplay.classList.remove('hidden');
+    } else if (modeKey === 'sprint_40') {
+      sprintElapsedMs = 0;
+      arenaTimerDisplay.textContent = '0.00s (0/40)';
+      arenaTimerDisplay.classList.remove('hidden');
     } else {
       arenaTimerDisplay.classList.add('hidden');
     }
@@ -1646,16 +1771,17 @@
       ffaTargetBar.classList.add('hidden');
     }
 
-    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa') {
+    if (modeKey === 'duel' || modeKey === 'team2v2' || modeKey === 'ffa' || modeKey === 'vs_ai') {
       multiOpponentsPanel.classList.remove('hidden');
-      multiOppHeader.textContent = modeKey === 'ffa' ? 'FFA OPPONENTS (CLICK TO TARGET)' : 'LIVE MATRICES';
-      arenaRestartBtn.classList.add('hidden');
+      multiOppHeader.textContent = modeKey === 'vs_ai' ? `AI OPPONENT (DIFFICULTY ${currentAiDifficulty})` : (modeKey === 'ffa' ? 'FFA OPPONENTS (CLICK TO TARGET)' : 'LIVE MATRICES');
+      if (modeKey === 'vs_ai') arenaRestartBtn.classList.remove('hidden');
+      else arenaRestartBtn.classList.add('hidden');
     } else {
       multiOpponentsPanel.classList.add('hidden');
       arenaRestartBtn.classList.remove('hidden');
     }
 
-    if (modeKey === 'zen4' || modeKey === 'zen10' || modeKey === 'apm_test') {
+    if (['zen4', 'zen10', 'apm_test', 'sprint_40', 'vs_ai'].includes(modeKey)) {
       startCountdownWithDuration(seed, cols, 3000);
     }
   }
@@ -1680,24 +1806,97 @@
     arenaTimerDisplay.textContent = '0.0s';
     const m = engine.getLiveMetrics();
     window.AudioController.playSFX('win');
-    showOverlay(`${m.apm.toFixed(1)} APM`, 'Recorded to Leaderboard. Press Restart Key to retry.');
+    showOverlay(`${m.apm.toFixed(1)} APM`, 'Recorded + Replay Saved! Press Restart Key to retry.');
 
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type: 'apm_test_complete',
         apm: m.apm,
         linesCleared: m.linesCleared,
-        maxCombo: m.maxCombo
+        maxCombo: m.maxCombo,
+        replay: {
+          seed: currentRunSeed,
+          events: currentReplayEvents
+        }
       }));
     }
   }
 
-  launchZen4Btn.addEventListener('click', () => enterArenaMode('zen4', '4x26 ZEN MODE', 4));
-  launchZen10Btn.addEventListener('click', () => enterArenaMode('zen10', '10x26', 10));
-  launchApmTestBtn.addEventListener('click', () => enterArenaMode('apm_test', 'APM TEST (1:00)', 4));
+  function finishSprint40() {
+    if (currentMode !== 'sprint_40' || !canControlBoard) return;
+    canControlBoard = false;
+    engine.gameOver = true;
+    const finalSec = Number((sprintElapsedMs / 1000).toFixed(2));
+    arenaTimerDisplay.textContent = `${finalSec.toFixed(2)}s (40/40)`;
+    const m = engine.getLiveMetrics();
+    window.AudioController.playSFX('win');
+    showOverlay(`${finalSec.toFixed(2)}s`, '40 Lines Complete + Replay Saved! Press Restart Key to retry.');
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'sprint_40_complete',
+        timeSec: finalSec,
+        apm: m.apm,
+        maxCombo: m.maxCombo,
+        replay: {
+          seed: currentRunSeed,
+          events: currentReplayEvents
+        }
+      }));
+    }
+  }
+
+  function updatePacemakerCard(m) {
+    if (!myUserObj || !myUserObj.stats) return;
+    if (currentMode === 'apm_test') {
+      const pbApm = myUserObj.stats.apmTestBest || 0;
+      if (pbApm <= 0) {
+        statPacemaker.textContent = `SETTING FIRST PB`;
+        pacemakerCard.className = 'stat-card pacemaker-card';
+        return;
+      }
+      const diff = Number((m.apm - pbApm).toFixed(1));
+      if (diff >= 0) {
+        statPacemaker.textContent = `+${diff} APM VS PB (${pbApm})`;
+        pacemakerCard.className = 'stat-card pacemaker-card ahead';
+      } else {
+        statPacemaker.textContent = `${diff} APM VS PB (${pbApm})`;
+        pacemakerCard.className = 'stat-card pacemaker-card behind';
+      }
+    } else if (currentMode === 'sprint_40') {
+      const pbSec = myUserObj.stats.sprint40Best || 0;
+      const elapsedSec = sprintElapsedMs / 1000;
+      if (pbSec <= 0) {
+        statPacemaker.textContent = `SETTING FIRST PB`;
+        pacemakerCard.className = 'stat-card pacemaker-card';
+        return;
+      }
+      const targetSecAtCurrentLines = (engine.linesCleared / 40) * pbSec;
+      const deltaSec = Number((elapsedSec - targetSecAtCurrentLines).toFixed(2));
+      if (deltaSec <= 0) {
+        statPacemaker.textContent = `${deltaSec.toFixed(2)}s AHEAD OF PB`;
+        pacemakerCard.className = 'stat-card pacemaker-card ahead';
+      } else {
+        statPacemaker.textContent = `+${deltaSec.toFixed(2)}s BEHIND PB`;
+        pacemakerCard.className = 'stat-card pacemaker-card behind';
+      }
+    }
+  }
+
+  launchZen4Btn.addEventListener('click', () => { isBlindArena = false; enterArenaMode('zen4', '4x26 ZEN MODE', 4); });
+  launchZen10Btn.addEventListener('click', () => { isBlindArena = false; enterArenaMode('zen10', '10x26', 10); });
+  launchApmTestBtn.addEventListener('click', () => { isBlindArena = false; enterArenaMode('apm_test', 'APM TEST (1:00)', 4); });
+  launchSprint40Btn.addEventListener('click', () => { isBlindArena = false; enterArenaMode('sprint_40', '40 LINES SPRINT', 4); });
+
+  launchVsAiBtn.addEventListener('click', () => {
+    isBlindArena = false;
+    currentAiDifficulty = Number(aiDifficultySelect.value) || 5;
+    enterArenaMode('vs_ai', `VS AI [BETA] • DIFFICULTY ${currentAiDifficulty}`, 4);
+  });
 
   join1v1QueueBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
+      queueBlindWaitingBanner.classList.add('hidden');
       queue2v2WaitingBanner.classList.add('hidden');
       ws.send(JSON.stringify({ type: 'join_1v1_queue' }));
       queueWaitingBanner.classList.remove('hidden');
@@ -1711,9 +1910,26 @@
     }
   });
 
+  joinBlind1v1QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      queueWaitingBanner.classList.add('hidden');
+      queue2v2WaitingBanner.classList.add('hidden');
+      ws.send(JSON.stringify({ type: 'join_blind_1v1_queue' }));
+      queueBlindWaitingBanner.classList.remove('hidden');
+    }
+  });
+
+  leaveBlind1v1QueueBtn.addEventListener('click', () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'leave_blind_1v1_queue' }));
+      queueBlindWaitingBanner.classList.add('hidden');
+    }
+  });
+
   join2v2QueueBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       queueWaitingBanner.classList.add('hidden');
+      queueBlindWaitingBanner.classList.add('hidden');
       ws.send(JSON.stringify({ type: 'join_2v2_queue' }));
       queue2v2WaitingBanner.classList.remove('hidden');
     }
@@ -1728,6 +1944,7 @@
 
   joinFfaLobbyBtn.addEventListener('click', () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
+      isBlindArena = false;
       enterArenaMode('ffa', 'FFA ARENA', 4);
       canControlBoard = false;
       showOverlay('JOINING FFA LOBBY...', 'Syncing lobby state...');
@@ -1738,6 +1955,7 @@
   function leaveCurrentArenaOrQueue() {
     flushZenLines();
     queueWaitingBanner.classList.add('hidden');
+    queueBlindWaitingBanner.classList.add('hidden');
     queue2v2WaitingBanner.classList.add('hidden');
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'leave_active_mode' }));
@@ -1752,6 +1970,7 @@
     if (currentMode === 'duel' || currentMode === 'team2v2' || currentMode === 'ffa' || currentMode === 'spectate') return;
     flushZenLines();
     if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
+    if (currentMode === 'sprint_40') sprintElapsedMs = 0;
     startCountdownWithDuration(Date.now(), currentCols, 3000);
   });
 
@@ -1841,7 +2060,7 @@
     if (!Array.isArray(boardsList)) return;
     multiOpponentsGrid.innerHTML = '';
 
-    if (currentMode === 'duel' && boardsList[0]) {
+    if ((currentMode === 'duel' || currentMode === 'vs_ai') && boardsList[0]) {
       opponentApmHistory.push(Number(boardsList[0].apm || 0));
       if (opponentApmHistory.length > 80) opponentApmHistory.shift();
     }
@@ -1855,7 +2074,6 @@
         <canvas width="72" height="468"></canvas>
       `;
 
-      // Admin BigL_ Spectator Garbage Injector Buttons (Reserved strictly for BigL_)
       if (isBigLAdmin() && (currentMode === 'spectate' || currentMode === 'ffa' || currentMode === 'duel' || currentMode === 'team2v2')) {
         const injectRow = document.createElement('div');
         injectRow.className = 'admin-inject-row';
@@ -1905,11 +2123,14 @@
         ctx.lineTo(cols * cellSize, 6 * cellSize);
         ctx.stroke();
 
-        for (let r = 0; r < rows; r++) {
-          for (let colIdx = 0; colIdx < cols; colIdx++) {
-            const cell = b.grid[r][colIdx];
-            if (cell) {
-              drawStyledBlock(ctx, colIdx, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
+        // In Blind 1v1, opponent's locked blocks are also invisible!
+        if (!isBlindArena) {
+          for (let r = 0; r < rows; r++) {
+            for (let colIdx = 0; colIdx < cols; colIdx++) {
+              const cell = b.grid[r][colIdx];
+              if (cell) {
+                drawStyledBlock(ctx, colIdx, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
+              }
             }
           }
         }
@@ -1987,6 +2208,7 @@
         case 'hub_sync':
           cachedOnlinePlayers = msg.onlinePlayers || [];
           hub1v1QueueStatus.textContent = `In Queue: ${msg.queue1v1Count || 0}`;
+          if (hubBlind1v1QueueStatus) hubBlind1v1QueueStatus.textContent = `In Queue: ${msg.queueBlind1v1Count || 0}`;
           if (hub2v2QueueStatus) hub2v2QueueStatus.textContent = `In Queue: ${msg.queue2v2Count || 0} / 4`;
           hubFfaStatus.textContent = `In Lobby: ${msg.ffaPlayerCount || 0}`;
           if (msg.activeMatches) renderLiveSpectateMatches(msg.activeMatches);
@@ -2023,14 +2245,17 @@
 
         case 'duel_init':
           queueWaitingBanner.classList.add('hidden');
+          queueBlindWaitingBanner.classList.add('hidden');
           queue2v2WaitingBanner.classList.add('hidden');
           challengeToast.classList.add('hidden');
-          enterArenaMode('duel', `1v1 BEST OF ${msg.bestOf || 3} • ${msg.p1.username} vs ${msg.p2.username}`, 4);
+          isBlindArena = Boolean(msg.isBlind);
+          enterArenaMode('duel', `${isBlindArena ? 'BLIND 1v1 (INVISIBLE) • ' : `1v1 BEST OF ${msg.bestOf || 3} • `}${msg.p1.username} vs ${msg.p2.username}`, 4);
           arenaScoreStrip.textContent = `${msg.p1.username} (0) - (0) ${msg.p2.username} | ROUND 1`;
           tugOfWarWrap.classList.remove('hidden');
           break;
 
         case 'duel_round_countdown':
+          isBlindArena = Boolean(msg.isBlind);
           arenaScoreStrip.textContent = `SCORE: ${msg.p1Score} - ${msg.p2Score} | ROUND ${msg.round} (BEST OF ${msg.bestOf || 3})`;
           if (currentMode === 'duel') {
             startCountdownWithDuration(msg.seed, 4, msg.countdownMs || 3000);
@@ -2038,7 +2263,9 @@
           break;
 
         case 'team2v2_init':
+          isBlindArena = false;
           queueWaitingBanner.classList.add('hidden');
+          queueBlindWaitingBanner.classList.add('hidden');
           queue2v2WaitingBanner.classList.add('hidden');
           enterArenaMode('team2v2', `2v2 TEAM BATTLE (YOU: TEAM ${msg.myTeam.toUpperCase()})`, 4);
           arenaScoreStrip.textContent = `ALPHA (${msg.alphaScore}) — (${msg.bravoScore}) BRAVO | ROUND 1`;
@@ -2094,6 +2321,7 @@
           break;
 
         case 'spectate_init':
+          isBlindArena = false;
           enterArenaMode('spectate', msg.title || 'LIVE SPECTATOR MODE', 4);
           break;
 
@@ -2253,6 +2481,29 @@
   bindSlider('slider-bg-interval', 'val-bg-interval', 180, v => window.BackgroundController.setShuffleInterval(v));
 
   // ============================================================================
+  // REPLAY ACTION EXECUTION & RECORDING
+  // ============================================================================
+
+  function executeAndRecordAction(actionCode) {
+    if (currentMode === 'apm_test' || currentMode === 'sprint_40') {
+      const elapsed = Math.max(0, Math.round(performance.now() - engine.startTime));
+      currentReplayEvents.push([elapsed, actionCode]);
+    }
+
+    switch (actionCode) {
+      case 'L': engine.moveHorizontal(-1); break;
+      case 'R': engine.moveHorizontal(1); break;
+      case 'CW': engine.rotate(1); break;
+      case 'CCW': engine.rotate(3); break;
+      case '180': engine.rotate(2); break;
+      case 'SD_INST': engine.softDrop(true); break;
+      case 'SD_STEP': engine.softDrop(false); break;
+      case 'HD': engine.hardDrop(); break;
+      case 'HOLD': engine.hold(); break;
+    }
+  }
+
+  // ============================================================================
   // CUSTOM KEYBIND INPUT, 15s AFK TRACKER & 60FPS GAME LOOP
   // ============================================================================
 
@@ -2298,9 +2549,10 @@
     if (e.repeat) return;
     keysDown.add(e.code);
 
-    if (e.code === kb.restart && currentMode !== 'duel' && currentMode !== 'team2v2' && currentMode !== 'ffa' && currentMode !== 'spectate') {
+    if (e.code === kb.restart && !['duel', 'team2v2', 'ffa', 'spectate', 'replay'].includes(currentMode)) {
       flushZenLines();
       if (currentMode === 'apm_test') apmTestRemainingMs = 60000;
+      if (currentMode === 'sprint_40') sprintElapsedMs = 0;
       startCountdownWithDuration(Date.now(), currentCols, 3000);
       return;
     }
@@ -2309,20 +2561,20 @@
 
     if (e.code === kb.moveLeft) {
       moveDir = -1; dasTimer = 0; arrTimer = 0;
-      engine.moveHorizontal(-1);
+      executeAndRecordAction('L');
     } else if (e.code === kb.moveRight) {
       moveDir = 1; dasTimer = 0; arrTimer = 0;
-      engine.moveHorizontal(1);
+      executeAndRecordAction('R');
     } else if (e.code === kb.rotateCW) {
-      engine.rotate(1);
+      executeAndRecordAction('CW');
     } else if (e.code === kb.rotateCCW) {
-      engine.rotate(3);
+      executeAndRecordAction('CCW');
     } else if (e.code === kb.rotate180) {
-      engine.rotate(2);
+      executeAndRecordAction('180');
     } else if (e.code === kb.hardDrop) {
-      engine.hardDrop();
+      executeAndRecordAction('HD');
     } else if (e.code === kb.hold) {
-      engine.hold();
+      executeAndRecordAction('HOLD');
     }
   });
 
@@ -2346,12 +2598,19 @@
       dasTimer += dtMs;
       if (dasTimer >= handling.das) {
         if (handling.arr === 0) {
-          while (engine.moveHorizontal(moveDir)) {}
+          while (engine.moveHorizontal(moveDir)) {
+            if (currentMode === 'apm_test' || currentMode === 'sprint_40') {
+              currentReplayEvents.push([Math.round(performance.now() - engine.startTime), moveDir === -1 ? 'L' : 'R']);
+            }
+          }
         } else {
           arrTimer += dtMs;
           while (arrTimer >= handling.arr) {
             arrTimer -= handling.arr;
             if (!engine.moveHorizontal(moveDir)) break;
+            if (currentMode === 'apm_test' || currentMode === 'sprint_40') {
+              currentReplayEvents.push([Math.round(performance.now() - engine.startTime), moveDir === -1 ? 'L' : 'R']);
+            }
           }
         }
       }
@@ -2359,13 +2618,18 @@
 
     if (keysDown.has(kb.softDrop)) {
       if (handling.sdf >= 40) {
-        engine.softDrop(true);
+        if (engine.softDrop(true) && (currentMode === 'apm_test' || currentMode === 'sprint_40')) {
+          currentReplayEvents.push([Math.round(performance.now() - engine.startTime), 'SD_INST']);
+        }
       } else {
         softDropTimer += dtMs;
         const stepMs = Math.max(8, engine.gravityInterval / handling.sdf);
         while (softDropTimer >= stepMs) {
           softDropTimer -= stepMs;
           if (!engine.softDrop(false)) break;
+          if (currentMode === 'apm_test' || currentMode === 'sprint_40') {
+            currentReplayEvents.push([Math.round(performance.now() - engine.startTime), 'SD_STEP']);
+          }
         }
       }
     } else {
@@ -2562,7 +2826,7 @@
     boardCtx.lineTo(cols * cellSize, engine.bufferRows * cellSize);
     boardCtx.stroke();
 
-    // Render Hard-Drop Motion Trails behind pieces
+    // Hard-Drop Motion Trails
     if (Array.isArray(engine.hardDropTrails) && engine.hardDropTrails.length > 0) {
       engine.hardDropTrails = engine.hardDropTrails.filter(t => t.expiresAt > now);
       engine.hardDropTrails.forEach(t => {
@@ -2580,12 +2844,14 @@
       });
     }
 
-    // Locked blocks
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const cell = engine.grid[r][c];
-        if (cell) {
-          drawStyledBlock(boardCtx, c, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
+    // Locked blocks (Hidden in Blind 1v1 Mode!)
+    if (!isBlindArena) {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = engine.grid[r][c];
+          if (cell) {
+            drawStyledBlock(boardCtx, c, r, cellSize, getPieceColor(cell), 1.0, userPrefs.blockSkin);
+          }
         }
       }
     }
@@ -2607,13 +2873,16 @@
       const ghostY = engine.getGhostY();
       const pColor = getPieceColor(p.type);
 
-      for (let r = 0; r < p.matrix.length; r++) {
-        for (let c = 0; c < p.matrix[r].length; c++) {
-          if (p.matrix[r][c]) {
-            drawGhostBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, userPrefs.ghostStyle);
+      if (!isBlindArena) {
+        for (let r = 0; r < p.matrix.length; r++) {
+          for (let c = 0; c < p.matrix[r].length; c++) {
+            if (p.matrix[r][c]) {
+              drawGhostBlock(boardCtx, p.x + c, ghostY + r, cellSize, pColor, userPrefs.ghostStyle);
+            }
           }
         }
       }
+
       for (let r = 0; r < p.matrix.length; r++) {
         for (let c = 0; c < p.matrix[r].length; c++) {
           if (p.matrix[r][c]) {
@@ -2623,7 +2892,7 @@
       }
     }
 
-    // Render Line-Clear Shatter Particles
+    // Line-Clear Shatter Particles
     if (Array.isArray(engine.clearParticles) && engine.clearParticles.length > 0) {
       boardCtx.save();
       engine.clearParticles.forEach(pt => {
@@ -2666,7 +2935,11 @@
     statB2b.textContent = `${m.b2b}x`;
     garbageMeterFill.style.height = `${Math.min(100, (m.pendingGarbage / 20) * 100)}%`;
 
-    if (currentMode === 'duel') {
+    if (currentMode === 'apm_test' || currentMode === 'sprint_40') {
+      updatePacemakerCard(m);
+    }
+
+    if (currentMode === 'duel' || currentMode === 'vs_ai') {
       drawApmChartOnCanvas(liveApmCtx, liveApmCanvas.width, liveApmCanvas.height, [
         { label: 'YOU', color: '#00e5ff', data: myApmHistory },
         { label: 'OPP', color: '#ff3d57', data: opponentApmHistory }
@@ -2685,7 +2958,24 @@
 
     if (activeScreen === 'arena') {
       updateBoardShakePhysics(dtMs);
-      if (canControlBoard && !engine.gameOver) {
+
+      // Replay Playback Mode Execution
+      if (currentMode === 'replay' && activeReplayPlayback && !engine.gameOver) {
+        const repElapsed = now - activeReplayPlayback.startTime;
+        while (
+          activeReplayPlayback.index < activeReplayPlayback.events.length &&
+          activeReplayPlayback.events[activeReplayPlayback.index][0] <= repElapsed
+        ) {
+          const [, actCode] = activeReplayPlayback.events[activeReplayPlayback.index];
+          activeReplayPlayback.index += 1;
+          executeAndRecordAction(actCode);
+        }
+        engine.update(dtMs);
+        if (activeReplayPlayback.index >= activeReplayPlayback.events.length) {
+          activeReplayPlayback = null;
+          showOverlay('REPLAY COMPLETE', 'Click RETURN TO HUB');
+        }
+      } else if (canControlBoard && !engine.gameOver) {
         if (now - lastInputTimestamp >= 15000) {
           canControlBoard = false;
           if (ws && ws.readyState === WebSocket.OPEN) {
@@ -2698,6 +2988,23 @@
 
         updateInput(dtMs);
         engine.update(dtMs);
+
+        // Update Standalone AI Bot in Play vs AI Mode
+        if (currentMode === 'vs_ai' && aiController && aiEngine && !aiEngine.gameOver) {
+          aiController.update(dtMs);
+          const aiM = aiEngine.getLiveMetrics();
+          renderMultiBoardsGrid([
+            {
+              id: 'ai_bot',
+              username: `A² AI (LVL ${currentAiDifficulty})`,
+              alive: !aiEngine.gameOver,
+              grid: aiEngine.grid,
+              activePiece: aiEngine.activePiece,
+              apm: aiM.apm,
+              pps: aiM.pps
+            }
+          ]);
+        }
 
         apmSampleTimer += dtMs;
         if (apmSampleTimer >= 500) {
@@ -2712,6 +3019,12 @@
           arenaTimerDisplay.textContent = `${Math.max(0, apmTestRemainingMs / 1000).toFixed(1)}s`;
           if (apmTestRemainingMs <= 0) {
             finishApmTest();
+          }
+        } else if (currentMode === 'sprint_40') {
+          sprintElapsedMs += dtMs;
+          arenaTimerDisplay.textContent = `${(sprintElapsedMs / 1000).toFixed(2)}s (${engine.linesCleared}/40)`;
+          if (engine.linesCleared >= 40) {
+            finishSprint40();
           }
         }
       } else {
