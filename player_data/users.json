@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-21T02:30:04.971Z",
+    "updatedAt": "2026-10-21T02:30:07.827Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -52,7 +52,7 @@
       "duelWins": 37,
       "duelLosses": 14,
       "maxCombo": 28,
-      "totalLinesCleared": 5974,
+      "totalLinesCleared": 5977,
       "totalAttackSent": 2793,
       "totalApmSum": 0,
       "apmSamples": 1,
@@ -60,9 +60,9 @@
       "totalReceivedSum": 1066,
       "receivedSamples": 100,
       "avgReceived": 10.7,
-      "xp": 42979,
+      "xp": 43247,
       "level": 24,
-      "zenLines": 2245,
+      "zenLines": 2248,
       "apmTestBest": 220,
       "apmTestLast": 9.4,
       "tournamentWins": 0,
@@ -1088,7 +1088,7 @@
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 29,
+          "progress": 32,
           "target": 40,
           "rewardXp": 200,
           "claimed": false
@@ -1096,10 +1096,10 @@
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 4,
+          "progress": 6,
           "target": 6,
           "rewardXp": 250,
-          "claimed": false
+          "claimed": true
         },
         {
           "id": "matches_2",
