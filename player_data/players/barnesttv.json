@@ -3,7 +3,7 @@
   "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
   "passwordPlain": "UCE5826tb",
   "createdAt": "2026-10-19T12:15:50.187Z",
-  "updatedAt": "2026-10-21T14:28:54.871Z",
+  "updatedAt": "2026-10-21T14:33:18.063Z",
   "lastLogin": "2026-10-20T14:36:36.071Z",
   "moderation": {
     "banned": false,
@@ -49,22 +49,22 @@
     }
   },
   "stats": {
-    "xp": 39145,
+    "xp": 40243,
     "level": 23,
-    "gamesPlayed": 136,
+    "gamesPlayed": 142,
     "zenLines": 67,
     "apmTestBest": 83,
     "apmTestLast": 83,
     "ffaWins": 49,
     "duelWins": 17,
-    "duelLosses": 35,
+    "duelLosses": 37,
     "tournamentWins": 0,
     "maxCombo": 20,
-    "totalLinesCleared": 5690,
-    "totalAttackSent": 4538,
-    "totalReceivedSum": 1993,
-    "receivedSamples": 133,
-    "avgReceived": 15,
+    "totalLinesCleared": 5872,
+    "totalAttackSent": 4639,
+    "totalReceivedSum": 2121,
+    "receivedSamples": 139,
+    "avgReceived": 15.3,
     "teamWins": 0,
     "teamLosses": 0,
     "sprint40Best": 0,
@@ -1262,6 +1262,58 @@
       "apm": 38.1,
       "lines": 82,
       "maxCombo": 6
+    },
+    {
+      "date": "2026-10-21T14:29:44.471Z",
+      "mode": "FFA",
+      "result": "ELIMINATED",
+      "apm": 99.4,
+      "lines": 46,
+      "maxCombo": 13
+    },
+    {
+      "date": "2026-10-21T14:30:24.815Z",
+      "mode": "FFA",
+      "result": "ELIMINATED",
+      "apm": 14.9,
+      "lines": 40,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-21T14:30:57.574Z",
+      "mode": "FFA",
+      "result": "ELIMINATED",
+      "apm": 21.9,
+      "lines": 31,
+      "maxCombo": 7
+    },
+    {
+      "date": "2026-10-21T14:31:16.845Z",
+      "mode": "FFA",
+      "result": "ELIMINATED",
+      "apm": 112.2,
+      "lines": 15,
+      "maxCombo": 3
+    },
+    {
+      "date": "2026-10-21T14:32:11.128Z",
+      "mode": "BLIND 1v1 BO3",
+      "result": "ELIMINATED / LOSS",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 0,
+      "lines": 18,
+      "maxCombo": 4
+    },
+    {
+      "date": "2026-10-21T14:33:18.063Z",
+      "mode": "BLIND 1v1 BO3",
+      "result": "ELIMINATED / LOSS",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 16.2,
+      "lines": 32,
+      "maxCombo": 4
     }
   ],
   "isModerator": false,
@@ -1269,7 +1321,7 @@
     "bigl_": {
       "opponentName": "BigL_",
       "wins": 1,
-      "losses": 4
+      "losses": 6
     }
   },
   "dailyChallenges": {
