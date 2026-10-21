@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-21T01:58:58.737Z",
+    "updatedAt": "2026-10-21T02:04:58.775Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -32,17 +32,17 @@
       },
       "lockedBg": "shuffle",
       "customColors": {
-        "accentR": 45,
-        "accentG": 80,
-        "accentB": 47,
-        "menuR": 63,
-        "menuG": 60,
-        "menuB": 30,
+        "accentR": 0,
+        "accentG": 229,
+        "accentB": 255,
+        "menuR": 12,
+        "menuG": 19,
+        "menuB": 33,
         "btnBgR": 25,
-        "btnBgG": 115,
+        "btnBgG": 40,
         "btnBgB": 68,
-        "btnTxtR": 150,
-        "btnTxtG": 76,
+        "btnTxtR": 230,
+        "btnTxtG": 241,
         "btnTxtB": 255
       }
     },
@@ -67,7 +67,9 @@
       "apmTestLast": 152,
       "tournamentWins": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -1100,6 +1102,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "test1": {
@@ -1163,7 +1169,9 @@
       "avgReceived": 8.5,
       "tournamentWins": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -1256,6 +1264,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "test2": {
@@ -1319,7 +1331,9 @@
       "avgReceived": 0,
       "tournamentWins": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -1378,6 +1392,10 @@
       "timeoutUntil": 0,
       "mutedUntil": 0,
       "updatedAt": 0
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     },
     "headToHead": {},
     "dailyChallenges": {
@@ -1478,7 +1496,9 @@
       "receivedSamples": 2,
       "avgReceived": 27,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -1527,6 +1547,10 @@
       }
     ],
     "isModerator": false,
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
+    },
     "headToHead": {},
     "dailyChallenges": {
       "date": "2026-10-21",
@@ -1626,7 +1650,9 @@
       "receivedSamples": 55,
       "avgReceived": 17.2,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -2112,6 +2138,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "normaltj": {
@@ -2182,7 +2212,9 @@
       "receivedSamples": 0,
       "avgReceived": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [],
     "isModerator": false,
@@ -2215,6 +2247,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "g-ram": {
@@ -2285,7 +2321,9 @@
       "receivedSamples": 0,
       "avgReceived": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [],
     "isModerator": false,
@@ -2318,6 +2356,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "barnesttv": {
@@ -2388,7 +2430,9 @@
       "receivedSamples": 128,
       "avgReceived": 14.8,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -3564,6 +3608,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "buquet": {
@@ -3634,7 +3682,9 @@
       "receivedSamples": 9,
       "avgReceived": 11,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [
       {
@@ -3742,6 +3792,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   },
   "niggerr": {
@@ -3812,10 +3866,16 @@
       "receivedSamples": 0,
       "avgReceived": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [],
     "isModerator": false,
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
+    },
     "headToHead": {},
     "dailyChallenges": {
       "date": "2026-10-21",
@@ -3915,7 +3975,9 @@
       "receivedSamples": 0,
       "avgReceived": 0,
       "teamWins": 0,
-      "teamLosses": 0
+      "teamLosses": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0
     },
     "matchHistory": [],
     "isModerator": false,
@@ -3948,6 +4010,10 @@
           "claimed": false
         }
       ]
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
     }
   }
 }
