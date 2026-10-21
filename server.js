@@ -10,14 +10,14 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
-const MASTER_ADMIN_USERNAME = 'bigl_'; // Master Admin: BigL_
+const MASTER_ADMIN_USERNAME = 'bigl_';
 
 const GITHUB_OWNER = process.env.GITHUB_OWNER || 'BigL4202';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'tetris-ioTestServer';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 const PLAYER_DATA_DIR = path.join(__dirname, 'player_data');
 const INDIVIDUAL_PLAYERS_DIR = path.join(PLAYER_DATA_DIR, 'players');
@@ -73,14 +73,14 @@ const DEFAULT_KEYBINDS = {
 };
 
 const DEFAULT_CUSTOM_COLORS = {
-  accentR: 0,   accentG: 229, accentB: 255, // Board & Accent (#00e5ff)
-  menuR: 12,    menuG: 19,    menuB: 33,    // Navy Menu Panels
-  btnBgR: 25,   btnBgG: 40,   btnBgB: 68,   // Button Background
-  btnTxtR: 230, btnTxtG: 241, btnTxtB: 255  // Button Text
+  accentR: 0,   accentG: 229, accentB: 255,
+  menuR: 12,    menuG: 19,    menuB: 33,
+  btnBgR: 25,   btnBgG: 40,   btnBgB: 68,
+  btnTxtR: 230, btnTxtG: 241, btnTxtB: 255
 };
 
 let usersDB = {};
-let moderationRegistry = {}; // lowerUsername -> { isModerator, banned, banReason, timeoutUntil, mutedUntil, updatedAt }
+let moderationRegistry = {};
 let tournamentsDB = [];
 
 function isAdminUser(username) {
@@ -104,7 +104,7 @@ function calculateLevel(xp) {
 }
 
 function getTodayDateKey() {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  return new Date().toISOString().slice(0, 10);
 }
 
 function createDefaultDailyChallenges(dateStr = getTodayDateKey()) {
@@ -113,7 +113,7 @@ function createDefaultDailyChallenges(dateStr = getTodayDateKey()) {
     challenges: [
       { id: 'lines_40', title: 'Clear 40 Lines in Any Mode', progress: 0, target: 40, rewardXp: 200, claimed: false },
       { id: 'combo_6',  title: 'Reach a 6x Combo or Higher', progress: 0, target: 6,  rewardXp: 250, claimed: false },
-      { id: 'matches_2',title: 'Finish 2 Multiplayer or APM Test Matches', progress: 0, target: 2, rewardXp: 300, claimed: false }
+      { id: 'matches_2',title: 'Finish 2 Multiplayer, Sprint or APM Matches', progress: 0, target: 2, rewardXp: 300, claimed: false }
     ]
   };
 }
@@ -141,7 +141,6 @@ function normalizeUserRecord(u) {
   u.moderation.mutedUntil = Number(u.moderation.mutedUntil) || 0;
   u.moderation.updatedAt = Number(u.moderation.updatedAt) || 0;
 
-  // Apply authoritative moderationRegistry override if newer so bans NEVER revert on Render wake/redeploy
   const lowKey = String(u.username || '').toLowerCase();
   if (lowKey && moderationRegistry[lowKey]) {
     const reg = moderationRegistry[lowKey];
@@ -162,6 +161,8 @@ function normalizeUserRecord(u) {
   u.stats.zenLines = Math.max(0, Number(u.stats.zenLines) || 0);
   u.stats.apmTestBest = Math.max(0, Number(u.stats.apmTestBest) || 0);
   u.stats.apmTestLast = Math.max(0, Number(u.stats.apmTestLast) || 0);
+  u.stats.sprint40Best = Number(u.stats.sprint40Best) > 0 ? Number(u.stats.sprint40Best) : 0; // 0 = no record yet, lower is better
+  u.stats.sprint40Last = Number(u.stats.sprint40Last) > 0 ? Number(u.stats.sprint40Last) : 0;
   u.stats.ffaWins = Math.max(0, Number(u.stats.ffaWins) || 0);
   u.stats.duelWins = Math.max(0, Number(u.stats.duelWins) || 0);
   u.stats.duelLosses = Math.max(0, Number(u.stats.duelLosses) || 0);
@@ -175,8 +176,12 @@ function normalizeUserRecord(u) {
   u.stats.receivedSamples = Math.max(0, Number(u.stats.receivedSamples) || 0);
   u.stats.avgReceived = Math.max(0, Number(u.stats.avgReceived) || 0);
 
+  if (!u.replays || typeof u.replays !== 'object') {
+    u.replays = { apmTest: null, sprint40: null };
+  }
+
   if (!u.headToHead || typeof u.headToHead !== 'object') {
-    u.headToHead = {}; // opponentLower -> { opponentName, wins, losses }
+    u.headToHead = {};
   }
 
   const today = getTodayDateKey();
@@ -223,6 +228,8 @@ function createNewUserRecord(username, rawPassword) {
       zenLines: 0,
       apmTestBest: 0,
       apmTestLast: 0,
+      sprint40Best: 0,
+      sprint40Last: 0,
       ffaWins: 0,
       duelWins: 0,
       duelLosses: 0,
@@ -236,6 +243,7 @@ function createNewUserRecord(username, rawPassword) {
       receivedSamples: 0,
       avgReceived: 0
     },
+    replays: { apmTest: null, sprint40: null },
     headToHead: {},
     dailyChallenges: createDefaultDailyChallenges(),
     matchHistory: []
@@ -243,8 +251,60 @@ function createNewUserRecord(username, rawPassword) {
 }
 
 // ============================================================================
-// BULLETPROOF GITHUB REPOSITORY PERSISTENCE (FIXES RENDER SLEEP / REDEPLOY UNBANS)
+// BULLETPROOF GITHUB REPOSITORY PERSISTENCE
 // ============================================================================
+
+function mergeTwoUserRecords(a, b) {
+  if (!a) return normalizeUserRecord(b);
+  if (!b) return normalizeUserRecord(a);
+  const normA = normalizeUserRecord(a);
+  const normB = normalizeUserRecord(b);
+
+  const timeA = Date.parse(normA.updatedAt || 0) || 0;
+  const timeB = Date.parse(normB.updatedAt || 0) || 0;
+  const newer = timeB >= timeA ? normB : normA;
+  const older = timeB >= timeA ? normA : normB;
+
+  const modTimeA = normA.moderation.updatedAt || timeA;
+  const modTimeB = normB.moderation.updatedAt || timeB;
+  const newerMod = modTimeB >= modTimeA ? normB.moderation : normA.moderation;
+  const newerIsMod = modTimeB >= modTimeA ? normB.isModerator : normA.isModerator;
+
+  let bestSprint = 0;
+  if (normA.stats.sprint40Best > 0 && normB.stats.sprint40Best > 0) {
+    bestSprint = Math.min(normA.stats.sprint40Best, normB.stats.sprint40Best);
+  } else {
+    bestSprint = normA.stats.sprint40Best || normB.stats.sprint40Best || 0;
+  }
+
+  const merged = {
+    ...older,
+    ...newer,
+    isModerator: Boolean(newerIsMod),
+    moderation: { ...newerMod },
+    stats: {
+      ...newer.stats,
+      xp: Math.max(normA.stats.xp || 0, normB.stats.xp || 0),
+      gamesPlayed: Math.max(normA.stats.gamesPlayed || 0, normB.stats.gamesPlayed || 0),
+      zenLines: Math.max(normA.stats.zenLines || 0, normB.stats.zenLines || 0),
+      apmTestBest: Math.max(normA.stats.apmTestBest || 0, normB.stats.apmTestBest || 0),
+      sprint40Best: bestSprint,
+      ffaWins: Math.max(normA.stats.ffaWins || 0, normB.stats.ffaWins || 0),
+      duelWins: Math.max(normA.stats.duelWins || 0, normB.stats.duelWins || 0),
+      duelLosses: Math.max(normA.stats.duelLosses || 0, normB.stats.duelLosses || 0),
+      teamWins: Math.max(normA.stats.teamWins || 0, normB.stats.teamWins || 0),
+      teamLosses: Math.max(normA.stats.teamLosses || 0, normB.stats.teamLosses || 0),
+      tournamentWins: Math.max(normA.stats.tournamentWins || 0, normB.stats.tournamentWins || 0),
+      maxCombo: Math.max(normA.stats.maxCombo || 0, normB.stats.maxCombo || 0)
+    },
+    replays: {
+      apmTest: (newer.replays && newer.replays.apmTest) || (older.replays && older.replays.apmTest) || null,
+      sprint40: (newer.replays && newer.replays.sprint40) || (older.replays && older.replays.sprint40) || null
+    },
+    headToHead: { ...(older.headToHead || {}), ...(newer.headToHead || {}) }
+  };
+  return normalizeUserRecord(merged);
+}
 
 function loadLocalDatabases() {
   try {
@@ -291,48 +351,6 @@ function loadLocalDatabases() {
   }
 }
 
-// Smart merge that preserves whichever record has the newer moderation timestamp AND highest XP/stats
-function mergeTwoUserRecords(a, b) {
-  if (!a) return normalizeUserRecord(b);
-  if (!b) return normalizeUserRecord(a);
-  const normA = normalizeUserRecord(a);
-  const normB = normalizeUserRecord(b);
-
-  const timeA = Date.parse(normA.updatedAt || 0) || 0;
-  const timeB = Date.parse(normB.updatedAt || 0) || 0;
-  const newer = timeB >= timeA ? normB : normA;
-  const older = timeB >= timeA ? normA : normB;
-
-  const modTimeA = normA.moderation.updatedAt || timeA;
-  const modTimeB = normB.moderation.updatedAt || timeB;
-  const newerMod = modTimeB >= modTimeA ? normB.moderation : normA.moderation;
-  const newerIsMod = modTimeB >= modTimeA ? normB.isModerator : normA.isModerator;
-
-  const merged = {
-    ...older,
-    ...newer,
-    isModerator: Boolean(newerIsMod),
-    moderation: { ...newerMod },
-    stats: {
-      ...newer.stats,
-      xp: Math.max(normA.stats.xp || 0, normB.stats.xp || 0),
-      gamesPlayed: Math.max(normA.stats.gamesPlayed || 0, normB.stats.gamesPlayed || 0),
-      zenLines: Math.max(normA.stats.zenLines || 0, normB.stats.zenLines || 0),
-      apmTestBest: Math.max(normA.stats.apmTestBest || 0, normB.stats.apmTestBest || 0),
-      ffaWins: Math.max(normA.stats.ffaWins || 0, normB.stats.ffaWins || 0),
-      duelWins: Math.max(normA.stats.duelWins || 0, normB.stats.duelWins || 0),
-      duelLosses: Math.max(normA.stats.duelLosses || 0, normB.stats.duelLosses || 0),
-      teamWins: Math.max(normA.stats.teamWins || 0, normB.stats.teamWins || 0),
-      teamLosses: Math.max(normA.stats.teamLosses || 0, normB.stats.teamLosses || 0),
-      tournamentWins: Math.max(normA.stats.tournamentWins || 0, normB.stats.tournamentWins || 0),
-      maxCombo: Math.max(normA.stats.maxCombo || 0, normB.stats.maxCombo || 0)
-    },
-    headToHead: { ...(older.headToHead || {}), ...(newer.headToHead || {}) }
-  };
-  return normalizeUserRecord(merged);
-}
-
-// Sequential GitHub commit queue so parallel file saves never conflict on SHA
 let githubPushQueue = Promise.resolve();
 
 function syncFileToGitHub(repoRelativePath, contentString, commitMessage) {
@@ -371,7 +389,6 @@ function syncFileToGitHub(repoRelativePath, contentString, commitMessage) {
   return githubPushQueue;
 }
 
-// Fetch un-cached JSON directly from GitHub API (bypasses raw.githubusercontent 5-minute CDN cache!)
 async function fetchJsonFromGitHubRepo(repoRelativePath) {
   const headers = { 'User-Agent': 'Project-A2-Server' };
   if (GITHUB_TOKEN) {
@@ -390,7 +407,6 @@ async function fetchJsonFromGitHubRepo(repoRelativePath) {
     }
   } catch (e) {}
 
-  // Fallback to cache-busted raw URL if no token or API rate-limited
   try {
     const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${repoRelativePath}?t=${Date.now()}`;
     const res2 = await fetch(rawUrl);
@@ -421,7 +437,6 @@ async function pullDatabasesFromGitHubOnBoot() {
     }
   }
 
-  // Re-apply moderationRegistry across all loaded users and save to disk
   for (const k of Object.keys(usersDB)) {
     usersDB[k] = normalizeUserRecord(usersDB[k]);
   }
@@ -436,7 +451,6 @@ async function pullDatabasesFromGitHubOnBoot() {
       fs.writeFileSync(TOURNAMENTS_DB_FILE, JSON.stringify(tournamentsDB, null, 2), 'utf8');
     } catch (e) {}
   }
-  console.log(`[Project A^2 Boot Sync] Loaded ${Object.keys(usersDB).length} players & ${ Object.keys(moderationRegistry).length } moderation records.`);
 }
 
 let githubUserSyncTimeout = null;
@@ -444,7 +458,6 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data', immediat
   if (!userObj || !userObj.username) return;
   const key = userObj.username.toLowerCase();
 
-  // Keep moderationRegistry in lockstep with user moderation state
   moderationRegistry[key] = {
     username: userObj.username,
     isModerator: Boolean(userObj.isModerator),
@@ -474,7 +487,6 @@ function saveUserAndSync(userObj, triggerReason = 'Update player data', immediat
   } catch (e) {}
 
   if (immediateModerationSync) {
-    // Immediate push for Bans/Unbans/Timeouts/Mutes/Mod roles so Render spin-down never loses it
     syncFileToGitHub(`player_data/moderation_registry.json`, modJson, `[Project A^2 Moderation] ${triggerReason}: ${userObj.username}`);
     syncFileToGitHub(`player_data/users.json`, masterJson, `[Project A^2] Sync users.json (${userObj.username})`);
     syncFileToGitHub(`player_data/players/${safeFile}.json`, singleJson, `[Project A^2] ${triggerReason}: ${userObj.username}`);
@@ -500,7 +512,6 @@ function saveTournamentsAndSync(reason = 'Update tournament data') {
   }, 1000);
 }
 
-// Update Daily XP Challenges Progress & Auto-Award Bonus XP
 function updateDailyChallengesForUser(userRec, { linesAdded = 0, maxCombo = 0, matchCompleted = false }) {
   normalizeUserRecord(userRec);
   let bonusXp = 0;
@@ -527,7 +538,6 @@ function updateDailyChallengesForUser(userRec, { linesAdded = 0, maxCombo = 0, m
   return bonusXp;
 }
 
-// Record Head-to-Head 1v1 Rivalry Result
 function recordHeadToHeadResult(winnerUsername, loserUsername) {
   const winUser = ensureUserRecord(winnerUsername);
   const loseUser = ensureUserRecord(loserUsername);
@@ -556,11 +566,12 @@ function sanitizeUserForClient(u, includeAdminPassword = false) {
     moderation: u.moderation,
     settings: u.settings,
     stats: u.stats,
+    hasApmReplay: Boolean(u.replays && u.replays.apmTest),
+    hasSprintReplay: Boolean(u.replays && u.replays.sprint40),
     headToHead: u.headToHead || {},
     dailyChallenges: u.dailyChallenges,
     matchHistory: (u.matchHistory || []).slice(-20)
   };
-  // ONLY BigL_ (includeAdminPassword === true) may ever see passwords; Moderators cannot!
   if (includeAdminPassword) {
     base.passwordPlain = u.passwordPlain || '(hidden)';
   }
@@ -583,6 +594,9 @@ function getCompiledLeaderboards() {
         level: u.stats.level,
         xp: u.stats.xp,
         apm: u.stats.apmTestBest || 0,
+        hasApmReplay: Boolean(u.replays && u.replays.apmTest),
+        sprint40: u.stats.sprint40Best || 0,
+        hasSprintReplay: Boolean(u.replays && u.replays.sprint40),
         zenLines: u.stats.zenLines || 0,
         wins: (u.stats.ffaWins || 0) + (u.stats.duelWins || 0) + (u.stats.teamWins || 0),
         ffaWins: u.stats.ffaWins || 0,
@@ -594,6 +608,7 @@ function getCompiledLeaderboards() {
 
   return {
     byApm: [...allUsers].sort((a, b) => b.apm - a.apm),
+    bySprint: [...allUsers].filter(u => u.sprint40 > 0).sort((a, b) => a.sprint40 - b.sprint40),
     byZen: [...allUsers].sort((a, b) => b.zenLines - a.zenLines),
     byWins: [...allUsers].sort((a, b) => b.wins - a.wins),
     byCombo: [...allUsers].sort((a, b) => b.maxCombo - a.maxCombo),
@@ -618,7 +633,7 @@ function checkAccountModerationBlock(userObj) {
 }
 
 // ============================================================================
-// AUTH, SETTINGS & RESOURCE ENDPOINTS
+// AUTH, REPLAY FETCH, SETTINGS & RESOURCE ENDPOINTS
 // ============================================================================
 
 app.post('/api/auth/register', (req, res) => {
@@ -702,6 +717,22 @@ app.get('/api/auth/profile/:username', (req, res) => {
     leaderboards: getCompiledLeaderboards(),
     allPlayers: getAllPublicPlayerProfiles(isBigL),
     tournaments: tournamentsDB
+  });
+});
+
+// Endpoint to fetch a player's saved APM Test or 40-Line Sprint replay
+app.get('/api/replay/:username/:mode', (req, res) => {
+  const key = String(req.params.username || '').trim().toLowerCase();
+  const modeKey = req.params.mode === 'sprint40' ? 'sprint40' : 'apmTest';
+  const u = usersDB[key];
+  if (!u || !u.replays || !u.replays[modeKey]) {
+    return res.status(404).json({ error: 'Replay not found for this player.' });
+  }
+  return res.json({
+    ok: true,
+    username: u.username,
+    mode: modeKey,
+    replay: u.replays[modeKey]
   });
 });
 
@@ -830,7 +861,7 @@ app.get('*', (req, res) => {
 });
 
 // ============================================================================
-// TOURNAMENT BRACKET ENGINE (SINGLE & DOUBLE ELIMINATION + GRAND FINALS RESET)
+// TOURNAMENT BRACKET ENGINE
 // ============================================================================
 
 function nextPowerOf2(n) {
@@ -1209,14 +1240,15 @@ setInterval(() => {
 }, 5000);
 
 // ============================================================================
-// MULTIPLAYER QUEUES: 1v1, 2v2 TEAM BATTLES & FFA LOBBY
+// MULTIPLAYER QUEUES: 1v1, BLIND 1v1 (INVISIBLE BOARD), 2v2 & FFA LOBBY
 // ============================================================================
 
-const players = new Map(); // ws -> Session
+const players = new Map();
 const queue1v1 = [];
-const queue2v2 = []; // 4-player queue for 2v2 Team Battles
+const queueBlind1v1 = []; // Blind / Invisible Board 1v1 Queue
+const queue2v2 = [];
 const duelRooms = new Map();
-const teamRooms = new Map(); // roomId -> TeamRoom2v2Object
+const teamRooms = new Map();
 const directChallenges = new Map();
 
 const ffaLobby = {
@@ -1316,7 +1348,7 @@ function getActiveSpectatableMatches() {
       list.push({
         id: roomId,
         type: 'duel',
-        label: `${room.tourneyId ? '[TOURNEY] ' : ''}1v1 BO${room.bestOf}: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
+        label: `${room.isBlind ? '[BLIND 1v1] ' : (room.tourneyId ? '[TOURNEY] ' : '')}1v1 BO${room.bestOf}: ${room.p1.username} (${room.p1.score}) vs (${room.p2.score}) ${room.p2.username}`,
         spectatorCount: room.spectators.size
       });
     }
@@ -1368,6 +1400,7 @@ function broadcastHubState() {
       type: 'hub_sync',
       onlinePlayers: onlineList,
       queue1v1Count: queue1v1.length,
+      queueBlind1v1Count: queueBlind1v1.length,
       queue2v2Count: queue2v2.length,
       ffaPlayerCount: ffaLobby.players.size,
       ffaState: ffaLobby.state,
@@ -1389,13 +1422,15 @@ function systemChatBroadcast(text, style = 'system') {
   });
 }
 
-// Properly eliminates a player if they leave mid-match via "LEAVE TO HUB" or disconnect!
 function eliminateOrRemoveFromActiveModes(p) {
   if (!p) return;
   const playerId = p.id;
 
   const q1 = queue1v1.indexOf(playerId);
   if (q1 !== -1) queue1v1.splice(q1, 1);
+
+  const qb = queueBlind1v1.indexOf(playerId);
+  if (qb !== -1) queueBlind1v1.splice(qb, 1);
 
   const q2 = queue2v2.indexOf(playerId);
   if (q2 !== -1) queue2v2.splice(q2, 1);
@@ -1423,7 +1458,6 @@ function eliminateOrRemoveFromActiveModes(p) {
   } else if (ffaLobby.players.has(playerId)) {
     const slot = ffaLobby.players.get(playerId);
     if (ffaLobby.state === 'playing' && slot && slot.role === 'active' && slot.alive) {
-      // Mark as eliminated first so checkFfaMatchEnd counts them as eliminated and crowns the last standing player!
       slot.alive = false;
       checkFfaMatchEnd();
       ffaLobby.players.delete(playerId);
@@ -1447,27 +1481,38 @@ function eliminateOrRemoveFromActiveModes(p) {
 }
 
 // ============================================================================
-// 1v1 DUEL ENGINE
+// 1v1 DUEL ENGINE (Supports Standard Bo3, Blind/Invisible 1v1 & Tourney Bo1/3/5)
 // ============================================================================
 
 function tryMatchmake1v1() {
   for (let i = queue1v1.length - 1; i >= 0; i--) {
     if (!getPlayerById(queue1v1[i])) queue1v1.splice(i, 1);
   }
-
   while (queue1v1.length >= 2) {
     const id1 = queue1v1.shift();
     const id2 = queue1v1.shift();
     const p1 = getPlayerById(id1);
     const p2 = getPlayerById(id2);
-    if (p1 && p2) {
-      startDuelRoom(p1, p2, 3, null, null);
-    }
+    if (p1 && p2) startDuelRoom(p1, p2, 3, null, null, false);
   }
   broadcastHubState();
 }
 
-function startDuelRoom(p1, p2, bestOf = 3, tourneyId = null, tourneyMatchId = null) {
+function tryMatchmakeBlind1v1() {
+  for (let i = queueBlind1v1.length - 1; i >= 0; i--) {
+    if (!getPlayerById(queueBlind1v1[i])) queueBlind1v1.splice(i, 1);
+  }
+  while (queueBlind1v1.length >= 2) {
+    const id1 = queueBlind1v1.shift();
+    const id2 = queueBlind1v1.shift();
+    const p1 = getPlayerById(id1);
+    const p2 = getPlayerById(id2);
+    if (p1 && p2) startDuelRoom(p1, p2, 3, null, null, true);
+  }
+  broadcastHubState();
+}
+
+function startDuelRoom(p1, p2, bestOf = 3, tourneyId = null, tourneyMatchId = null, isBlind = false) {
   eliminateOrRemoveFromActiveModes(p1);
   eliminateOrRemoveFromActiveModes(p2);
   clearPlayerDirectChallenges(p1.id);
@@ -1485,6 +1530,7 @@ function startDuelRoom(p1, p2, bestOf = 3, tourneyId = null, tourneyMatchId = nu
     id: roomId,
     bestOf,
     winsNeeded,
+    isBlind: Boolean(isBlind),
     tourneyId,
     tourneyMatchId,
     p1: { id: p1.id, username: p1.username, score: 0, alive: true, apm: 0, pps: 0, linesCleared: 0, attackSent: 0, garbageReceived: 0, maxCombo: 0, grid: null, activePiece: null, pendingGarbage: 0, apmHistory: [] },
@@ -1511,12 +1557,13 @@ function startDuelRoom(p1, p2, bestOf = 3, tourneyId = null, tourneyMatchId = nu
 
   broadcastHubState();
 
-  systemChatBroadcast(`[1v1 BO${bestOf} MATCH] ${p1.username} vs ${p2.username} started!`, 'duel-announce');
+  systemChatBroadcast(`[${isBlind ? 'BLIND ' : ''}1v1 BO${bestOf} MATCH] ${p1.username} vs ${p2.username} started!`, 'duel-announce');
 
   const initPayload = {
     type: 'duel_init',
     roomId: room.id,
     bestOf,
+    isBlind: room.isBlind,
     p1: { id: p1.id, username: p1.username, score: 0 },
     p2: { id: p2.id, username: p2.username, score: 0 },
     round: 1
@@ -1542,6 +1589,7 @@ function startDuelRoundWithCountdown(roomId) {
     type: 'duel_round_countdown',
     roomId: room.id,
     bestOf: room.bestOf,
+    isBlind: room.isBlind,
     round: room.round,
     seed,
     countdownMs: 3000,
@@ -1614,8 +1662,8 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   room.roundInProgress = false;
 
   const scoreStr = `${winnerSlot.score}-${loserSlot.score}`;
+  const modeLabel = room.isBlind ? `BLIND 1v1 BO${room.bestOf}` : (room.tourneyId ? `TOURNEY BO${room.bestOf}` : `1v1 BO${room.bestOf}`);
 
-  // Record Head-to-Head Rivalry & Daily Challenges
   recordHeadToHeadResult(winnerSlot.username, loserSlot.username);
 
   const winUser = ensureUserRecord(winnerSlot.username);
@@ -1629,7 +1677,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   winUser.stats.avgReceived = Number((winUser.stats.totalReceivedSum / winUser.stats.receivedSamples).toFixed(1));
   winUser.matchHistory.push({
     date: new Date().toISOString(),
-    mode: room.tourneyId ? `TOURNEY BO${room.bestOf}` : `1v1 BO${room.bestOf}`,
+    mode: modeLabel,
     result: 'WIN',
     score: scoreStr,
     opponent: loserSlot.username,
@@ -1651,7 +1699,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   loseUser.stats.avgReceived = Number((loseUser.stats.totalReceivedSum / loseUser.stats.receivedSamples).toFixed(1));
   loseUser.matchHistory.push({
     date: new Date().toISOString(),
-    mode: room.tourneyId ? `TOURNEY BO${room.bestOf}` : `1v1 BO${room.bestOf}`,
+    mode: modeLabel,
     result: 'ELIMINATED / LOSS',
     score: scoreStr,
     opponent: winnerSlot.username,
@@ -1710,7 +1758,7 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
   const overPayload = {
     type: 'match_summary_5s',
     returnToHub: true,
-    modeTitle: `1v1 BEST OF ${room.bestOf} RESULT (${scoreStr})`,
+    modeTitle: `${modeLabel} RESULT (${scoreStr})`,
     winnerName: winnerSlot.username,
     players: summaryPlayers,
     graphSeries: [
@@ -1729,14 +1777,14 @@ function concludeDuelMatch(room, winnerSlot, loserSlot, reason) {
     sendToPlayer(specId, overPayload);
   }
 
-  systemChatBroadcast(`[1v1 VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
+  systemChatBroadcast(`[${modeLabel} VICTORY] ${winnerSlot.username} defeated ${loserSlot.username} (${scoreStr})!`, 'duel-win');
 
   duelRooms.delete(room.id);
   broadcastHubState();
 }
 
 // ============================================================================
-// 2v2 TEAM BATTLES ENGINE (Team Alpha vs Team Bravo, Best of 3)
+// 2v2 TEAM BATTLES ENGINE
 // ============================================================================
 
 function tryMatchmake2v2() {
@@ -1769,7 +1817,7 @@ function startTeam2v2Room(a1, a2, b1, b2) {
     slots.set(p.id, {
       id: p.id,
       username: p.username,
-      team: teamName, // 'alpha' or 'bravo'
+      team: teamName,
       alive: true,
       apm: 0,
       pps: 0,
@@ -2201,7 +2249,7 @@ function checkFfaMatchEnd() {
 }
 
 // ============================================================================
-// WEBSOCKET CONNECTION HANDLER & ROLE-BASED MODERATION (BigL_ vs MODERATORS)
+// WEBSOCKET CONNECTION HANDLER
 // ============================================================================
 
 wss.on('connection', (ws) => {
@@ -2337,7 +2385,7 @@ wss.on('connection', (ws) => {
           return;
         }
 
-        startDuelRoom(challenger, p, 3, null, null);
+        startDuelRoom(challenger, p, 3, null, null, false);
         break;
       }
 
@@ -2352,6 +2400,23 @@ wss.on('connection', (ws) => {
       }
 
       case 'leave_1v1_queue': {
+        eliminateOrRemoveFromActiveModes(p);
+        broadcastHubState();
+        break;
+      }
+
+      // Blind / Invisible Board 1v1 Queue
+      case 'join_blind_1v1_queue': {
+        if (!p.authenticated || p.mode === 'duel' || p.mode === 'team2v2') return;
+        eliminateOrRemoveFromActiveModes(p);
+        p.mode = 'queue_blind_1v1';
+        queueBlind1v1.push(p.id);
+        ws.send(JSON.stringify({ type: 'queued_blind_1v1', count: queueBlind1v1.length }));
+        tryMatchmakeBlind1v1();
+        break;
+      }
+
+      case 'leave_blind_1v1_queue': {
         eliminateOrRemoveFromActiveModes(p);
         broadcastHubState();
         break;
@@ -2543,6 +2608,7 @@ wss.on('connection', (ws) => {
         break;
       }
 
+      // 1-Minute APM Test Completion + Replay Saving
       case 'apm_test_complete': {
         if (!p.authenticated) return;
         const recordedApm = Number(Number(msg.apm || 0).toFixed(1));
@@ -2552,9 +2618,21 @@ wss.on('connection', (ws) => {
         const uRec = ensureUserRecord(p.username);
         uRec.stats.gamesPlayed += 1;
         uRec.stats.apmTestLast = recordedApm;
-        if (recordedApm > uRec.stats.apmTestBest) {
+
+        const isNewBest = recordedApm >= (uRec.stats.apmTestBest || 0);
+        if (isNewBest) {
           uRec.stats.apmTestBest = recordedApm;
+          if (msg.replay && Array.isArray(msg.replay.events)) {
+            uRec.replays.apmTest = {
+              seed: msg.replay.seed,
+              cols: 4,
+              metricLabel: `${recordedApm} APM`,
+              recordedAt: new Date().toISOString(),
+              events: msg.replay.events.slice(0, 6000)
+            };
+          }
         }
+
         uRec.stats.totalLinesCleared += lines;
         uRec.stats.maxCombo = Math.max(uRec.stats.maxCombo, combo);
         uRec.matchHistory.push({
@@ -2574,6 +2652,55 @@ wss.on('connection', (ws) => {
           user: sanitizeUserForClient(uRec, isAdminUser(p.username))
         }));
         systemChatBroadcast(`[APM TEST] ${p.username} recorded ${recordedApm} APM in the 1-Minute APM Test!`, 'system');
+        broadcastHubState();
+        break;
+      }
+
+      // 40-Line Sprint Completion + Replay Saving
+      case 'sprint_40_complete': {
+        if (!p.authenticated) return;
+        const timeSec = Number(Number(msg.timeSec || 0).toFixed(2));
+        if (timeSec <= 0) return;
+        const apm = Number(Number(msg.apm || 0).toFixed(1));
+        const combo = Number(msg.maxCombo) || 0;
+
+        const uRec = ensureUserRecord(p.username);
+        uRec.stats.gamesPlayed += 1;
+        uRec.stats.sprint40Last = timeSec;
+
+        const isNewBest = !uRec.stats.sprint40Best || uRec.stats.sprint40Best <= 0 || timeSec <= uRec.stats.sprint40Best;
+        if (isNewBest) {
+          uRec.stats.sprint40Best = timeSec;
+          if (msg.replay && Array.isArray(msg.replay.events)) {
+            uRec.replays.sprint40 = {
+              seed: msg.replay.seed,
+              cols: 4,
+              metricLabel: `${timeSec.toFixed(2)}s`,
+              recordedAt: new Date().toISOString(),
+              events: msg.replay.events.slice(0, 6000)
+            };
+          }
+        }
+
+        uRec.stats.totalLinesCleared += 40;
+        uRec.stats.maxCombo = Math.max(uRec.stats.maxCombo, combo);
+        uRec.matchHistory.push({
+          date: new Date().toISOString(),
+          mode: '40 LINES SPRINT',
+          result: `${timeSec.toFixed(2)}s`,
+          apm,
+          lines: 40,
+          maxCombo: combo
+        });
+
+        updateDailyChallengesForUser(uRec, { linesAdded: 40, maxCombo: combo, matchCompleted: true });
+        awardXpAndSave(uRec, 140, '40-Line Sprint Completed');
+
+        ws.send(JSON.stringify({
+          type: 'profile_synced',
+          user: sanitizeUserForClient(uRec, isAdminUser(p.username))
+        }));
+        systemChatBroadcast(`[40 LINES] ${p.username} completed 40-Line Sprint in ${timeSec.toFixed(2)}s!`, 'system');
         broadcastHubState();
         break;
       }
@@ -2802,7 +2929,6 @@ wss.on('connection', (ws) => {
             if (!senderSlot.alive) return;
             const mult = computeSuddenDeathMultiplier(tRoom.roundStartTime);
             const scaledLines = Math.max(1, Math.round(baseLines * mult));
-            // Only target alive opponents on the OTHER team!
             const enemySlots = Array.from(tRoom.slots.values()).filter(s => s.team !== senderSlot.team && s.alive);
             if (enemySlots.length > 0) {
               const target = enemySlots[Math.floor(Math.random() * enemySlots.length)];
@@ -2895,19 +3021,13 @@ wss.on('connection', (ws) => {
         const p2Online = getPlayerByUsername(m.p2);
 
         if (m.p1Queued && m.p2Queued && p1Online && p2Online && p1Online.mode !== 'duel' && p2Online.mode !== 'duel') {
-          startDuelRoom(p1Online, p2Online, t.bestOf, t.id, m.id);
+          startDuelRoom(p1Online, p2Online, t.bestOf, t.id, m.id, false);
         } else {
           saveTournamentsAndSync(`${p.username} queued for match ${m.id}`);
           broadcastHubState();
         }
         break;
       }
-
-      // ======================================================================
-      // ADMIN (BigL_) & MODERATOR COMMANDS
-      // Moderators ONLY have permission for 'moderate_user' (Ban, Timeout, Mute)
-      // All other actions are strictly reserved for BigL_!
-      // ======================================================================
 
       case 'admin_action': {
         if (!p.authenticated) return;
@@ -2916,17 +3036,13 @@ wss.on('connection', (ws) => {
         if (!callerIsBigL && !callerIsMod) return;
 
         const act = msg.action;
-
-        // Moderators can ONLY execute 'moderate_user'
-        if (!callerIsBigL && act !== 'moderate_user') {
-          return;
-        }
+        if (!callerIsBigL && act !== 'moderate_user') return;
 
         if (act === 'moderate_user') {
           const targetKey = String(msg.targetUsername || '').trim().toLowerCase();
           const u = usersDB[targetKey];
-          if (!u || isAdminUser(u.username)) return; // Nobody can moderate BigL_
-          if (!callerIsBigL && u.isModerator) return; // Moderators cannot moderate other Moderators
+          if (!u || isAdminUser(u.username)) return;
+          if (!callerIsBigL && u.isModerator) return;
 
           const sub = msg.subAction;
           const minutes = Math.max(1, Number(msg.minutes) || 10);
@@ -2956,7 +3072,6 @@ wss.on('connection', (ws) => {
             u.moderation.mutedUntil = 0;
           }
 
-          // Immediate GitHub sync so bans/timeouts survive Render spin-down & redeploys!
           saveUserAndSync(u, `Moderation (${sub}) by ${p.username}`, true);
           broadcastHubState();
         } else if (act === 'toggle_moderator' && callerIsBigL) {
@@ -3046,7 +3161,7 @@ wss.on('connection', (ws) => {
           const newT = createTournamentObject(msg.params || {}, p.username);
           tournamentsDB.unshift(newT);
           saveTournamentsAndSync(`Created tournament ${newT.name}`);
-          systemChatBroadcast(`[NEW TOURNAMENT] Admin BigL_ created "${newT.name}" (${newT.format.toUpperCase()} ELIM | BO${newT.bestOf})!`, 'duel-announce');
+          systemChatBroadcast(`[NEW TOURNAMENT] Admin BigL_ created "${newT.name}" (${newT.format.toUpperCase()} ELIM | BO${newT.bestOf})! Register in the Tournaments tab!`, 'duel-announce');
           broadcastHubState();
         } else if (act === 'force_start_tournament' && callerIsBigL) {
           const t = tournamentsDB.find(x => x.id === msg.tourneyId);
@@ -3082,7 +3197,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Boot sequence: Load local DB, await GitHub API sync (so bans never reset on Render sleep/redeploy), then listen
 loadLocalDatabases();
 pullDatabasesFromGitHubOnBoot().finally(() => {
   server.listen(PORT, () => {
