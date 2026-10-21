@@ -1625,7 +1625,7 @@
     "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
     "passwordPlain": "WaverlyH18!",
     "createdAt": "2026-10-16T13:52:21.058Z",
-    "updatedAt": "2026-10-21T16:56:13.742Z",
+    "updatedAt": "2026-10-21T16:57:18.455Z",
     "lastLogin": "2026-10-16T13:56:23.203Z",
     "moderation": {
       "banned": false,
@@ -1671,22 +1671,22 @@
       }
     },
     "stats": {
-      "xp": 7888,
-      "level": 10,
-      "gamesPlayed": 29,
+      "xp": 8113,
+      "level": 11,
+      "gamesPlayed": 30,
       "zenLines": 186,
       "apmTestBest": 60,
       "apmTestLast": 37,
       "ffaWins": 0,
-      "duelWins": 12,
+      "duelWins": 13,
       "duelLosses": 5,
       "tournamentWins": 0,
       "maxCombo": 11,
-      "totalLinesCleared": 1092,
-      "totalAttackSent": 275,
+      "totalLinesCleared": 1107,
+      "totalAttackSent": 286,
       "totalReceivedSum": 169,
-      "receivedSamples": 17,
-      "avgReceived": 9.9,
+      "receivedSamples": 18,
+      "avgReceived": 9.4,
       "teamWins": 0,
       "teamLosses": 0,
       "sprint40Best": 38.42,
@@ -1958,6 +1958,16 @@
         "apm": 102.6,
         "lines": 7,
         "maxCombo": 5
+      },
+      {
+        "date": "2026-10-21T16:57:18.455Z",
+        "mode": "1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "Buquet",
+        "apm": 37.9,
+        "lines": 15,
+        "maxCombo": 6
       }
     ],
     "isModerator": false,
@@ -4346,7 +4356,7 @@
     "headToHead": {
       "buquet": {
         "opponentName": "Buquet",
-        "wins": 12,
+        "wins": 13,
         "losses": 3
       }
     },
@@ -6585,7 +6595,7 @@
     "passwordHash": "743ac08d4d3f1a271357afd4104260d72b8b0d7412ba567d4d9842df9ec4be8a",
     "passwordPlain": "UCS4203bh",
     "createdAt": "2026-10-19T14:25:19.659Z",
-    "updatedAt": "2026-10-21T16:56:13.802Z",
+    "updatedAt": "2026-10-21T16:57:18.456Z",
     "lastLogin": "2026-10-21T14:28:54.238Z",
     "moderation": {
       "banned": false,
@@ -6631,22 +6641,22 @@
       }
     },
     "stats": {
-      "xp": 14725,
+      "xp": 14865,
       "level": 14,
-      "gamesPlayed": 24,
+      "gamesPlayed": 25,
       "zenLines": 1522,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 2,
       "duelWins": 3,
-      "duelLosses": 13,
+      "duelLosses": 14,
       "tournamentWins": 0,
       "maxCombo": 16,
-      "totalLinesCleared": 2149,
+      "totalLinesCleared": 2165,
       "totalAttackSent": 293,
-      "totalReceivedSum": 377,
-      "receivedSamples": 24,
-      "avgReceived": 15.7,
+      "totalReceivedSum": 395,
+      "receivedSamples": 25,
+      "avgReceived": 15.8,
       "teamWins": 0,
       "teamLosses": 0,
       "sprint40Best": 0,
@@ -6876,6 +6886,16 @@
         "apm": 0,
         "lines": 2,
         "maxCombo": 4
+      },
+      {
+        "date": "2026-10-21T16:57:18.456Z",
+        "mode": "1v1 BO3",
+        "result": "ELIMINATED / LOSS",
+        "score": "2-0",
+        "opponent": "wavis99",
+        "apm": 0,
+        "lines": 16,
+        "maxCombo": 4
       }
     ],
     "isModerator": false,
@@ -6883,7 +6903,7 @@
       "wavis99": {
         "opponentName": "wavis99",
         "wins": 3,
-        "losses": 12
+        "losses": 13
       }
     },
     "dailyChallenges": {
