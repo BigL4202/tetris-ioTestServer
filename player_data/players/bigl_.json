@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-21T14:22:28.645Z",
+  "updatedAt": "2026-10-21T14:27:01.852Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -46,20 +46,20 @@
     }
   },
   "stats": {
-    "gamesPlayed": 113,
+    "gamesPlayed": 117,
     "ffaWins": 33,
-    "duelWins": 37,
-    "duelLosses": 14,
+    "duelWins": 40,
+    "duelLosses": 15,
     "maxCombo": 28,
-    "totalLinesCleared": 7096,
-    "totalAttackSent": 2793,
+    "totalLinesCleared": 7216,
+    "totalAttackSent": 2910,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
-    "totalReceivedSum": 1066,
-    "receivedSamples": 100,
-    "avgReceived": 10.7,
-    "xp": 50101,
+    "totalReceivedSum": 1106,
+    "receivedSamples": 104,
+    "avgReceived": 10.6,
+    "xp": 51211,
     "level": 26,
     "zenLines": 3190,
     "apmTestBest": 220,
@@ -1086,6 +1086,46 @@
       "apm": 158,
       "lines": 92,
       "maxCombo": 13
+    },
+    {
+      "date": "2026-10-21T14:23:38.150Z",
+      "mode": "BLIND 1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 13.3,
+      "lines": 17,
+      "maxCombo": 2
+    },
+    {
+      "date": "2026-10-21T14:24:33.358Z",
+      "mode": "BLIND 1v1 BO3",
+      "result": "WIN",
+      "score": "1-0",
+      "opponent": "BARNESTTV",
+      "apm": 0,
+      "lines": 0,
+      "maxCombo": 0
+    },
+    {
+      "date": "2026-10-21T14:25:44.717Z",
+      "mode": "BLIND 1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 46.8,
+      "lines": 11,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-21T14:27:01.852Z",
+      "mode": "1v1 BO3",
+      "result": "ELIMINATED / LOSS",
+      "score": "2-0",
+      "opponent": "BARNESTTV",
+      "apm": 94.6,
+      "lines": 92,
+      "maxCombo": 7
     }
   ],
   "moderation": {
@@ -1096,7 +1136,13 @@
     "updatedAt": 1792530345802
   },
   "isModerator": false,
-  "headToHead": {},
+  "headToHead": {
+    "barnesttv": {
+      "opponentName": "BARNESTTV",
+      "wins": 3,
+      "losses": 1
+    }
+  },
   "dailyChallenges": {
     "date": "2026-10-21",
     "challenges": [
