@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-21T02:31:10.955Z",
+  "updatedAt": "2026-10-21T02:33:58.210Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -46,12 +46,12 @@
     }
   },
   "stats": {
-    "gamesPlayed": 111,
+    "gamesPlayed": 112,
     "ffaWins": 33,
     "duelWins": 37,
     "duelLosses": 14,
     "maxCombo": 28,
-    "totalLinesCleared": 6039,
+    "totalLinesCleared": 6124,
     "totalAttackSent": 2793,
     "totalApmSum": 0,
     "apmSamples": 1,
@@ -59,11 +59,11 @@
     "totalReceivedSum": 1066,
     "receivedSamples": 100,
     "avgReceived": 10.7,
-    "xp": 43819,
+    "xp": 44405,
     "level": 24,
     "zenLines": 2310,
     "apmTestBest": 220,
-    "apmTestLast": 9.4,
+    "apmTestLast": 93,
     "tournamentWins": 0,
     "teamWins": 0,
     "teamLosses": 0,
@@ -1070,6 +1070,14 @@
       "apm": 9.4,
       "lines": 5,
       "maxCombo": 0
+    },
+    {
+      "date": "2026-10-21T02:33:58.210Z",
+      "mode": "APM TEST (1:00)",
+      "result": "93 APM",
+      "apm": 93,
+      "lines": 85,
+      "maxCombo": 11
     }
   ],
   "moderation": {
@@ -1103,10 +1111,10 @@
       {
         "id": "matches_2",
         "title": "Finish 2 Multiplayer or APM Test Matches",
-        "progress": 1,
+        "progress": 2,
         "target": 2,
         "rewardXp": 300,
-        "claimed": false
+        "claimed": true
       }
     ]
   },
