@@ -10,11 +10,11 @@
   },
   "barnesttv": {
     "username": "BARNESTTV",
-    "isModerator": false,
+    "isModerator": true,
     "banned": false,
     "banReason": "",
     "timeoutUntil": 1792506919951,
     "mutedUntil": 0,
-    "updatedAt": 1792530741441
+    "updatedAt": 1792592446179
   }
 }
