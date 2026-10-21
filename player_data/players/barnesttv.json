@@ -3,7 +3,7 @@
   "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
   "passwordPlain": "UCE5826tb",
   "createdAt": "2026-10-19T12:15:50.187Z",
-  "updatedAt": "2026-10-21T14:25:44.719Z",
+  "updatedAt": "2026-10-21T14:28:54.871Z",
   "lastLogin": "2026-10-20T14:36:36.071Z",
   "moderation": {
     "banned": false,
@@ -49,22 +49,22 @@
     }
   },
   "stats": {
-    "xp": 38030,
-    "level": 22,
-    "gamesPlayed": 134,
+    "xp": 39145,
+    "level": 23,
+    "gamesPlayed": 136,
     "zenLines": 67,
     "apmTestBest": 83,
     "apmTestLast": 83,
     "ffaWins": 49,
-    "duelWins": 16,
-    "duelLosses": 34,
+    "duelWins": 17,
+    "duelLosses": 35,
     "tournamentWins": 0,
     "maxCombo": 20,
-    "totalLinesCleared": 5559,
-    "totalAttackSent": 4449,
-    "totalReceivedSum": 1930,
-    "receivedSamples": 131,
-    "avgReceived": 14.7,
+    "totalLinesCleared": 5690,
+    "totalAttackSent": 4538,
+    "totalReceivedSum": 1993,
+    "receivedSamples": 133,
+    "avgReceived": 15,
     "teamWins": 0,
     "teamLosses": 0,
     "sprint40Best": 0,
@@ -1242,14 +1242,34 @@
       "apm": 3.6,
       "lines": 18,
       "maxCombo": 3
+    },
+    {
+      "date": "2026-10-21T14:27:01.851Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "BigL_",
+      "apm": 90.3,
+      "lines": 49,
+      "maxCombo": 12
+    },
+    {
+      "date": "2026-10-21T14:28:54.871Z",
+      "mode": "1v1 BO3",
+      "result": "ELIMINATED / LOSS",
+      "score": "2-1",
+      "opponent": "BigL_",
+      "apm": 38.1,
+      "lines": 82,
+      "maxCombo": 6
     }
   ],
   "isModerator": false,
   "headToHead": {
     "bigl_": {
       "opponentName": "BigL_",
-      "wins": 0,
-      "losses": 3
+      "wins": 1,
+      "losses": 4
     }
   },
   "dailyChallenges": {
@@ -1266,10 +1286,10 @@
       {
         "id": "combo_6",
         "title": "Reach a 6x Combo or Higher",
-        "progress": 4,
+        "progress": 6,
         "target": 6,
         "rewardXp": 250,
-        "claimed": false
+        "claimed": true
       },
       {
         "id": "matches_2",
