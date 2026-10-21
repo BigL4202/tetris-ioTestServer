@@ -87,7 +87,7 @@
       </div>
     </div>
 
-    <!-- HUB VIEW A: Active Players Bar + Singleplayer & Daily XP Challenges + Multiplayer (1v1, 2v2, FFA) + Leaderboards -->
+    <!-- HUB VIEW A: Active Players Bar + Singleplayer + Multiplayer + Leaderboards -->
     <div id="hub-play-view" class="hub-grid">
       <!-- Far-Left Column: Scrollable Active Players Bar -->
       <div class="hub-column">
@@ -120,8 +120,35 @@
 
             <div class="mode-select-card highlight-card" id="launch-apm-test-btn">
               <div class="mc-title">APM TEST (1:00 TIMED)</div>
-              <div class="mc-desc">1-Minute high-intensity attack sprint with live APM Graph. Sets your official Leaderboard APM.</div>
-              <span class="badge gold-badge">60 SECONDS • OFFICIAL APM</span>
+              <div class="mc-desc">1-Minute sprint with PB Pace-Maker & saved Replays. Sets your official Leaderboard APM.</div>
+              <span class="badge gold-badge">60 SECONDS • REPLAYS & PACEMAKER</span>
+            </div>
+
+            <div class="mode-select-card highlight-card" id="launch-sprint-40-btn">
+              <div class="mc-title">40 LINES SPRINT</div>
+              <div class="mc-desc">Clear 40 lines as fast as possible! Features live PB Pace-Maker and saved Replays.</div>
+              <span class="badge gold-badge">40 LINES • REPLAYS & PACEMAKER</span>
+            </div>
+
+            <!-- Play vs AI [BETA] with 1-10 Difficulty Selector -->
+            <div class="mode-select-card">
+              <div class="mc-title">PLAY VS AI <span class="badge gold-badge">BETA</span></div>
+              <div class="mc-desc">Battle our standalone AI bot in a 1v1 match! Choose Difficulty 1 to 10 below:</div>
+              <div class="mc-status-row" style="gap:8px; margin-top:6px;">
+                <select id="ai-difficulty-select" class="select-box" style="flex:1;">
+                  <option value="1">Difficulty 1 (Rookie)</option>
+                  <option value="2">Difficulty 2 (Novice)</option>
+                  <option value="3">Difficulty 3 (Apprentice)</option>
+                  <option value="4">Difficulty 4 (Contender)</option>
+                  <option value="5" selected>Difficulty 5 (Veteran)</option>
+                  <option value="6">Difficulty 6 (Expert)</option>
+                  <option value="7">Difficulty 7 (Master)</option>
+                  <option value="8">Difficulty 8 (Grandmaster)</option>
+                  <option value="9">Difficulty 9 (Overlord)</option>
+                  <option value="10">Difficulty 10 (A² God AI)</option>
+                </select>
+                <button id="launch-vs-ai-btn" class="btn btn-primary btn-sm">START VS AI</button>
+              </div>
             </div>
 
             <!-- Daily XP Challenges Box -->
@@ -133,7 +160,7 @@
         </div>
       </div>
 
-      <!-- Multiplayer Column (1v1, 2v2 Team Battles & FFA) -->
+      <!-- Multiplayer Column (1v1, Blind 1v1, 2v2 & FFA) -->
       <div class="hub-column">
         <div class="panel-card">
           <div class="card-header">
@@ -152,6 +179,20 @@
             <div id="queue-waiting-banner" class="challenge-box hidden">
               <div>Searching for 1v1 Opponent (Best of 3)...</div>
               <button id="leave-1v1-queue-btn" class="btn btn-danger btn-sm">LEAVE QUEUE</button>
+            </div>
+
+            <div class="mode-select-card mp-card highlight-card" id="join-blind-1v1-queue-btn">
+              <div class="mc-title">BLIND 1v1 QUEUE (INVISIBLE BOARD)</div>
+              <div class="mc-desc">1v1 Best of 3 where locked blocks on the board turn completely invisible!</div>
+              <div class="mc-status-row">
+                <span class="badge gold-badge">INVISIBLE STACK • BO3</span>
+                <span id="hub-blind-1v1-queue-status" class="queue-pill">In Queue: 0</span>
+              </div>
+            </div>
+
+            <div id="queue-blind-waiting-banner" class="challenge-box hidden">
+              <div>Searching for Blind 1v1 Opponent...</div>
+              <button id="leave-blind-1v1-queue-btn" class="btn btn-danger btn-sm">LEAVE BLIND QUEUE</button>
             </div>
 
             <div class="mode-select-card mp-card" id="join-2v2-queue-btn">
@@ -187,7 +228,7 @@
         </div>
       </div>
 
-      <!-- Leaderboards Column -->
+      <!-- Leaderboards Column (Includes APM Test & 40 Lines Replays) -->
       <div class="hub-column">
         <div class="panel-card leaderboard-card">
           <div class="card-header">
@@ -195,6 +236,7 @@
           </div>
           <div class="lb-tabs">
             <button class="lb-tab active" data-tab="byApm">APM TEST</button>
+            <button class="lb-tab" data-tab="bySprint">40 LINES</button>
             <button class="lb-tab" data-tab="byZen">ZEN LINES</button>
             <button class="lb-tab" data-tab="byWins">WINS</button>
             <button class="lb-tab" data-tab="byCombo">COMBO</button>
@@ -265,7 +307,7 @@
       </div>
     </div>
 
-    <!-- HUB VIEW C: CUSTOMIZATION (4 Columns: Left = 2-per-row Square BG Thumbnails, Block Skins, Ghost Styles, & Unlocked RGB COLORS) -->
+    <!-- HUB VIEW C: CUSTOMIZATION (Fixed Non-Overlapping 2-Per-Row Square BG Thumbnails, Skins, Ghosts & RGB COLORS) -->
     <div id="hub-customize-view" class="hub-customize-view hidden">
       <div class="panel-card">
         <div class="card-header">
@@ -289,7 +331,6 @@
         <div id="ghosts-unlock-grid" class="unlock-grid"></div>
       </div>
 
-      <!-- 4th Column: COLORS (Unlocked RGB Sliders for Board/Accent, Navy Menu Panels, Button BG & Button Text) -->
       <div class="panel-card">
         <div class="card-header">
           <h3>COLORS</h3>
@@ -327,7 +368,7 @@
       </div>
     </div>
 
-    <!-- HUB VIEW D: Every Player's Stats Directory (Includes Head-to-Head Tracker) -->
+    <!-- HUB VIEW D: Player Stats Directory -->
     <div id="hub-stats-view" class="hub-stats-view hidden">
       <div class="panel-card directory-list-card">
         <div class="card-header">
@@ -342,7 +383,7 @@
           <h3 id="inspected-pilot-title">SELECT A PLAYER TO INSPECT</h3>
         </div>
         <div id="inspected-pilot-body" class="inspected-pilot-body">
-          <p class="sub-hint">Click any player on the left to view your Head-to-Head record against them, Level, XP, Official APM, Zen Lines, and match log.</p>
+          <p class="sub-hint">Click any player on the left to view your Head-to-Head record against them, watch their APM Test / 40-Line Replays, and view their match log.</p>
         </div>
       </div>
     </div>
@@ -353,7 +394,6 @@
         <div class="card-header">
           <h3 id="admin-console-left-header">ADMIN & MODERATION PLAYERS LIST</h3>
         </div>
-        <!-- Global Admin Box (Strictly Hidden for Moderators; Visible ONLY to BigL_) -->
         <div id="admin-only-global-box" class="admin-global-box hidden">
           <label>ADMIN SHOUT (BIG SCREEN BROADCAST):</label>
           <div class="chat-input-row">
@@ -438,6 +478,11 @@
             <div class="stat-card">
               <span class="stat-title">BACK-TO-BACK</span>
               <span id="stat-b2b" class="stat-val">0x</span>
+            </div>
+            <!-- Live Personal Best Pace-Maker Card (Visible in APM Test & 40 Lines) -->
+            <div id="pacemaker-card" class="stat-card pacemaker-card hidden">
+              <span class="stat-title">PB PACEMAKER</span>
+              <span id="stat-pacemaker" class="stat-val">EVEN PACE</span>
             </div>
             <div id="action-feed-card" class="stat-card action-feed-card">
               <span class="stat-title">ACTION / ATTACK</span>
@@ -575,6 +620,7 @@
   <script src="js/audio.js"></script>
   <script src="js/background.js"></script>
   <script src="js/engine.js"></script>
+  <script src="js/ai.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
