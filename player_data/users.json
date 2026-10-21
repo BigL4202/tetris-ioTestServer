@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-21T14:34:52.606Z",
+    "updatedAt": "2026-10-21T14:35:58.420Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -47,20 +47,20 @@
       }
     },
     "stats": {
-      "gamesPlayed": 125,
+      "gamesPlayed": 126,
       "ffaWins": 37,
       "duelWins": 44,
-      "duelLosses": 15,
+      "duelLosses": 16,
       "maxCombo": 28,
-      "totalLinesCleared": 7461,
+      "totalLinesCleared": 7475,
       "totalAttackSent": 3182,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 1143,
-      "receivedSamples": 112,
-      "avgReceived": 10.2,
-      "xp": 53450,
+      "totalReceivedSum": 1171,
+      "receivedSamples": 113,
+      "avgReceived": 10.4,
+      "xp": 53580,
       "level": 26,
       "zenLines": 3190,
       "apmTestBest": 220,
@@ -1199,6 +1199,16 @@
         "apm": 32.7,
         "lines": 15,
         "maxCombo": 6
+      },
+      {
+        "date": "2026-10-21T14:35:58.420Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "ELIMINATED / LOSS",
+        "score": "2-1",
+        "opponent": "BARNESTTV",
+        "apm": 0,
+        "lines": 14,
+        "maxCombo": 4
       }
     ],
     "moderation": {
@@ -1213,7 +1223,7 @@
       "barnesttv": {
         "opponentName": "BARNESTTV",
         "wins": 7,
-        "losses": 1
+        "losses": 2
       }
     },
     "dailyChallenges": {
@@ -2509,7 +2519,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-21T14:34:52.607Z",
+    "updatedAt": "2026-10-21T14:35:58.419Z",
     "lastLogin": "2026-10-20T14:36:36.071Z",
     "moderation": {
       "banned": false,
@@ -2555,22 +2565,22 @@
       }
     },
     "stats": {
-      "xp": 40373,
+      "xp": 40583,
       "level": 23,
-      "gamesPlayed": 143,
+      "gamesPlayed": 144,
       "zenLines": 67,
       "apmTestBest": 83,
       "apmTestLast": 83,
       "ffaWins": 49,
-      "duelWins": 17,
+      "duelWins": 18,
       "duelLosses": 38,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 5886,
-      "totalAttackSent": 4641,
+      "totalLinesCleared": 5898,
+      "totalAttackSent": 4665,
       "totalReceivedSum": 2137,
-      "receivedSamples": 140,
-      "avgReceived": 15.3,
+      "receivedSamples": 141,
+      "avgReceived": 15.2,
       "teamWins": 0,
       "teamLosses": 0,
       "sprint40Best": 0,
@@ -3830,13 +3840,23 @@
         "apm": 3.6,
         "lines": 14,
         "maxCombo": 5
+      },
+      {
+        "date": "2026-10-21T14:35:58.419Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "WIN",
+        "score": "2-1",
+        "opponent": "BigL_",
+        "apm": 136.8,
+        "lines": 12,
+        "maxCombo": 4
       }
     ],
     "isModerator": false,
     "headToHead": {
       "bigl_": {
         "opponentName": "BigL_",
-        "wins": 1,
+        "wins": 2,
         "losses": 7
       }
     },
@@ -3879,7 +3899,7 @@
     "passwordHash": "743ac08d4d3f1a271357afd4104260d72b8b0d7412ba567d4d9842df9ec4be8a",
     "passwordPlain": "UCS4203bh",
     "createdAt": "2026-10-19T14:25:19.659Z",
-    "updatedAt": "2026-10-21T14:35:54.264Z",
+    "updatedAt": "2026-10-21T14:35:59.392Z",
     "lastLogin": "2026-10-21T14:28:54.238Z",
     "moderation": {
       "banned": false,
@@ -3925,10 +3945,10 @@
       }
     },
     "stats": {
-      "xp": 5980,
+      "xp": 5992,
       "level": 9,
       "gamesPlayed": 9,
-      "zenLines": 702,
+      "zenLines": 704,
       "apmTestBest": 0,
       "apmTestLast": 0,
       "ffaWins": 2,
@@ -3936,7 +3956,7 @@
       "duelLosses": 1,
       "tournamentWins": 0,
       "maxCombo": 12,
-      "totalLinesCleared": 858,
+      "totalLinesCleared": 860,
       "totalAttackSent": 91,
       "totalReceivedSum": 99,
       "receivedSamples": 9,
