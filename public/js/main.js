@@ -236,17 +236,15 @@
 
   let shakeOffsetX = 0;
   let shakeOffsetY = 0;
-  let shakeVelX = 0;
-  let shakeVelY = 0;
 
   let myId = null;
   let myUserObj = null;
   let isAuthenticated = false;
   let activeScreen = 'auth';
-  let currentMode = 'hub'; // 'zen4', 'zen10', 'apm_test', 'sprint_40', 'vs_ai', 'replay', 'duel', 'team2v2', 'ffa', 'spectate'
+  let currentMode = 'hub';
   let currentCols = 4;
   let canControlBoard = false;
-  let isBlindArena = false; // True in Blind 1v1 Queue (hides locked matrix cells)
+  let isBlindArena = false;
   let selectedManualTargetId = null;
 
   let lastInputTimestamp = performance.now();
@@ -256,10 +254,10 @@
 
   // Deterministic Replay Recorder & Playback State
   let currentRunSeed = 12345;
-  let currentReplayEvents = []; // [[elapsedMs, actionCode], ...]
-  let activeReplayPlayback = null; // { events, index, startTime }
+  let currentReplayEvents = [];
+  let activeReplayPlayback = null;
 
-  // Standalone AI Bot State (For Play vs AI [BETA])
+  // Standalone AI Bot State
   let aiController = null;
   let aiEngine = null;
   let currentAiDifficulty = 5;
@@ -474,13 +472,13 @@
   }
 
   // ============================================================================
-  // BOARD SHAKE PHYSICS
+  // EXPLOSION-PROOF BOARD SHAKE PHYSICS (Clamped & Exponential Decay)
   // ============================================================================
 
   function triggerBoardImpulse(ix, iy, isDamage = false) {
     if (!userPrefs.boardShake) return;
-    shakeVelX += ix;
-    shakeVelY += iy;
+    shakeOffsetX = Math.max(-8, Math.min(8, shakeOffsetX + (Number(ix) || 0)));
+    shakeOffsetY = Math.max(-8, Math.min(8, shakeOffsetY + (Number(iy) || 0)));
     if (isDamage && boardFrame) {
       boardFrame.classList.add('damage-flash');
       setTimeout(() => boardFrame.classList.remove('damage-flash'), 160);
@@ -488,26 +486,23 @@
   }
 
   function updateBoardShakePhysics(dtMs) {
+    if (!boardFrame) return;
     if (!userPrefs.boardShake) {
-      boardFrame.style.transform = 'translate(0px, 0px)';
-      return;
-    }
-    const dt = Math.min(0.05, dtMs / 1000);
-    const stiffness = 180;
-    const damping = 16;
-
-    const ax = -stiffness * shakeOffsetX - damping * shakeVelX;
-    const ay = -stiffness * shakeOffsetY - damping * shakeVelY;
-
-    shakeVelX += ax * dt * 12;
-    shakeVelY += ay * dt * 12;
-    shakeOffsetX += shakeVelX * dt * 12;
-    shakeOffsetY += shakeVelY * dt * 12;
-
-    if (Math.abs(shakeOffsetX) < 0.08 && Math.abs(shakeOffsetY) < 0.08 && Math.abs(shakeVelX) < 0.08 && Math.abs(shakeVelY) < 0.08) {
       shakeOffsetX = 0;
       shakeOffsetY = 0;
-      boardFrame.style.transform = 'translate(0px, 0px)';
+      boardFrame.style.transform = 'none';
+      return;
+    }
+
+    const decay = Math.pow(0.001, Math.min(0.1, Math.max(0.001, dtMs / 1000)));
+    shakeOffsetX *= decay;
+    shakeOffsetY *= decay;
+
+    if (!isFinite(shakeOffsetX) || Math.abs(shakeOffsetX) < 0.1) shakeOffsetX = 0;
+    if (!isFinite(shakeOffsetY) || Math.abs(shakeOffsetY) < 0.1) shakeOffsetY = 0;
+
+    if (shakeOffsetX === 0 && shakeOffsetY === 0) {
+      boardFrame.style.transform = 'none';
     } else {
       boardFrame.style.transform = `translate(${shakeOffsetX.toFixed(1)}px, ${shakeOffsetY.toFixed(1)}px)`;
     }
@@ -1427,7 +1422,7 @@
       enterArenaMode('replay', `${modeName}: ${username.toUpperCase()} (${rep.metricLabel || ''})`, rep.cols || 4, rep.seed);
 
       startCountdownWithDuration(rep.seed, rep.cols || 4, 3000, () => {
-        canControlBoard = false; // Replay drives the engine
+        canControlBoard = false;
         activeReplayPlayback = {
           events: rep.events || [],
           index: 0,
@@ -1633,15 +1628,25 @@
   });
 
   function configureBoardDimensions(cols) {
-    currentCols = cols;
-    const widthPx = cols * 32;
-    const heightPx = 26 * 32;
-    boardCanvas.width = widthPx;
-    boardCanvas.height = heightPx;
+    currentCols = cols === 10 ? 10 : 4;
+    boardCanvas.width = currentCols * 32;
+    boardCanvas.height = 26 * 32;
+
+    const displayCellPx = 24;
+    const displayW = currentCols * displayCellPx;
+    const displayH = 26 * displayCellPx;
+
+    boardCanvas.style.width = `${displayW}px`;
+    boardCanvas.style.height = `${displayH}px`;
+
     if (boardFrame) {
-      // Explicit pixel width prevents flexbox from ever collapsing the board!
-      boardFrame.style.width = `${cols === 10 ? 330 : 132}px`;
+      boardFrame.style.width = `${displayW + 4}px`;
+      boardFrame.style.height = `${displayH + 4}px`;
+      boardFrame.style.transform = 'none';
     }
+    shakeOffsetX = 0;
+    shakeOffsetY = 0;
+    playerPlayfieldWrapper.classList.remove('hidden');
   }
 
   function startCountdownWithDuration(seed, cols, durationMs = 3000, onGoCallback = null) {
@@ -1694,7 +1699,6 @@
       } else {
         clearInterval(countdownInterval);
         countdownInterval = null;
-        // Make overlay background 100% transparent the exact millisecond "GO!" appears so board is never grey!
         overlayBanner.classList.add('go-transparent');
         showOverlay('GO!', '');
         window.AudioController.playSFX('rotate');
@@ -1713,6 +1717,9 @@
   function enterArenaMode(modeKey, titleText, cols, seed = Date.now()) {
     activeScreen = 'arena';
     currentMode = modeKey;
+    if (modeKey !== 'duel') {
+      isBlindArena = false;
+    }
     hubScreen.classList.add('hidden');
     postMatchScreen.classList.add('hidden');
     arenaScreen.classList.remove('hidden');
@@ -1730,7 +1737,6 @@
       liveApmGraphBox.classList.add('hidden');
     }
 
-    // Show Live PB Pace-Maker in APM Test & 40-Line Sprint
     if (modeKey === 'apm_test' || modeKey === 'sprint_40') {
       pacemakerCard.classList.remove('hidden');
       statPacemaker.textContent = 'EVEN PACE';
@@ -2123,7 +2129,6 @@
         ctx.lineTo(cols * cellSize, 6 * cellSize);
         ctx.stroke();
 
-        // In Blind 1v1, opponent's locked blocks are also invisible!
         if (!isBlindArena) {
           for (let r = 0; r < rows; r++) {
             for (let colIdx = 0; colIdx < cols; colIdx++) {
@@ -2638,7 +2643,7 @@
   }
 
   // ============================================================================
-  // 11-TIER SKIN, GHOST, MOTION TRAILS & PARTICLE SHATTER RENDERERS
+  // 11-TIER SKIN, GHOST, SAFE MOTION TRAILS & PARTICLE SHATTER RENDERERS
   // ============================================================================
 
   function drawStyledBlock(ctx, x, y, size, color, alpha = 1.0, skin = 'bevel') {
@@ -2826,25 +2831,26 @@
     boardCtx.lineTo(cols * cellSize, engine.bufferRows * cellSize);
     boardCtx.stroke();
 
-    // Hard-Drop Motion Trails
+    // Safe Hard-Drop Motion Trails (Never crashes canvas on 0-distance or NaN)
     if (Array.isArray(engine.hardDropTrails) && engine.hardDropTrails.length > 0) {
-      engine.hardDropTrails = engine.hardDropTrails.filter(t => t.expiresAt > now);
+      engine.hardDropTrails = engine.hardDropTrails.filter(t => t && t.expiresAt > now);
       engine.hardDropTrails.forEach(t => {
-        const life = Math.max(0, (t.expiresAt - now) / 180);
-        const topPx = t.startY * cellSize;
-        const heightPx = Math.max(cellSize, (t.endY - t.startY) * cellSize);
-        const grad = boardCtx.createLinearGradient(0, topPx, 0, topPx + heightPx);
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        grad.addColorStop(1, t.color);
-        boardCtx.save();
-        boardCtx.globalAlpha = life * 0.42;
-        boardCtx.fillStyle = grad;
-        boardCtx.fillRect(t.x * cellSize + 3, topPx, cellSize - 6, heightPx);
-        boardCtx.restore();
+        try {
+          const life = Math.max(0, Math.min(1, (t.expiresAt - now) / 180));
+          const topPx = (Number(t.startY) || 0) * cellSize;
+          const heightPx = Math.max(cellSize, ((Number(t.endY) || 0) - (Number(t.startY) || 0)) * cellSize);
+          if (isFinite(topPx) && isFinite(heightPx) && heightPx > 0) {
+            boardCtx.save();
+            boardCtx.globalAlpha = life * 0.35;
+            boardCtx.fillStyle = t.color || '#00e5ff';
+            boardCtx.fillRect(t.x * cellSize + 4, topPx, cellSize - 8, heightPx);
+            boardCtx.restore();
+          }
+        } catch (e) {}
       });
     }
 
-    // Locked blocks (Hidden in Blind 1v1 Mode!)
+    // Locked blocks (Hidden in Blind 1v1 Mode)
     if (!isBlindArena) {
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -2959,7 +2965,6 @@
     if (activeScreen === 'arena') {
       updateBoardShakePhysics(dtMs);
 
-      // Replay Playback Mode Execution
       if (currentMode === 'replay' && activeReplayPlayback && !engine.gameOver) {
         const repElapsed = now - activeReplayPlayback.startTime;
         while (
@@ -2989,7 +2994,6 @@
         updateInput(dtMs);
         engine.update(dtMs);
 
-        // Update Standalone AI Bot in Play vs AI Mode
         if (currentMode === 'vs_ai' && aiController && aiEngine && !aiEngine.gameOver) {
           aiController.update(dtMs);
           const aiM = aiEngine.getLiveMetrics();
