@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-21T14:22:28.645Z",
+    "updatedAt": "2026-10-21T14:23:38.150Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -47,20 +47,20 @@
       }
     },
     "stats": {
-      "gamesPlayed": 113,
+      "gamesPlayed": 114,
       "ffaWins": 33,
-      "duelWins": 37,
+      "duelWins": 38,
       "duelLosses": 14,
       "maxCombo": 28,
-      "totalLinesCleared": 7096,
-      "totalAttackSent": 2793,
+      "totalLinesCleared": 7113,
+      "totalAttackSent": 2799,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
-      "totalReceivedSum": 1066,
-      "receivedSamples": 100,
-      "avgReceived": 10.7,
-      "xp": 50101,
+      "totalReceivedSum": 1072,
+      "receivedSamples": 101,
+      "avgReceived": 10.6,
+      "xp": 50336,
       "level": 26,
       "zenLines": 3190,
       "apmTestBest": 220,
@@ -1087,6 +1087,16 @@
         "apm": 158,
         "lines": 92,
         "maxCombo": 13
+      },
+      {
+        "date": "2026-10-21T14:23:38.150Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "WIN",
+        "score": "2-0",
+        "opponent": "BARNESTTV",
+        "apm": 13.3,
+        "lines": 17,
+        "maxCombo": 2
       }
     ],
     "moderation": {
@@ -1097,7 +1107,13 @@
       "updatedAt": 1792530345802
     },
     "isModerator": false,
-    "headToHead": {},
+    "headToHead": {
+      "barnesttv": {
+        "opponentName": "BARNESTTV",
+        "wins": 1,
+        "losses": 0
+      }
+    },
     "dailyChallenges": {
       "date": "2026-10-21",
       "challenges": [
@@ -2391,7 +2407,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-21T14:20:48.467Z",
+    "updatedAt": "2026-10-21T14:23:38.151Z",
     "lastLogin": "2026-10-20T14:36:36.071Z",
     "moderation": {
       "banned": false,
@@ -2437,21 +2453,21 @@
       }
     },
     "stats": {
-      "xp": 37090,
+      "xp": 37320,
       "level": 22,
-      "gamesPlayed": 131,
+      "gamesPlayed": 132,
       "zenLines": 67,
       "apmTestBest": 83,
       "apmTestLast": 83,
       "ffaWins": 49,
       "duelWins": 16,
-      "duelLosses": 31,
+      "duelLosses": 32,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 5507,
-      "totalAttackSent": 4435,
-      "totalReceivedSum": 1894,
-      "receivedSamples": 128,
+      "totalLinesCleared": 5541,
+      "totalAttackSent": 4447,
+      "totalReceivedSum": 1904,
+      "receivedSamples": 129,
       "avgReceived": 14.8,
       "teamWins": 0,
       "teamLosses": 0,
@@ -3600,17 +3616,33 @@
         "apm": 29.6,
         "lines": 27,
         "maxCombo": 6
+      },
+      {
+        "date": "2026-10-21T14:23:38.151Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "ELIMINATED / LOSS",
+        "score": "2-0",
+        "opponent": "BigL_",
+        "apm": 13.2,
+        "lines": 34,
+        "maxCombo": 4
       }
     ],
     "isModerator": false,
-    "headToHead": {},
+    "headToHead": {
+      "bigl_": {
+        "opponentName": "BigL_",
+        "wins": 0,
+        "losses": 1
+      }
+    },
     "dailyChallenges": {
       "date": "2026-10-21",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 0,
+          "progress": 34,
           "target": 40,
           "rewardXp": 200,
           "claimed": false
@@ -3618,7 +3650,7 @@
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 0,
+          "progress": 4,
           "target": 6,
           "rewardXp": 250,
           "claimed": false
@@ -3626,7 +3658,7 @@
         {
           "id": "matches_2",
           "title": "Finish 2 Multiplayer or APM Test Matches",
-          "progress": 0,
+          "progress": 1,
           "target": 2,
           "rewardXp": 300,
           "claimed": false
