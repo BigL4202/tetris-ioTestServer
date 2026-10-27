@@ -4,7 +4,7 @@
   "passwordHash": "70ea17bb506dcae54d461bc158e86bb7ed1b040d8e1d2ac6058c5d59b4fd6b12",
   "passwordPlain": "UCS4214gn",
   "createdAt": "2026-10-27T13:54:01.723Z",
-  "updatedAt": "2026-10-27T13:55:12.640Z",
+  "updatedAt": "2026-10-27T13:56:38.336Z",
   "lastLogin": "2026-10-27T13:54:01.723Z",
   "moderation": {
     "banned": false,
@@ -49,9 +49,9 @@
     }
   },
   "stats": {
-    "xp": 370,
-    "level": 3,
-    "gamesPlayed": 1,
+    "xp": 772,
+    "level": 4,
+    "gamesPlayed": 2,
     "zenLines": 0,
     "apmTestBest": 35,
     "apmTestLast": 35,
@@ -63,12 +63,12 @@
     "teamWins": 0,
     "teamLosses": 0,
     "tournamentWins": 0,
-    "maxCombo": 4,
-    "totalLinesCleared": 54,
+    "maxCombo": 5,
+    "totalLinesCleared": 67,
     "totalAttackSent": 0,
-    "totalReceivedSum": 0,
-    "receivedSamples": 0,
-    "avgReceived": 0
+    "totalReceivedSum": 23,
+    "receivedSamples": 1,
+    "avgReceived": 23
   },
   "replays": {
     "apmTest": {
@@ -1344,7 +1344,7 @@
       {
         "id": "combo_6",
         "title": "Reach a 6x Combo or Higher",
-        "progress": 4,
+        "progress": 5,
         "target": 6,
         "rewardXp": 250,
         "claimed": false
@@ -1352,10 +1352,10 @@
       {
         "id": "matches_2",
         "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-        "progress": 1,
+        "progress": 2,
         "target": 2,
         "rewardXp": 300,
-        "claimed": false
+        "claimed": true
       }
     ]
   },
@@ -1367,6 +1367,14 @@
       "apm": 35,
       "lines": 54,
       "maxCombo": 4
+    },
+    {
+      "date": "2026-10-27T13:56:38.336Z",
+      "mode": "FFA",
+      "result": "ELIMINATED",
+      "apm": 0,
+      "lines": 13,
+      "maxCombo": 5
     }
   ]
 }
