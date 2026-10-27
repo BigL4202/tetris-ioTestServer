@@ -3,7 +3,7 @@
   "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
   "passwordPlain": "4202",
   "createdAt": "2026-10-15T18:39:21.157Z",
-  "updatedAt": "2026-10-27T13:55:07.767Z",
+  "updatedAt": "2026-10-27T13:55:45.135Z",
   "lastLogin": "2026-10-20T00:24:39.280Z",
   "settings": {
     "das": 115,
@@ -46,20 +46,20 @@
     }
   },
   "stats": {
-    "gamesPlayed": 131,
-    "ffaWins": 37,
+    "gamesPlayed": 132,
+    "ffaWins": 38,
     "duelWins": 48,
     "duelLosses": 16,
     "maxCombo": 28,
-    "totalLinesCleared": 7612,
-    "totalAttackSent": 3252,
+    "totalLinesCleared": 7634,
+    "totalAttackSent": 3295,
     "totalApmSum": 0,
     "apmSamples": 1,
     "avgApm": 0,
     "totalReceivedSum": 1188,
-    "receivedSamples": 117,
-    "avgReceived": 10.2,
-    "xp": 55222,
+    "receivedSamples": 118,
+    "avgReceived": 10.1,
+    "xp": 55750,
     "level": 27,
     "zenLines": 3190,
     "apmTestBest": 220,
@@ -1256,6 +1256,14 @@
       "apm": 131,
       "lines": 91,
       "maxCombo": 11
+    },
+    {
+      "date": "2026-10-27T13:55:45.135Z",
+      "mode": "FFA",
+      "result": "1ST (WIN)",
+      "apm": 159.3,
+      "lines": 22,
+      "maxCombo": 7
     }
   ],
   "moderation": {
@@ -1295,10 +1303,10 @@
       {
         "id": "matches_2",
         "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-        "progress": 1,
+        "progress": 2,
         "target": 2,
         "rewardXp": 300,
-        "claimed": false
+        "claimed": true
       }
     ]
   },
