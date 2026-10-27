@@ -3,7 +3,7 @@
   "passwordHash": "a3b5582b96f496f423927e2d457f69ad8c0005e699166bbdaf43711446c40d06",
   "passwordPlain": "WaverlyH18!",
   "createdAt": "2026-10-16T13:52:21.058Z",
-  "updatedAt": "2026-10-21T16:53:21.457Z",
+  "updatedAt": "2026-10-27T12:57:18.786Z",
   "lastLogin": "2026-10-16T13:56:23.203Z",
   "moderation": {
     "banned": false,
@@ -49,22 +49,22 @@
     }
   },
   "stats": {
-    "xp": 7703,
-    "level": 10,
-    "gamesPlayed": 28,
+    "xp": 9406,
+    "level": 11,
+    "gamesPlayed": 34,
     "zenLines": 186,
     "apmTestBest": 60,
-    "apmTestLast": 37,
+    "apmTestLast": 44,
     "ffaWins": 0,
-    "duelWins": 11,
+    "duelWins": 16,
     "duelLosses": 5,
     "tournamentWins": 0,
     "maxCombo": 11,
-    "totalLinesCleared": 1085,
-    "totalAttackSent": 262,
-    "totalReceivedSum": 169,
-    "receivedSamples": 16,
-    "avgReceived": 10.6,
+    "totalLinesCleared": 1199,
+    "totalAttackSent": 329,
+    "totalReceivedSum": 179,
+    "receivedSamples": 21,
+    "avgReceived": 8.5,
     "teamWins": 0,
     "teamLosses": 0,
     "sprint40Best": 38.42,
@@ -326,6 +326,64 @@
       "apm": 37,
       "lines": 59,
       "maxCombo": 5
+    },
+    {
+      "date": "2026-10-21T16:56:13.742Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-1",
+      "opponent": "Buquet",
+      "apm": 102.6,
+      "lines": 7,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-21T16:57:18.455Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "Buquet",
+      "apm": 37.9,
+      "lines": 15,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-21T16:58:04.223Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "Buquet",
+      "apm": 87,
+      "lines": 3,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-21T16:59:31.341Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "Buquet",
+      "apm": 29.8,
+      "lines": 22,
+      "maxCombo": 5
+    },
+    {
+      "date": "2026-10-21T17:00:34.104Z",
+      "mode": "1v1 BO3",
+      "result": "WIN",
+      "score": "2-0",
+      "opponent": "Buquet",
+      "apm": 65,
+      "lines": 16,
+      "maxCombo": 6
+    },
+    {
+      "date": "2026-10-27T12:57:18.785Z",
+      "mode": "APM TEST (1:00)",
+      "result": "44 APM",
+      "apm": 44,
+      "lines": 51,
+      "maxCombo": 7
     }
   ],
   "isModerator": false,
@@ -2714,12 +2772,12 @@
   "headToHead": {
     "buquet": {
       "opponentName": "Buquet",
-      "wins": 11,
+      "wins": 16,
       "losses": 3
     }
   },
   "dailyChallenges": {
-    "date": "2026-10-21",
+    "date": "2026-10-27",
     "challenges": [
       {
         "id": "lines_40",
@@ -2739,11 +2797,11 @@
       },
       {
         "id": "matches_2",
-        "title": "Finish 2 Multiplayer or APM Test Matches",
-        "progress": 2,
+        "title": "Finish 2 Multiplayer, Sprint or APM Matches",
+        "progress": 1,
         "target": 2,
         "rewardXp": 300,
-        "claimed": true
+        "claimed": false
       }
     ]
   }
