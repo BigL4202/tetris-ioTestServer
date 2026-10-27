@@ -7241,5 +7241,113 @@
       "apmTest": null,
       "sprint40": null
     }
+  },
+  "pickle950m": {
+    "username": "Pickle950M",
+    "isModerator": false,
+    "passwordHash": "70ea17bb506dcae54d461bc158e86bb7ed1b040d8e1d2ac6058c5d59b4fd6b12",
+    "passwordPlain": "UCS4214gn",
+    "createdAt": "2026-10-27T13:54:01.723Z",
+    "updatedAt": "2026-10-27T13:54:01.723Z",
+    "lastLogin": "2026-10-27T13:54:01.723Z",
+    "moderation": {
+      "banned": false,
+      "banReason": "",
+      "timeoutUntil": 0,
+      "mutedUntil": 0,
+      "updatedAt": 1793109241723
+    },
+    "settings": {
+      "musicVolume": 40,
+      "sfxVolume": 75,
+      "bgInterval": 180,
+      "boardShake": true,
+      "lockFlash": true,
+      "blockSkin": "bevel",
+      "ghostStyle": "fill",
+      "lockedBg": "shuffle",
+      "customColors": {
+        "accentR": 0,
+        "accentG": 229,
+        "accentB": 255,
+        "menuR": 12,
+        "menuG": 19,
+        "menuB": 33,
+        "btnBgR": 25,
+        "btnBgG": 40,
+        "btnBgB": 68,
+        "btnTxtR": 230,
+        "btnTxtG": 241,
+        "btnTxtB": 255
+      },
+      "keybinds": {
+        "moveLeft": "ArrowLeft",
+        "moveRight": "ArrowRight",
+        "rotateCW": "ArrowUp",
+        "rotateCCW": "KeyZ",
+        "rotate180": "KeyA",
+        "softDrop": "ArrowDown",
+        "hardDrop": "Space",
+        "hold": "ShiftLeft",
+        "restart": "KeyR"
+      }
+    },
+    "stats": {
+      "xp": 0,
+      "level": 1,
+      "gamesPlayed": 0,
+      "zenLines": 0,
+      "apmTestBest": 0,
+      "apmTestLast": 0,
+      "sprint40Best": 0,
+      "sprint40Last": 0,
+      "ffaWins": 0,
+      "duelWins": 0,
+      "duelLosses": 0,
+      "teamWins": 0,
+      "teamLosses": 0,
+      "tournamentWins": 0,
+      "maxCombo": 0,
+      "totalLinesCleared": 0,
+      "totalAttackSent": 0,
+      "totalReceivedSum": 0,
+      "receivedSamples": 0,
+      "avgReceived": 0
+    },
+    "replays": {
+      "apmTest": null,
+      "sprint40": null
+    },
+    "headToHead": {},
+    "dailyChallenges": {
+      "date": "2026-10-27",
+      "challenges": [
+        {
+          "id": "lines_40",
+          "title": "Clear 40 Lines in Any Mode",
+          "progress": 0,
+          "target": 40,
+          "rewardXp": 200,
+          "claimed": false
+        },
+        {
+          "id": "combo_6",
+          "title": "Reach a 6x Combo or Higher",
+          "progress": 0,
+          "target": 6,
+          "rewardXp": 250,
+          "claimed": false
+        },
+        {
+          "id": "matches_2",
+          "title": "Finish 2 Multiplayer, Sprint or APM Matches",
+          "progress": 0,
+          "target": 2,
+          "rewardXp": 300,
+          "claimed": false
+        }
+      ]
+    },
+    "matchHistory": []
   }
 }
