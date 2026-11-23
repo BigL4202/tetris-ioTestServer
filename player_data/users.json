@@ -4,7 +4,7 @@
     "passwordHash": "b68f7a167ad7b17c4e9279f74fb9310d9a3bbeddafd871c7f1373c34c0f20ca6",
     "passwordPlain": "4202",
     "createdAt": "2026-10-15T18:39:21.157Z",
-    "updatedAt": "2026-10-27T14:06:06.335Z",
+    "updatedAt": "2026-11-23T15:23:53.581Z",
     "lastLogin": "2026-10-20T00:24:39.280Z",
     "settings": {
       "das": 115,
@@ -47,21 +47,21 @@
       }
     },
     "stats": {
-      "gamesPlayed": 142,
+      "gamesPlayed": 143,
       "ffaWins": 38,
-      "duelWins": 56,
+      "duelWins": 57,
       "duelLosses": 16,
       "maxCombo": 28,
-      "totalLinesCleared": 7891,
-      "totalAttackSent": 3508,
+      "totalLinesCleared": 7915,
+      "totalAttackSent": 3532,
       "totalApmSum": 0,
       "apmSamples": 1,
       "avgApm": 0,
       "totalReceivedSum": 1277,
-      "receivedSamples": 128,
-      "avgReceived": 10,
-      "xp": 58210,
-      "level": 27,
+      "receivedSamples": 129,
+      "avgReceived": 9.9,
+      "xp": 58480,
+      "level": 28,
       "zenLines": 3190,
       "apmTestBest": 220,
       "apmTestLast": 131,
@@ -1361,6 +1361,16 @@
         "apm": 70.8,
         "lines": 13,
         "maxCombo": 9
+      },
+      {
+        "date": "2026-11-23T15:23:53.580Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "WIN",
+        "score": "2-1",
+        "opponent": "BARNESTTV",
+        "apm": 62.9,
+        "lines": 24,
+        "maxCombo": 4
       }
     ],
     "moderation": {
@@ -1374,36 +1384,36 @@
     "headToHead": {
       "barnesttv": {
         "opponentName": "BARNESTTV",
-        "wins": 19,
+        "wins": 20,
         "losses": 2
       }
     },
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 40,
+          "progress": 24,
           "target": 40,
           "rewardXp": 200,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 6,
+          "progress": 4,
           "target": 6,
           "rewardXp": 250,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "matches_2",
           "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-          "progress": 2,
+          "progress": 1,
           "target": 2,
           "rewardXp": 300,
-          "claimed": true
+          "claimed": false
         }
       ]
     },
@@ -1541,7 +1551,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -1703,7 +1713,7 @@
     },
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -4527,31 +4537,31 @@
       }
     },
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 40,
+          "progress": 0,
           "target": 40,
           "rewardXp": 200,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 6,
+          "progress": 0,
           "target": 6,
           "rewardXp": 250,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "matches_2",
           "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-          "progress": 2,
+          "progress": 0,
           "target": 2,
           "rewardXp": 300,
-          "claimed": true
+          "claimed": false
         }
       ]
     }
@@ -5085,7 +5095,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -5194,7 +5204,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -5303,7 +5313,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -5341,7 +5351,7 @@
     "passwordHash": "bde5cec1c1fffeb22ae9b985ff2bffeb26575d71ea52aaa230e0a4bf06790f2f",
     "passwordPlain": "UCE5826tb",
     "createdAt": "2026-10-19T12:15:50.187Z",
-    "updatedAt": "2026-10-27T14:06:06.336Z",
+    "updatedAt": "2026-11-23T15:23:53.591Z",
     "lastLogin": "2026-10-20T14:36:36.071Z",
     "moderation": {
       "banned": false,
@@ -5387,21 +5397,21 @@
       }
     },
     "stats": {
-      "xp": 44431,
+      "xp": 44661,
       "level": 24,
-      "gamesPlayed": 159,
+      "gamesPlayed": 160,
       "zenLines": 67,
       "apmTestBest": 83,
       "apmTestLast": 83,
       "ffaWins": 51,
       "duelWins": 18,
-      "duelLosses": 50,
+      "duelLosses": 51,
       "tournamentWins": 0,
       "maxCombo": 20,
-      "totalLinesCleared": 6341,
-      "totalAttackSent": 5087,
-      "totalReceivedSum": 2459,
-      "receivedSamples": 156,
+      "totalLinesCleared": 6375,
+      "totalAttackSent": 5089,
+      "totalReceivedSum": 2487,
+      "receivedSamples": 157,
       "avgReceived": 15.8,
       "teamWins": 0,
       "teamLosses": 0,
@@ -6816,6 +6826,16 @@
         "apm": 87.5,
         "lines": 16,
         "maxCombo": 4
+      },
+      {
+        "date": "2026-11-23T15:23:53.591Z",
+        "mode": "BLIND 1v1 BO3",
+        "result": "ELIMINATED / LOSS",
+        "score": "2-1",
+        "opponent": "BigL_",
+        "apm": 2.6,
+        "lines": 34,
+        "maxCombo": 4
       }
     ],
     "isModerator": false,
@@ -6823,35 +6843,35 @@
       "bigl_": {
         "opponentName": "BigL_",
         "wins": 2,
-        "losses": 19
+        "losses": 20
       }
     },
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 40,
+          "progress": 34,
           "target": 40,
           "rewardXp": 200,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 6,
+          "progress": 4,
           "target": 6,
           "rewardXp": 250,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "matches_2",
           "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-          "progress": 2,
+          "progress": 1,
           "target": 2,
           "rewardXp": 300,
-          "claimed": true
+          "claimed": false
         }
       ]
     },
@@ -7207,7 +7227,7 @@
       }
     },
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -7320,7 +7340,7 @@
     },
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -7425,7 +7445,7 @@
     "isModerator": false,
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
@@ -8791,20 +8811,20 @@
     },
     "headToHead": {},
     "dailyChallenges": {
-      "date": "2026-10-27",
+      "date": "2026-11-23",
       "challenges": [
         {
           "id": "lines_40",
           "title": "Clear 40 Lines in Any Mode",
-          "progress": 40,
+          "progress": 0,
           "target": 40,
           "rewardXp": 200,
-          "claimed": true
+          "claimed": false
         },
         {
           "id": "combo_6",
           "title": "Reach a 6x Combo or Higher",
-          "progress": 5,
+          "progress": 0,
           "target": 6,
           "rewardXp": 250,
           "claimed": false
@@ -8812,10 +8832,10 @@
         {
           "id": "matches_2",
           "title": "Finish 2 Multiplayer, Sprint or APM Matches",
-          "progress": 2,
+          "progress": 0,
           "target": 2,
           "rewardXp": 300,
-          "claimed": true
+          "claimed": false
         }
       ]
     },
